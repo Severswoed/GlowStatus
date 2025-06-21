@@ -108,6 +108,21 @@ REFRESH_INTERVAL=60
 
 ---
 
+> **Need a Govee API Key?**  
+> See [How to Get Your Govee Developer API Key](./docs/govee_apikey_instructions.md) for step-by-step instructions on requesting and using your key.
+
+---
+
+> **Need help finding your Govee Device ID?**  
+> See [How to Find Your Govee Device ID](./docs/govee_device_id_instructions.md) for step-by-step instructions and example scripts.
+
+---
+
+> **Need help with Google Calendar API credentials?**  
+> See [How to Get a Google Calendar API Key](./docs/google_calendar_apikey_instructions.md) for a step-by-step guide to setting up your credentials and enabling the API.
+
+---
+
 ## 🎯 Future Roadmap
 
 - Slack/Teams status sync
