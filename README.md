@@ -25,18 +25,22 @@ GlowStatus is a lightweight, cross-platform status indicator system that integra
 ```
 GlowStatus/
 ├── src/
-│   ├── glowstatus.py             # Main control logic
-│   ├── govee_controller.py       # Govee API integration
-│   ├── calendar_sync.py          # Google Calendar sync logic
-│   ├── logger.py                 # Logging utilities
-│   └── utils.py                  # Helper functions
+│   ├── glowstatus.py                   # Main control logic
+│   ├── govee_controller.py             # Govee API integration
+│   ├── calendar_sync.py                # Google Calendar sync logic
+│   ├── logger.py                       # Logging utilities
+│   └── utils.py                        # Helper functions
 ├── tests/
-│   └── test_man.py               # Unit tests for utilities and logic
-├── .env.example                  # Sample env config
-├── setup.sh                      # Bootstrap script
-├── requirements.txt              # Python dependencies
-├── README.md                     # You're here!
-└── LICENSE                       # MIT License
+│   └── test_man.py                     # Unit tests for utilities and logic
+├── docs/
+│   ├── govee_apikey_instructions.md            # How to get your Govee API key
+│   ├── govee_device_id_instructions.md         # How to find your Govee Device ID
+│   └── google_calendar_apikey_instructions.md  # How to get Google Calendar API credentials
+├── .env.example                        # Sample env config
+├── setup.sh                            # Bootstrap script
+├── requirements.txt                    # Python dependencies
+├── README.md                           # You're here!
+└── LICENSE                             # MIT License
 ```
 
 ---
