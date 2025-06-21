@@ -23,6 +23,11 @@ GlowStatus is a lightweight, cross-platform status indicator system that integra
 ## 📦 Project Structure
 
 ```
+---
+
+## 📦 Project Structure
+
+```
 GlowStatus/
 ├── src/
 │   ├── glowstatus.py             # Main control logic
@@ -30,6 +35,8 @@ GlowStatus/
 │   ├── calendar_sync.py          # Google Calendar sync logic
 │   ├── logger.py                 # Logging utilities
 │   └── utils.py                  # Helper functions
+├── tests/
+│   └── test_man.py               # Unit tests for utilities and logic
 ├── .env.example                  # Sample env config
 ├── setup.sh                      # Bootstrap script
 ├── requirements.txt              # Python dependencies
@@ -55,7 +62,7 @@ GlowStatus/
 3. **Create and Configure `.env`**
    ```bash
    cp .env.example .env
-   # Fill in Govee API Key, Google OAuth credentials, etc.
+   # Fill in Govee API Key, Device ID, Google Calendar ID, and service account JSON path.
    ```
 
 4. **Run the App**
@@ -72,8 +79,7 @@ GlowStatus/
 GOVEE_API_KEY=your-govee-api-key
 GOVEE_DEVICE_ID=your-light-device-id
 GOOGLE_CALENDAR_ID=primary
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_SERVICE_ACCOUNT_JSON=/path/to/your/service_account.json
 REFRESH_INTERVAL=60
 ```
 
