@@ -23,11 +23,6 @@ GlowStatus is a lightweight, cross-platform status indicator system that integra
 ## 📦 Project Structure
 
 ```
----
-
-## 📦 Project Structure
-
-```
 GlowStatus/
 ├── src/
 │   ├── glowstatus.py             # Main control logic
@@ -112,4 +107,4 @@ Ideas? Bugs? PRs are welcome. File an issue or drop a discussion topic!
 
 ---
 
-Let your **GlowStatus** speak for you ✨
+Let your **GlowStatus** speak for you! 💙
