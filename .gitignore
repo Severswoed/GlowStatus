@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Environment
+.env
+.env.*
+venv/
+.envrc
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+*.lnk
+
+# VS Code
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Git
+*.orig
+
+# Coverage and test reports
+coverage/
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+.nox/
+.cache
+nosetests.xml
+coverage.xml
+*.coveragerc
+test-results/
+
+# System files
+*.swp
+*.swo
+
+# Electron or Desktop App
+/out/
+release/
+*.asar
+
+# GlowStatus-specific
+logs/
+govee_temp.json
+auth_token.txt
+
+# Optional
+*.bak
+*.tmp
