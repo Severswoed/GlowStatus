@@ -80,6 +80,34 @@ REFRESH_INTERVAL=60
 
 ---
 
+## 🚀 How to Run GlowStatus on Your iPad (with GitHub Codespaces)
+
+1. **Open GitHub in Safari or your browser on your iPad.**
+2. **Navigate to your GlowStatus repository.**
+3. **Tap the green “Code” button and select “Codespaces.”**
+4. **Create a new Codespace (or open an existing one).**
+5. **In the Codespaces environment:**
+    - Open the built-in terminal.
+    - Run:  
+      ```bash
+      pip install -r requirements.txt
+      ```
+    - Copy `.env.example` to `.env` and fill in your credentials:
+      ```bash
+      cp .env.example .env
+      # Edit .env with your API keys and paths
+      ```
+    - Upload your Google service account JSON file to the workspace.
+6. **Start the app:**
+    ```bash
+    python src/glowstatus.py
+    ```
+7. **Leave the Codespace running to keep GlowStatus active.**
+
+> **Tip:** You can edit files, run commands, and monitor logs all from your iPad’s browser using Codespaces!
+
+---
+
 ## 🎯 Future Roadmap
 
 - Slack/Teams status sync
