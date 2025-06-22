@@ -10,14 +10,14 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 
 ## 🚀 Features
 
-- **Real-time Meeting Detection** – Syncs with Google Calendar to detect your meeting status.
-- **Smart Light Control** – Uses Govee API to change light colors based on presence.
+- **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events.
+- **Smart Light Control** – Uses Govee API to change light colors based on your calendar status.
 - **Configurable Modes** – Custom color themes for:
-  - In a Meeting
-  - Available
-  - Focus Mode
-  - Offline
-- **Secure by Default** – Uses `.env` for secure API key and token management.
+  - In a Meeting (red)
+  - Focus Mode (blue)
+  - Available (green)
+  - Offline (gray)
+- **Secure by Default** – Uses `.env` for secure API key and token management in dev, OAuth 2.0 in use [coming soon].
 - **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
 
 ---
@@ -142,6 +142,7 @@ curl -X PUT "https://developer-api.govee.com/v1/devices/control" \
 
 ## 🎯 Future Roadmap
 
+- Customized colors / status'
 - Slack/Teams status sync
 - Tray icon/manual override
 - Time-based or ambient-light auto dimming

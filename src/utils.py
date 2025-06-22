@@ -8,14 +8,13 @@ def clamp_rgb(r, g, b):
         max(0, min(255, int(b))),
     )
 
-def normalize_status(event_summary):
-    """Map event summary or keywords to a status key."""
-    summary = event_summary.lower()
+def normalize_status(summary):
+    summary = summary.lower()
     if "focus" in summary:
         return "focus"
     if "meeting" in summary or "call" in summary:
         return "in_meeting"
-    return "available"
+    return "in_meeting"  # Or "available" if you want non-meeting events to not trigger the light
 
 def format_time(dt):
     """Format a datetime object for logging/display."""

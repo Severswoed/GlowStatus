@@ -48,37 +48,44 @@ class CalendarSync:
             logger.error("Google Calendar service not initialized.")
             return ("offline", None) if return_next_event_time else "offline"
         now = datetime.datetime.now(datetime.timezone.utc)
-        now_iso = now.isoformat()
+        lookback_minutes = 15
+        time_min = (now - datetime.timedelta(minutes=lookback_minutes)).isoformat()
         try:
-            # Get all events that have not ended yet (could be ongoing or upcoming)
             events_result = (
                 self.service.events()
                 .list(
                     calendarId=self.calendar_id,
-                    timeMin=now_iso,
+                    timeMin=time_min,
                     maxResults=5,
                     singleEvents=True,
                     orderBy="startTime",
                 )
                 .execute()
             )
+            # After fetching events
             events = events_result.get("items", [])
-            # Check for ongoing event
+            logger.info(f"Fetched {len(events)} events from Google Calendar:")
+
+            # 1. Check for ongoing event (this takes priority)
             for event in events:
                 start = event["start"].get("dateTime", event["start"].get("date"))
                 end = event["end"].get("dateTime", event["end"].get("date"))
                 start_dt = dateutil.parser.isoparse(start)
                 end_dt = dateutil.parser.isoparse(end)
+                logger.info(f"Checking event: {event.get('summary', '')} | Start: {start_dt} | End: {end_dt} | Now: {now}")
                 if start_dt <= now <= end_dt:
                     status = normalize_status(event.get("summary", ""))
+                    # status = "in_meeting"
+                    duration_minutes = int((end_dt - start_dt).total_seconds() // 60)
+                    logger.info(f"Detected meeting: {event.get('summary', '')} | Duration: {duration_minutes} minutes")
                     if return_next_event_time:
                         return status, start_dt
                     return status
-            # No ongoing event, check for next event within 1 minute
+            # 2. No ongoing event, check for next event within 1 minute (start early)
             if events:
                 next_event = events[0]
                 start = next_event["start"].get("dateTime", next_event["start"].get("date"))
-                start_dt = datetime.datetime.fromisoformat(start.replace("Z", "+00:00"))
+                start_dt = dateutil.parser.isoparse(start)
                 if 0 <= (start_dt - now).total_seconds() <= 60:
                     status = "in_meeting"
                     if return_next_event_time:
