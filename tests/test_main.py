@@ -31,6 +31,13 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(is_valid_govee_device_id("123"))
         self.assertFalse(is_valid_govee_device_id(""))
 
+    def test_is_valid_govee_device_model(self):
+        self.assertTrue(is_valid_govee_device_model("H6159"))
+        self.assertTrue(is_valid_govee_device_model("H6001"))
+        self.assertFalse(is_valid_govee_device_model("6159"))
+        self.assertFalse(is_valid_govee_device_model("H61"))
+        self.assertFalse(is_valid_govee_device_model(""))
+
     def test_is_valid_google_calendar_id(self):
         self.assertTrue(is_valid_google_calendar_id("primary"))
         self.assertTrue(is_valid_google_calendar_id("user@example.com"))

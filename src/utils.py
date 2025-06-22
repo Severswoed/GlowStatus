@@ -26,8 +26,12 @@ def is_valid_govee_api_key(api_key):
     return bool(api_key) and len(api_key) >= 32
 
 def is_valid_govee_device_id(device_id):
-    """Govee device IDs are typically alphanumeric and at least 10 chars."""
-    return bool(device_id) and re.match(r"^[A-Za-z0-9\-]{10,}$", device_id)
+    """Check for Govee device ID format like 10:00:D7:C1:83:46:65:8C."""
+    return bool(device_id) and re.match(r"^([0-9A-Fa-f]{2}:){7}[0-9A-Fa-f]{2}$", device_id)
+
+def is_valid_govee_device_model(device_model):
+    """Basic check for Govee device model format (e.g., H6159, H6001)."""
+    return bool(device_model) and re.match(r"^[A-Za-z0-9\-]+$", device_model)
 
 def is_valid_google_calendar_id(calendar_id):
     """Google Calendar IDs are usually email addresses or long strings."""
