@@ -65,6 +65,7 @@ release/
 logs/
 govee_temp.json
 auth_token.txt
+google_service_account.json
 
 # Optional
 *.bak
