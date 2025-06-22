@@ -6,6 +6,7 @@ from src.utils import (
     normalize_status,
     is_valid_govee_api_key,
     is_valid_govee_device_id,
+    is_valid_govee_device_model,
     is_valid_google_calendar_id,
 )
 
@@ -17,9 +18,13 @@ class TestUtils(unittest.TestCase):
 
     def test_normalize_status(self):
         self.assertEqual(normalize_status("Focus Time"), "focus")
+        self.assertEqual(normalize_status("Deep Focus"), "focus")
         self.assertEqual(normalize_status("Team Meeting"), "in_meeting")
         self.assertEqual(normalize_status("Call with client"), "in_meeting")
+        self.assertEqual(normalize_status("1:1 Meeting"), "in_meeting")
         self.assertEqual(normalize_status("Lunch Break"), "available")
+        self.assertEqual(normalize_status("Break"), "available")
+        self.assertEqual(normalize_status("Random Event"), "in_meeting")  # Default fallback
 
     def test_is_valid_govee_api_key(self):
         self.assertTrue(is_valid_govee_api_key("a" * 32))
