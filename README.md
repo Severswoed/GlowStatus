@@ -127,6 +127,26 @@ REFRESH_INTERVAL=60
 
 ---
 
+## CLI Tests
+
+```
+
+curl -X PUT "https://developer-api.govee.com/v1/devices/control" \
+  -H "Govee-API-Key: GOVEE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device": "GOVEE_DEVICE_ID",
+    "model": "GOVEE_DEVICE_MODEL",
+    "cmd": {
+      "name": "turn",
+      "value": "on"
+    }
+  }'
+
+  ```
+
+  > Turn off, set: `"value": "off"`
+
 ## 🎯 Future Roadmap
 
 - Slack/Teams status sync
