@@ -1,4 +1,4 @@
-![GlowStatus Logo](./img/GlowStatus-Small.png)
+![GlowStatus Logo](./img/GlowStatus.png)
 
 # 🌟 GlowStatus
 
