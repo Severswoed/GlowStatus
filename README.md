@@ -1,3 +1,5 @@
+![GlowStatus Logo](./img/glowstatus.png)
+
 # 🌟 GlowStatus
 
 **Smart Presence Indicator with Govee + Google Calendar**
