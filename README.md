@@ -1,22 +1,22 @@
 # 🌟 GlowStatus
 
-**Smart Presence Indicator with Govee + Google Workspace**
+**Smart Presence Indicator with Govee + Google Calendar**
 
-GlowStatus is a lightweight, cross-platform status indicator system that integrates Govee smart lights with your Google Calendar to show your availability at a glance. It’s perfect for home offices, shared spaces, and remote work setups.
+GlowStatus is a cross-platform status indicator system that syncs your Govee smart lights with your Google Calendar, showing your availability at a glance. Perfect for home offices, shared spaces, and remote work.
 
 ---
 
 ## 🚀 Features
 
-- ⏰ **Real-time Meeting Detection** – Syncs with Google Calendar to detect your meeting status
-- 💡 **Smart Light Control** – Uses Govee API to change light colors based on presence
-- ⚙️ **Configurable Modes** – Set custom color themes for:
+- **Real-time Meeting Detection** – Syncs with Google Calendar to detect your meeting status.
+- **Smart Light Control** – Uses Govee API to change light colors based on presence.
+- **Configurable Modes** – Custom color themes for:
   - In a Meeting
   - Available
   - Focus Mode
   - Offline
-- 🔐 **Secure by Default** – Uses `.env` for secure API key and token management
-- 📱 **Mobile & Codespace Friendly** – Designed to work on iPad via GitHub Codespaces
+- **Secure by Default** – Uses `.env` for secure API key and token management.
+- **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
 
 ---
 
@@ -25,22 +25,21 @@ GlowStatus is a lightweight, cross-platform status indicator system that integra
 ```
 GlowStatus/
 ├── src/
-│   ├── glowstatus.py                   # Main control logic
-│   ├── govee_controller.py             # Govee API integration
-│   ├── calendar_sync.py                # Google Calendar sync logic
-│   ├── logger.py                       # Logging utilities
-│   └── utils.py                        # Helper functions
+│   ├── glowstatus.py           # Main control logic
+│   ├── govee_controller.py     # Govee API integration
+│   ├── calendar_sync.py        # Google Calendar sync logic
+│   ├── logger.py               # Logging utilities
+│   └── utils.py                # Helper functions
 ├── tests/
-│   └── test_man.py                     # Unit tests for utilities and logic
+│   └── test_main.py            # Unit tests
 ├── docs/
-│   ├── govee_apikey_instructions.md            # How to get your Govee API key
-│   ├── govee_device_id_instructions.md         # How to find your Govee Device ID
-│   └── google_calendar_apikey_instructions.md  # How to get Google Calendar API credentials
-├── .env.example                        # Sample env config
-├── setup.sh                            # Bootstrap script
-├── requirements.txt                    # Python dependencies
-├── README.md                           # You're here!
-└── LICENSE                             # MIT License
+│   ├── govee_apikey_instructions.md
+│   ├── govee_device_id_instructions.md
+│   └── google_calendar_apikey_instructions.md
+├── .env.example                # Sample env config
+├── requirements.txt            # Python dependencies
+├── README.md                   # You're here!
+└── LICENSE                     # MIT License
 ```
 
 ---
@@ -77,60 +76,52 @@ GlowStatus/
 # .env.example
 GOVEE_API_KEY=your-govee-api-key
 GOVEE_DEVICE_ID=your-light-device-id
-GOOGLE_CALENDAR_ID=primary
-GOOGLE_SERVICE_ACCOUNT_JSON=/path/to/your/service_account.json
+GOVEE_DEVICE_MODEL=your-device-model
+GOOGLE_CALENDAR_ID=your_email@gmail.com
+GOOGLE_SERVICE_ACCOUNT_JSON=./google_service_account.json
 REFRESH_INTERVAL=60
+DISABLE_CALENDAR_SYNC=0
+POWER_OFF_WHEN_AVAILABLE=1
 ```
 
 ---
 
-## 🚀 How to Run GlowStatus on Your iPad (with GitHub Codespaces)
+## 🧑‍💻 Codespaces/iPad Quick Start
 
-1. **Open GitHub in Safari or your browser on your iPad.**
-2. **Navigate to your GlowStatus repository.**
-3. **Tap the green “Code” button and select “Codespaces.”**
-4. **Create a new Codespace (or open an existing one).**
-5. **In the Codespaces environment:**
-    - Open the built-in terminal.
-    - Run:  
-      ```bash
-      pip install -r requirements.txt
-      ```
-    - Copy `.env.example` to `.env` and fill in your credentials:
-      ```bash
-      cp .env.example .env
-      # Edit .env with your API keys and paths
-      ```
-    - Upload your Google service account JSON file to the workspace.
-6. **Start the app:**
-    ```bash
-    python src/glowstatus.py
-    ```
-7. **Leave the Codespace running to keep GlowStatus active.**
-
-> **Tip:** You can edit files, run commands, and monitor logs all from your iPad’s browser using Codespaces!
+1. Open your repo in GitHub Codespaces.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Copy `.env.example` to `.env` and fill in your credentials:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys and paths
+   ```
+4. Upload your Google service account JSON file.
+5. Start the app:
+   ```bash
+   python src/glowstatus.py
+   ```
 
 ---
 
-> **Need a Govee API Key?**  
-> See [How to Get Your Govee Developer API Key](./docs/govee_apikey_instructions.md) for step-by-step instructions on requesting and using your key.
+## 🔑 API & Device Setup
+
+- **Govee API Key:**  
+  See [docs/govee_apikey_instructions.md](./docs/govee_apikey_instructions.md)
+
+- **Govee Device ID:**  
+  See [docs/govee_device_id_instructions.md](./docs/govee_device_id_instructions.md)
+
+- **Google Calendar API Credentials:**  
+  See [docs/google_calendar_apikey_instructions.md](./docs/google_calendar_apikey_instructions.md)
 
 ---
 
-> **Need help finding your Govee Device ID?**  
-> See [How to Find Your Govee Device ID](./docs/govee_device_id_instructions.md) for step-by-step instructions and example scripts.
+## 🧪 CLI Test Example
 
----
-
-> **Need help with Google Calendar API credentials?**  
-> See [How to Get a Google Calendar API Key](./docs/google_calendar_apikey_instructions.md) for a step-by-step guide to setting up your credentials and enabling the API.
-
----
-
-## CLI Tests
-
-```
-
+```bash
 curl -X PUT "https://developer-api.govee.com/v1/devices/control" \
   -H "Govee-API-Key: GOVEE_API_KEY" \
   -H "Content-Type: application/json" \
@@ -142,15 +133,15 @@ curl -X PUT "https://developer-api.govee.com/v1/devices/control" \
       "value": "on"
     }
   }'
+```
+> To turn off, set `"value": "off"`
 
-  ```
-
-  > Turn off, set: `"value": "off"`
+---
 
 ## 🎯 Future Roadmap
 
 - Slack/Teams status sync
-- Tray icon with manual override
+- Tray icon/manual override
 - Time-based or ambient-light auto dimming
 - Config UI for non-technical users
 
@@ -164,7 +155,7 @@ MIT License — see [LICENSE](./LICENSE) for full details.
 
 ## 💬 Feedback & Contributions
 
-Ideas? Bugs? PRs are welcome. File an issue or drop a discussion topic!
+Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
 ---
 
