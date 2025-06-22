@@ -142,6 +142,7 @@ curl -X PUT "https://developer-api.govee.com/v1/devices/control" \
 
 ## 🎯 Future Roadmap
 
+- OAuth 2.0 Google authentication
 - Customized colors / status'
 - Slack/Teams status sync
 - Tray icon/manual override
@@ -168,4 +169,4 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
 ---
 
-Let your **GlowStatus** speak for you! 💙
+Light up your availability ! 💙
