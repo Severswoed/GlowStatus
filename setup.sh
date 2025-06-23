@@ -13,10 +13,11 @@ fi
 
 # Check required env vars
 echo "🔍 Validating environment variables..."
-REQUIRED_VARS=(GOVEE_API_KEY GOVEE_DEVICE_ID)
+REQUIRED_VARS=(GOVEE_API_KEY GOVEE_DEVICE_ID GOVEE_DEVICE_MODEL GOOGLE_CALENDAR_ID GOOGLE_SERVICE_ACCOUNT_JSON)
 
+MISSING=false
 for VAR in "${REQUIRED_VARS[@]}"; do
-    if ! grep -q "$VAR=" .env; then
+    if ! grep -q "^$VAR=" .env; then
         echo "❌ Missing $VAR in .env"
         MISSING=true
     fi
@@ -38,7 +39,7 @@ fi
 # Activate venv
 source venv/bin/activate
 
-# Install Python dependencies
+# Upgrade pip and install Python dependencies
 if [ -f "requirements.txt" ]; then
     echo "📦 Installing Python dependencies..."
     pip install --upgrade pip
@@ -54,3 +55,4 @@ if [ -f "package.json" ]; then
 fi
 
 echo "🎉 GlowStatus setup complete. You can now run the application."
+echo "✨ GlowStatus: Light your availbitility!"
