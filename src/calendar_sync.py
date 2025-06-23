@@ -1,10 +1,15 @@
 import os
 import datetime
 import dateutil.parser
-from google.oauth2 import service_account
+import pickle
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from logger import get_logger
 from utils import normalize_status
+
+# Import paths and scopes from config_ui
+from config_ui import TOKEN_PATH, CLIENT_SECRET_PATH, SCOPES
 
 logger = get_logger()
 
@@ -26,14 +31,23 @@ class CalendarSync:
                 logger.warning(f"Could not fetch calendar email/ID: {e}")
 
     def _get_service(self):
-        """Authenticate and return a Google Calendar API service."""
-        creds_path = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-        scopes = ["https://www.googleapis.com/auth/calendar.readonly"]
-        if not creds_path or not os.path.exists(creds_path):
-            logger.error("Google service account JSON not found. Set GOOGLE_SERVICE_ACCOUNT_JSON in .env.")
-            return None
+        """Authenticate and return a Google Calendar API service using OAuth."""
+        creds = None
+        # Load token if it exists
+        if os.path.exists(TOKEN_PATH):
+            with open(TOKEN_PATH, "rb") as token:
+                creds = pickle.load(token)
+        # If no valid creds, start OAuth flow
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
+                creds = flow.run_local_server(port=0)
+            # Save the credentials for next run
+            with open(TOKEN_PATH, "wb") as token:
+                pickle.dump(creds, token)
         try:
-            creds = service_account.Credentials.from_service_account_file(creds_path, scopes=scopes)
             service = build("calendar", "v3", credentials=creds)
             return service
         except Exception as e:
@@ -75,7 +89,6 @@ class CalendarSync:
                 logger.info(f"Checking event: {event.get('summary', '')} | Start: {start_dt} | End: {end_dt} | Now: {now}")
                 if start_dt <= now <= end_dt:
                     status = normalize_status(event.get("summary", ""))
-                    # status = "in_meeting"
                     duration_minutes = int((end_dt - start_dt).total_seconds() // 60)
                     logger.info(f"Detected meeting: {event.get('summary', '')} | Duration: {duration_minutes} minutes")
                     if return_next_event_time:
