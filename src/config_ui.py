@@ -1,7 +1,7 @@
 import sys, os, json, keyring, pickle
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout,
-    QMessageBox, QColorDialog, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QInputDialog
+    QMessageBox, QColorDialog, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QInputDialog, QCheckBox, QSpinBox
 )
 from PySide6.QtCore import Qt
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -67,6 +67,22 @@ class ConfigWindow(QWidget):
         self.oauth_btn.clicked.connect(self.handle_oauth)
         layout.addWidget(self.oauth_btn)
 
+        # Refresh Interval
+        self.refresh_interval_input = QSpinBox()
+        self.refresh_interval_input.setRange(10, 3600)
+        self.refresh_interval_input.setValue(60)
+        layout.addWidget(QLabel("Refresh Interval (seconds):"))
+        layout.addWidget(self.refresh_interval_input)
+
+        # Disable Calendar Sync
+        self.disable_calendar_sync_input = QCheckBox("Disable Calendar Sync")
+        layout.addWidget(self.disable_calendar_sync_input)
+
+        # Power Off When Available
+        self.power_off_input = QCheckBox("Power Off When Available")
+        self.power_off_input.setChecked(True)
+        layout.addWidget(self.power_off_input)
+
         # Status/Color Mapping Table
         self.status_table = QTableWidget(3, 2)
         self.status_table.setHorizontalHeaderLabels(["Status Keyword", "Color (RGB)"])
@@ -100,6 +116,9 @@ class ConfigWindow(QWidget):
         self.govee_id_input.setText(config.get("GOVEE_DEVICE_ID", ""))
         self.govee_model_input.setText(config.get("GOVEE_DEVICE_MODEL", ""))
         self.calendar_id_input.setText(config.get("GOOGLE_CALENDAR_ID", ""))
+        self.refresh_interval_input.setValue(config.get("REFRESH_INTERVAL", 60))
+        self.disable_calendar_sync_input.setChecked(bool(config.get("DISABLE_CALENDAR_SYNC", False)))
+        self.power_off_input.setChecked(bool(config.get("POWER_OFF_WHEN_AVAILABLE", True)))
         api_key = load_secret("GOVEE_API_KEY")
         if api_key:
             self.govee_api_input.setText(api_key)
@@ -122,6 +141,9 @@ class ConfigWindow(QWidget):
             "GOVEE_DEVICE_ID": self.govee_id_input.text().strip(),
             "GOVEE_DEVICE_MODEL": self.govee_model_input.text().strip(),
             "GOOGLE_CALENDAR_ID": self.calendar_id_input.text().strip(),
+            "REFRESH_INTERVAL": self.refresh_interval_input.value(),
+            "DISABLE_CALENDAR_SYNC": self.disable_calendar_sync_input.isChecked(),
+            "POWER_OFF_WHEN_AVAILABLE": self.power_off_input.isChecked(),
             "STATUS_COLOR_MAP": mapping,
         }
         save_config(config)
