@@ -105,6 +105,8 @@ def main():
                 else:
                     status, next_event_start = calendar.get_current_status(return_next_event_time=True)
                     logger.info(f"Current status: {status}")
+                status, next_event_start = calendar.get_current_status(return_next_event_time=True)
+                logger.info(f"Current status: {status}")
 
                 if (
                     status == "available"
