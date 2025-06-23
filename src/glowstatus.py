@@ -95,8 +95,16 @@ def main():
     try:
         while True:
             try:
-                status, next_event_start = calendar.get_current_status(return_next_event_time=True)
-                logger.info(f"Current status: {status}")
+                # Check for manual override
+                config = load_config()
+                manual_status = config.get("CURRENT_STATUS")
+                if manual_status:
+                    status = manual_status
+                    next_event_start = None
+                    logger.info(f"Manual override active: {status}")
+                else:
+                    status, next_event_start = calendar.get_current_status(return_next_event_time=True)
+                    logger.info(f"Current status: {status}")
 
                 if (
                     status == "available"
@@ -117,8 +125,8 @@ def main():
                 logger.error(f"Error updating status: {e}")
             time.sleep(REFRESH_INTERVAL)
     except KeyboardInterrupt:
-        logger.info("GlowStatus stopped by user.")
+        logger.info("GlowStatus stopped by user and powered off.")
+        govee.set_power("off")
 
 if __name__ == "__main__":
     main()
-    
