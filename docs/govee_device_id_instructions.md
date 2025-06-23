@@ -12,7 +12,7 @@ Run the following command in your terminal, replacing the API key if needed:
 
 ```bash
 curl -X GET "https://developer-api.govee.com/v1/devices" \
-  -H "Govee-API-Key: cfa2fec1-ad57-4a2a-a134-c5a970b29ada"
+  -H "Govee-API-Key: your-govee-api-key"
 ```
 
 ---
