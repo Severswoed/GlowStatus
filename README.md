@@ -17,7 +17,7 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
   - Focus Mode (blue)
   - Available (green)
   - Offline (gray)
-- **Secure by Default** – Uses `.env` for secure API key and token management in dev, OAuth 2.0 in use [coming soon].
+- **Secure by Default** – Uses `.env` for secure API key and token management in dev.
 - **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
 
 ---
@@ -48,6 +48,9 @@ GlowStatus/
 
 ## 🛠️ Setup Instructions
 
+### [macOS Local Development Setup](#macos-local-development-setup)
+### [Windows Local Development Setup](#windows-local-development-setup)
+
 1. **Clone the Repo**
    ```bash
    git clone https://github.com/Severswoed/GlowStatus.git
@@ -69,6 +72,49 @@ GlowStatus/
    ```bash
    python src/glowstatus.py
    ```
+
+---
+
+## 🧑‍💻 macOS Local Development Setup
+
+1. **Install Python 3.9+**  
+   You can use [Homebrew](https://brew.sh/):
+   ```bash
+   brew install python
+   ```
+
+2. **(Recommended) Create a Virtual Environment**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   pip3 install -r requirements.txt
+   ```
+
+4. **Continue with the main setup instructions above.**
+
+---
+
+## 🖥️ Windows Local Development Setup
+
+1. **Install Python 3.9+**  
+   Download from [python.org](https://www.python.org/downloads/windows/) and ensure "Add Python to PATH" is checked.
+
+2. **(Recommended) Create a Virtual Environment**
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**
+   ```powershell
+   pip install -r requirements.txt
+   ```
+
+4. **Continue with the main setup instructions above.**
 
 ---
 
@@ -169,4 +215,4 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
 ---
 
-Light up your availability ! 💙
+Light up your availability! 💙
