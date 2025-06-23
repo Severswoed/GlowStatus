@@ -57,7 +57,7 @@ Use this Python snippet to list devices:
 ```python
 import requests
 
-API_KEY = "cfa2fec1-ad57-4a2a-a134-c5a970b29ada"
+API_KEY = "your_govee_api_key"
 headers = {"Govee-API-Key": API_KEY}
 response = requests.get("https://developer-api.govee.com/v1/devices", headers=headers)
 print(response.json())
