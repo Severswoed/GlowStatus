@@ -13,8 +13,9 @@ def main():
     def update_tray_tooltip():
         config = load_config()
         status = config.get("CURRENT_STATUS", "unknown")
-        cal_id = config.get("SELECTED_CALENDAR_ID", config.get("GOOGLE_CALENDAR_ID", "primary"))
+        cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
         tray.setToolTip(f"GlowStatus - {status} ({cal_id})")
+
 
     def show_config():
         config_window = ConfigWindow()
@@ -34,7 +35,7 @@ def main():
     def show_status():
         config = load_config()
         status = config.get("CURRENT_STATUS", "unknown")
-        cal_id = config.get("SELECTED_CALENDAR_ID", config.get("GOOGLE_CALENDAR_ID", "primary"))
+        cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
         QMessageBox.information(None, "Current Status", f"Current status: {status}\nCalendar: {cal_id}")
 
     def set_manual_status(status):

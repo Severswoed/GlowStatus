@@ -78,7 +78,7 @@ class ConfigWindow(QWidget):
         form_layout.addRow(self.oauth_btn)
         
         # Google Calendar ID (display only)
-        self.google_calendar_id_label = QLabel(config.get("GOOGLE_CALENDAR_ID", "Not authenticated"))
+        self.google_calendar_id_label = QLabel(config.get("SELECTED_CALENDAR_ID", "Not authenticated"))
         form_layout.addRow("Authenticated as:", self.google_calendar_id_label)
 
         # Selected Calendar ID (dropdown)
@@ -188,7 +188,6 @@ class ConfigWindow(QWidget):
                 self.status_table.setItem(row, col, QTableWidgetItem(rgb))
 
     def run_oauth_flow(self):
-        # Import here to avoid circular import
         try:
             from calendar_sync import CalendarSync
             cal_sync = CalendarSync("primary")
@@ -197,7 +196,7 @@ class ConfigWindow(QWidget):
             if authenticated_email:
                 self.google_calendar_id_label.setText(authenticated_email)
                 config = load_config()
-                config["GOOGLE_CALENDAR_ID"] = authenticated_email
+                config["SELECTED_CALENDAR_ID"] = authenticated_email
                 save_config(config)
                 logger.info(f"OAuth Success: Google account connected as {authenticated_email}.")
             else:
@@ -223,11 +222,12 @@ class ConfigWindow(QWidget):
         config["DISABLE_CALENDAR_SYNC"] = self.disable_sync_chk.isChecked()
         config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
         config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
-        config["GOOGLE_CALENDAR_ID"] = self.google_calendar_id_label.text().strip()
         # Save the selected calendar ID from the dropdown
         selected_idx = self.selected_calendar_id_dropdown.currentIndex()
         selected_id = self.selected_calendar_id_dropdown.itemData(selected_idx)
         if selected_id:
             config["SELECTED_CALENDAR_ID"] = selected_id
+        else:
+            config["SELECTED_CALENDAR_ID"] = self.google_calendar_id_label.text().strip()
         save_config(config)
         logger.info("Settings saved successfully.")

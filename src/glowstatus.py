@@ -66,12 +66,12 @@ class GlowStatusController:
         GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
         GOVEE_DEVICE_ID = config.get("GOVEE_DEVICE_ID")
         GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
-        SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID", config.get("GOOGLE_CALENDAR_ID"))
+        SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID")
         STATUS_COLOR_MAP = config.get("STATUS_COLOR_MAP", {})
         POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
         OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
         DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
-
+    
         govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 
         manual_status = config.get("CURRENT_STATUS")
@@ -112,7 +112,7 @@ class GlowStatusController:
             GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
             GOVEE_DEVICE_ID = config.get("GOVEE_DEVICE_ID")
             GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
-            SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID", config.get("GOOGLE_CALENDAR_ID"))
+            SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID")
             STATUS_COLOR_MAP = config.get("STATUS_COLOR_MAP", {})
             REFRESH_INTERVAL = int(config.get("REFRESH_INTERVAL", 60))
             POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
