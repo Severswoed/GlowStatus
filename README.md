@@ -106,9 +106,13 @@ GlowStatus/
 - **Tray Icon:**  
   Pick any image from `/img` with `_tray_` in the filename to use as your system tray icon.
 
-- **Status/Color Mapping:**  
-  Add or edit status keywords (e.g., `focus`, `in_meeting`, `available`) and assign RGB colors.  
-  Status detection is **case-insensitive** and matches keywords anywhere in the event title.
+- - **Status/Color Mapping:**  
+  Add, edit, or remove status keywords (e.g., `focus`, `in_meeting`, `available`, `lunch`, etc.) and assign RGB colors and a "Power Off" option for each. 
+
+  - **To add a custom status:** Click "Add Status" in the settings window, enter your keyword (e.g., `lunch`), set a color (or leave blank), and check "Power Off" if you want the light to turn off for that status.
+
+  - **Behavior:** If "Power Off" is checked, the light will turn off for that status, regardless of color. Otherwise, the light will use the specified color.
+  - Status detection is **case-insensitive** and matches keywords anywhere in the event title.
 
 - **Refresh Interval:**  
   Set how often (in seconds) the app checks your calendar for status changes.
