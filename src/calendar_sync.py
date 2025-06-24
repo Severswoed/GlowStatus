@@ -13,6 +13,12 @@ from config_ui import TOKEN_PATH, CLIENT_SECRET_PATH, SCOPES
 
 logger = get_logger()
 
+def ensure_aware(dt):
+    """Ensure a datetime is timezone-aware (UTC if naive)."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
+
 class CalendarSync:
     def __init__(self, calendar_id):
         self.calendar_id = calendar_id
@@ -54,6 +60,19 @@ class CalendarSync:
             logger.error(f"Failed to authenticate with Google Calendar: {e}")
             return None
 
+    def get_all_calendars(self):
+        """Return a list of all calendars available to the user."""
+        if not self.service:
+            logger.error("Google Calendar service not initialized.")
+            return []
+        try:
+            calendars = self.service.calendarList().list().execute().get("items", [])
+            logger.info(f"Fetched {len(calendars)} calendars from Google Calendar.")
+            return calendars
+        except Exception as e:
+            logger.error(f"Failed to fetch calendar list: {e}")
+            return []
+
     def get_current_status(self, return_next_event_time=False):
         """Return the current status based on ongoing or next event.
         If return_next_event_time is True, also return the next event's start time.
@@ -64,12 +83,17 @@ class CalendarSync:
         now = datetime.datetime.now(datetime.timezone.utc)
         lookback_minutes = 15
         time_min = (now - datetime.timedelta(minutes=lookback_minutes)).isoformat()
+        # Set timeMax to midnight tonight UTC
+        tomorrow = now + datetime.timedelta(days=1)
+        midnight = datetime.datetime.combine(tomorrow.date(), datetime.time.min, tzinfo=datetime.timezone.utc)
+        time_max = midnight.isoformat()
         try:
             events_result = (
                 self.service.events()
                 .list(
                     calendarId=self.calendar_id,
                     timeMin=time_min,
+                    timeMax=time_max,
                     maxResults=5,
                     singleEvents=True,
                     orderBy="startTime",
@@ -84,8 +108,8 @@ class CalendarSync:
             for event in events:
                 start = event["start"].get("dateTime", event["start"].get("date"))
                 end = event["end"].get("dateTime", event["end"].get("date"))
-                start_dt = dateutil.parser.isoparse(start)
-                end_dt = dateutil.parser.isoparse(end)
+                start_dt = ensure_aware(dateutil.parser.isoparse(start))
+                end_dt = ensure_aware(dateutil.parser.isoparse(end))
                 logger.info(f"Checking event: {event.get('summary', '')} | Start: {start_dt} | End: {end_dt} | Now: {now}")
                 if start_dt <= now <= end_dt:
                     status = normalize_status(event.get("summary", ""))
@@ -98,7 +122,7 @@ class CalendarSync:
             if events:
                 next_event = events[0]
                 start = next_event["start"].get("dateTime", next_event["start"].get("date"))
-                start_dt = dateutil.parser.isoparse(start)
+                start_dt = ensure_aware(dateutil.parser.isoparse(start))
                 if 0 <= (start_dt - now).total_seconds() <= 60:
                     status = "in_meeting"
                     if return_next_event_time:
