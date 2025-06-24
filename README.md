@@ -10,15 +10,19 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 
 ## 🚀 Features
 
-- **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events.
+- **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events (case-insensitive, matches anywhere in event title).
 - **Smart Light Control** – Uses Govee API to change light colors based on your calendar status.
 - **Configurable Modes** – Custom color themes for:
   - In a Meeting (red)
   - Focus Mode (blue)
   - Available (green)
   - Offline (gray)
+  - Add your own status keywords and colors!
 - **Secure by Default** – All configuration is handled via a graphical UI (no manual file editing or `.env` required for users).
 - **Manual Override & Tray Icon** – Change your status or open settings from the system tray.
+- **Tray Icon Picker** – Choose your tray icon from any image in `/img` with `_tray_` in the filename.
+- **Persistent Sync State** – Sync on/off state is remembered between runs.
+- **Efficient Calendar Sync** – Only fetches events from the last 15 minutes up to midnight, for fast performance even on busy calendars.
 - **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use.
 
 ---
@@ -40,6 +44,8 @@ GlowStatus/
 │   └── google_token.pickle     # Google OAuth token (auto-generated)
 ├── resources/
 │   └── client_secret.json      # Google OAuth client secret (bundled)
+├── img/
+│   └── GlowStatus_tray_*.png   # Tray icon images (selectable)
 ├── tests/
 │   └── test_main.py            # Unit tests
 ├── docs/
@@ -80,6 +86,43 @@ GlowStatus/
    python src/glowstatus.py
    ```
    - This will use your saved config and secrets.
+
+---
+
+## ⚙️ Settings & Options
+
+- **Govee API Key, Device ID, Device Model:**  
+  Enter your Govee credentials in the settings window.
+
+- **Google OAuth:**  
+  Click "Connect Google Calendar (OAuth)" and sign in.  
+  Select your calendar from the dropdown (all calendars you have access to will be listed).
+
+- **Tray Icon:**  
+  Pick any image from `/img` with `_tray_` in the filename to use as your system tray icon.
+
+- **Status/Color Mapping:**  
+  Add or edit status keywords (e.g., `focus`, `in_meeting`, `available`) and assign RGB colors.  
+  Status detection is **case-insensitive** and matches keywords anywhere in the event title.
+
+- **Refresh Interval:**  
+  Set how often (in seconds) the app checks your calendar for status changes.
+
+- **Disable Calendar Sync:**  
+  Temporarily disables automatic status updates from your calendar.
+
+- **Power Off When Available:**  
+  Turns off your Govee light when your status is "available" (optional).
+
+- **Turn Lights Off for Unknown Status:**  
+  If enabled, the light turns off when your status doesn't match any keyword; otherwise, it turns white.
+
+- **Manual Override:**  
+  Use the tray menu to set your status manually.  
+  Clear override to return to automatic calendar-based status.
+
+- **Persistent Sync State:**  
+  The app remembers whether sync was enabled or disabled between runs.
 
 ---
 
@@ -127,9 +170,7 @@ GlowStatus/
 ## 🎯 Future Roadmap
 
 - Slack/Teams status sync
-- Tray icon/manual override (done!)
 - Time-based or ambient-light auto dimming
-- Config UI for non-technical users (done!)
 - More integrations and automations
 
 ---
@@ -152,4 +193,4 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
 ---
 
-Light up your availability! 💙
+Light up your availability!
