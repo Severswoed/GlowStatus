@@ -47,4 +47,4 @@ def is_valid_google_calendar_id(calendar_id):
         return True
     if calendar_id.endswith("@group.calendar.google.com"):
         return True
-    return
+    return False
