@@ -45,7 +45,15 @@ def main():
         glowstatus.update_now()
         update_tray_tooltip()
 
-    def clear_manual_status():
+    def set_end_meeting():
+        config = load_config()
+        config["CURRENT_STATUS"] = "meeting_ended_early"
+        save_config(config)
+        update_tray_tooltip()
+        glowstatus.update_now()
+        update_tray_tooltip()
+
+    def reset_state():
         config = load_config()
         if "CURRENT_STATUS" in config:
             del config["CURRENT_STATUS"]
@@ -71,10 +79,6 @@ def main():
 
     # --- App Setup ---
     config = load_config()
-    # Remove the following two lines to persist sync state:
-    # config["DISABLE_CALENDAR_SYNC"] = True
-    # save_config(config)
-
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
@@ -96,7 +100,8 @@ def main():
     manual_meeting = QAction("Set Status: In Meeting")
     manual_focus = QAction("Set Status: Focus")
     manual_available = QAction("Set Status: Available")
-    clear_override = QAction("Clear Manual Override")
+    manual_end_meeting = QAction("End Meeting (Turn Off Light Early)")
+    reset_override = QAction("Reset State")
     sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync")
     quit_action = QAction("Quit")
 
@@ -105,7 +110,8 @@ def main():
     manual_meeting.triggered.connect(lambda: set_manual_status("in_meeting"))
     manual_focus.triggered.connect(lambda: set_manual_status("focus"))
     manual_available.triggered.connect(lambda: set_manual_status("available"))
-    clear_override.triggered.connect(clear_manual_status)
+    manual_end_meeting.triggered.connect(set_end_meeting)
+    reset_override.triggered.connect(reset_state)
     sync_toggle.triggered.connect(toggle_sync)
     quit_action.triggered.connect(lambda: (glowstatus.stop(), app.quit()))
 
@@ -115,7 +121,8 @@ def main():
     menu.addAction(manual_meeting)
     menu.addAction(manual_focus)
     menu.addAction(manual_available)
-    menu.addAction(clear_override)
+    menu.addAction(manual_end_meeting)
+    menu.addAction(reset_override)
     menu.addSeparator()
     menu.addAction(sync_toggle)
     menu.addSeparator()
