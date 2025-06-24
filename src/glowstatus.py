@@ -48,7 +48,10 @@ class GlowStatusController:
                 govee.set_power("off")
                 return
         else:
-            if manual_status:
+            if manual_status == "meeting_ended_early":
+                govee.set_power("off")
+                return
+            elif manual_status:
                 status = manual_status
             else:
                 calendar = CalendarSync(SELECTED_CALENDAR_ID)
@@ -104,7 +107,11 @@ class GlowStatusController:
             calendar = CalendarSync(SELECTED_CALENDAR_ID)
             try:
                 manual_status = config.get("CURRENT_STATUS")
-                if manual_status:
+                if manual_status == "meeting_ended_early":
+                    govee.set_power("off")
+                    time.sleep(REFRESH_INTERVAL)
+                    continue
+                elif manual_status:
                     status = manual_status
                 else:
                     status, next_event_start = calendar.get_current_status(return_next_event_time=True)
