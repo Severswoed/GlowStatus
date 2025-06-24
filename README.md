@@ -192,6 +192,15 @@ POWER_OFF_WHEN_AVAILABLE=1
 
 > **Note:** The configuration UI requires a desktop environment. For Codespaces or iPad, edit `config/glowstatus_config.json` manually and use the CLI.
 
+**Alternative:**  
+You can also pull the `v1.0-MVP` branch to run GlowStatus locally in CLI mode with no GUI:
+```bash
+git fetch origin v1.0-MVP
+git checkout v1.0-MVP
+python src/glowstatus.py
+```
+This is ideal for headless, remote, or minimal environments.
+
 ---
 
 ## 🔑 API & Device Setup
