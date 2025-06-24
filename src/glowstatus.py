@@ -36,14 +36,22 @@ class GlowStatusController:
             if isinstance(entry, str):
                 rgb_str = entry
                 govee.set_power("on")
-                r, g, b = map(int, rgb_str.split(","))
+                try:
+                    r, g, b = map(int, rgb_str.split(","))
+                except Exception as e:
+                    logger.error(f"Invalid RGB string '{rgb_str}' for status '{status_key}': {e}")
+                    r, g, b = 255, 255, 255
                 govee.set_color(r, g, b)
             elif isinstance(entry, dict):
                 if entry.get("power_off"):
                     govee.set_power("off")
                 else:
                     rgb_str = entry.get("color", "255,255,255")
-                    r, g, b = map(int, rgb_str.split(","))
+                    try:
+                        r, g, b = map(int, rgb_str.split(","))
+                    except Exception as e:
+                        logger.error(f"Invalid RGB string '{rgb_str}' for status '{status_key}': {e}")
+                        r, g, b = 255, 255, 255
                     govee.set_power("on")
                     govee.set_color(r, g, b)
         else:
