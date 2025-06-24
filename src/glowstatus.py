@@ -4,9 +4,9 @@ import datetime
 
 from govee_controller import GoveeController
 from calendar_sync import CalendarSync
-from config_ui import load_config, load_secret
+from config_ui import load_config
 from logger import get_logger
-from utils import normalize_status
+from utils import normalize_status, load_secret
 
 logger = get_logger()
 
@@ -32,13 +32,28 @@ class GlowStatusController:
         status_key = status.lower()
         entry = color_map.get(status_key)
         if entry:
-            if entry.get("power_off"):
-                govee.set_power("off")
-            else:
-                rgb_str = entry.get("color", "255,255,255")
-                r, g, b = map(int, rgb_str.split(","))
+            # Backward compatibility: if entry is a string, treat as color only
+            if isinstance(entry, str):
+                rgb_str = entry
                 govee.set_power("on")
+                try:
+                    r, g, b = map(int, rgb_str.split(","))
+                except Exception as e:
+                    logger.error(f"Invalid RGB string '{rgb_str}' for status '{status_key}': {e}")
+                    r, g, b = 255, 255, 255
                 govee.set_color(r, g, b)
+            elif isinstance(entry, dict):
+                if entry.get("power_off"):
+                    govee.set_power("off")
+                else:
+                    rgb_str = entry.get("color", "255,255,255")
+                    try:
+                        r, g, b = map(int, rgb_str.split(","))
+                    except Exception as e:
+                        logger.error(f"Invalid RGB string '{rgb_str}' for status '{status_key}': {e}")
+                        r, g, b = 255, 255, 255
+                    govee.set_power("on")
+                    govee.set_color(r, g, b)
         else:
             if off_for_unknown_status:
                 govee.set_power("off")

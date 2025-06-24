@@ -8,8 +8,21 @@
   "POWER_OFF_WHEN_AVAILABLE": true,
   "OFF_FOR_UNKNOWN_STATUS": true,
   "STATUS_COLOR_MAP": {
-    "in_meeting": "255,0,0",
-    "focus": "0,0,255",
-    "available": "0,255,0"
+    "in_meeting": {
+      "color": "255,0,0",
+      "power_off": false
+    },
+    "focus": {
+      "color": "0,0,255",
+      "power_off": false
+    },
+    "available": {
+      "color": "0,255,0",
+      "power_off": true
+    },
+    "lunch": {
+      "color": "0,255,0",
+      "power_off": true
+    }
   }
 }

@@ -77,6 +77,10 @@ def main():
             sync_toggle.setText("Enable Sync")
             sync_enabled[0] = False
 
+    def quit_app():
+        glowstatus.stop()
+        app.quit()
+
     # --- App Setup ---
     config = load_config()
     app = QApplication(sys.argv)
@@ -113,7 +117,7 @@ def main():
     manual_end_meeting.triggered.connect(set_end_meeting)
     reset_override.triggered.connect(reset_state)
     sync_toggle.triggered.connect(toggle_sync)
-    quit_action.triggered.connect(lambda: (glowstatus.stop(), app.quit()))
+    quit_action.triggered.connect(quit_app)
 
     menu.addAction(config_action)
     menu.addAction(status_action)
