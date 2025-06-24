@@ -1,4 +1,5 @@
 import re
+import os
 
 def clamp_rgb(r, g, b):
     """Clamp RGB values to the 0-255 range."""
@@ -21,6 +22,14 @@ def normalize_status(summary, color_map=None):
         if keyword.lower() in summary_lower:
             return keyword
     return "in_meeting"
+
+def load_secret(key):
+    """Load a secret from environment variables (or extend to file if needed)."""
+    value = os.environ.get(key)
+    if value:
+        return value
+    # Optionally, add logic to load from a secrets/config file here
+    return None
 
 def format_time(dt):
     """Format a datetime object for logging/display."""
