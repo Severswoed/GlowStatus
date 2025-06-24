@@ -235,6 +235,9 @@ POWER_OFF_WHEN_AVAILABLE=1
 - Time-based or ambient-light auto dimming
 - More integrations and automations
 
+**5-Minute Meeting Reminder:**  
+  Show a tooltip notification over the tray icon 5 (x) minutes before an upcoming meeting.
+
 ---
 
 ## 📋 License
