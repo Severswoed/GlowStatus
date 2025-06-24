@@ -2,11 +2,13 @@ import os
 import json
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
-    QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QMessageBox
+    QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QSpinBox, QFormLayout, QLineEdit
 )
 from PySide6.QtCore import Qt
+from logger import get_logger
 
 CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/glowstatus_config.json"))
+logger = get_logger()
 
 def load_config():
     if os.path.exists(CONFIG_PATH):
@@ -48,7 +50,66 @@ class ConfigWindow(QWidget):
         btn_layout.addWidget(self.remove_btn)
         layout.addLayout(btn_layout)
 
-        # Tray Icon Picker (unchanged)
+        # --- Other Settings ---
+        form_layout = QFormLayout()
+
+        # Govee API Key (not saved for security, but shown for user awareness)
+        self.govee_api_key_edit = QLineEdit()
+        self.govee_api_key_edit.setText(os.environ.get("GOVEE_API_KEY", ""))
+        self.govee_api_key_edit.setPlaceholderText("Set in environment or .env for security")
+        self.govee_api_key_edit.setEchoMode(QLineEdit.Password)
+        form_layout.addRow("Govee API Key:", self.govee_api_key_edit)
+
+        # Govee Device ID
+        self.govee_device_id_edit = QLineEdit()
+        self.govee_device_id_edit.setText(config.get("GOVEE_DEVICE_ID", ""))
+        form_layout.addRow("Govee Device ID:", self.govee_device_id_edit)
+
+        # Govee Device Model
+        self.govee_device_model_edit = QLineEdit()
+        self.govee_device_model_edit.setText(config.get("GOVEE_DEVICE_MODEL", ""))
+        form_layout.addRow("Govee Device Model:", self.govee_device_model_edit)
+
+        # OAuth Button
+        self.oauth_btn = QPushButton("Connect Google Account (OAuth)")
+        self.oauth_btn.clicked.connect(self.run_oauth_flow)
+        form_layout.addRow(self.oauth_btn)
+        
+        # Google Calendar ID (display only)
+        self.google_calendar_id_label = QLabel(config.get("GOOGLE_CALENDAR_ID", "Not authenticated"))
+        form_layout.addRow("Authenticated as:", self.google_calendar_id_label)
+
+        # Selected Calendar ID (dropdown)
+        self.selected_calendar_id_dropdown = QComboBox()
+        self.selected_calendar_id_dropdown.setEditable(False)
+        self.selected_calendar_id_dropdown.addItem("Loading...")  # Placeholder
+        form_layout.addRow("Selected Calendar:", self.selected_calendar_id_dropdown)
+
+        # Refresh Interval
+        self.refresh_spin = QSpinBox()
+        self.refresh_spin.setMinimum(10)
+        self.refresh_spin.setMaximum(3600)
+        self.refresh_spin.setValue(config.get("REFRESH_INTERVAL", 60))
+        form_layout.addRow("Refresh Interval (seconds):", self.refresh_spin)
+
+        # Power Off When Available
+        self.power_off_available_chk = QCheckBox("Turn light off when available")
+        self.power_off_available_chk.setChecked(config.get("POWER_OFF_WHEN_AVAILABLE", True))
+        form_layout.addRow(self.power_off_available_chk)
+
+        # Off For Unknown Status
+        self.off_for_unknown_chk = QCheckBox("Turn light off for unknown status")
+        self.off_for_unknown_chk.setChecked(config.get("OFF_FOR_UNKNOWN_STATUS", True))
+        form_layout.addRow(self.off_for_unknown_chk)
+
+        # Disable Calendar Sync
+        self.disable_sync_chk = QCheckBox("Disable Calendar Sync")
+        self.disable_sync_chk.setChecked(config.get("DISABLE_CALENDAR_SYNC", False))
+        form_layout.addRow(self.disable_sync_chk)
+
+        layout.addLayout(form_layout)
+
+        # Tray Icon Picker
         line_tray = QFrame()
         line_tray.setFrameShape(QFrame.HLine)
         line_tray.setFrameShadow(QFrame.Sunken)
@@ -57,6 +118,8 @@ class ConfigWindow(QWidget):
         tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f]
         self.tray_icon_dropdown = QComboBox()
         self.tray_icon_dropdown.addItems(tray_icons)
+        if config.get("TRAY_ICON") in tray_icons:
+            self.tray_icon_dropdown.setCurrentText(config.get("TRAY_ICON"))
         layout.addWidget(QLabel("Tray Icon:"))
         layout.addWidget(self.tray_icon_dropdown)
 
@@ -67,6 +130,35 @@ class ConfigWindow(QWidget):
         self.setLayout(layout)
         self.status_table.cellDoubleClicked.connect(self.open_color_picker)
 
+        # Load calendars if authenticated
+        self.load_calendars()
+
+    def load_calendars(self):
+        """Populate the calendar dropdown with available calendars if authenticated."""
+        try:
+            from calendar_sync import CalendarSync
+            cal_sync = CalendarSync("primary")
+            service = cal_sync._get_service()
+            calendar_list = service.calendarList().list().execute()
+            self.selected_calendar_id_dropdown.clear()
+            calendars = calendar_list.get("items", [])
+            for cal in calendars:
+                summary = cal.get("summary", "")
+                cal_id = cal.get("id", "")
+                display = f"{summary} ({cal_id})"
+                self.selected_calendar_id_dropdown.addItem(display, cal_id)
+            # Set to saved value if present
+            config = load_config()
+            saved_id = config.get("SELECTED_CALENDAR_ID", "")
+            if saved_id:
+                idx = self.selected_calendar_id_dropdown.findData(saved_id)
+                if idx != -1:
+                    self.selected_calendar_id_dropdown.setCurrentIndex(idx)
+        except Exception as e:
+            self.selected_calendar_id_dropdown.clear()
+            self.selected_calendar_id_dropdown.addItem("No calendars found")
+            logger.error(f"Failed to load calendars: {e}")
+
     def add_status_row(self, status="", color="", power_off=False):
         row = self.status_table.rowCount()
         self.status_table.insertRow(row)
@@ -74,8 +166,9 @@ class ConfigWindow(QWidget):
         self.status_table.setItem(row, 1, QTableWidgetItem(color))
         chk = QCheckBox()
         chk.setChecked(power_off)
-        chk.setAlignment(Qt.AlignCenter)
         self.status_table.setCellWidget(row, 2, chk)
+        self.status_table.item(row, 0).setTextAlignment(Qt.AlignCenter)
+        self.status_table.item(row, 1).setTextAlignment(Qt.AlignCenter)
 
     def remove_selected_row(self):
         row = self.status_table.currentRow()
@@ -92,6 +185,25 @@ class ConfigWindow(QWidget):
                 rgb = f"{color.red()},{color.green()},{color.blue()}"
                 self.status_table.setItem(row, col, QTableWidgetItem(rgb))
 
+    def run_oauth_flow(self):
+        # Import here to avoid circular import
+        try:
+            from calendar_sync import CalendarSync
+            cal_sync = CalendarSync("primary")
+            cal_sync._get_service()
+            authenticated_email = getattr(cal_sync, "calendar_id", None)
+            if authenticated_email:
+                self.google_calendar_id_label.setText(authenticated_email)
+                config = load_config()
+                config["GOOGLE_CALENDAR_ID"] = authenticated_email
+                save_config(config)
+                logger.info(f"OAuth Success: Google account connected as {authenticated_email}.")
+            else:
+                logger.info("OAuth Success: Google account connected, but email not found.")
+            self.load_calendars()  # Refresh calendar list after OAuth
+        except Exception as e:
+            logger.error(f"OAuth Error: Failed to connect Google account: {e}")
+
     def save_config(self):
         config = load_config()
         color_map = {}
@@ -103,5 +215,17 @@ class ConfigWindow(QWidget):
                 color_map[status] = {"color": color, "power_off": power_off}
         config["STATUS_COLOR_MAP"] = color_map
         config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
+        config["REFRESH_INTERVAL"] = self.refresh_spin.value()
+        config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_chk.isChecked()
+        config["OFF_FOR_UNKNOWN_STATUS"] = self.off_for_unknown_chk.isChecked()
+        config["DISABLE_CALENDAR_SYNC"] = self.disable_sync_chk.isChecked()
+        config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
+        config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
+        config["GOOGLE_CALENDAR_ID"] = self.google_calendar_id_label.text().strip()
+        # Save the selected calendar ID from the dropdown
+        selected_idx = self.selected_calendar_id_dropdown.currentIndex()
+        selected_id = self.selected_calendar_id_dropdown.itemData(selected_idx)
+        if selected_id:
+            config["SELECTED_CALENDAR_ID"] = selected_id
         save_config(config)
-        QMessageBox.information(self, "Saved", "Settings saved successfully.")
+        logger.info("Settings saved successfully.")
