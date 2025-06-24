@@ -116,10 +116,10 @@ class ConfigWindow(QWidget):
         layout.addWidget(self.off_for_unknown_input)
 
         # Status/Color Mapping Table
-        self.status_table = QTableWidget(3, 2)
+        default_statuses = [("in_meeting", "255,0,0"), ("focus", "0,0,255"), ("available", "0,255,0")]
+        self.status_table = QTableWidget(len(default_statuses), 2)
         self.status_table.setHorizontalHeaderLabels(["Status Keyword", "Color (RGB)"])
         self.status_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        default_statuses = [("in_meeting", "255,0,0"), ("focus", "0,0,255"), ("available", "0,255,0")]
         for i, (status, color) in enumerate(default_statuses):
             self.status_table.setItem(i, 0, QTableWidgetItem(status))
             self.status_table.setItem(i, 1, QTableWidgetItem(color))
