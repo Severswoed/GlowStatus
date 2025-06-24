@@ -9,7 +9,7 @@ from logger import get_logger
 from utils import normalize_status
 
 # Import paths and scopes from config_ui
-from config_ui import TOKEN_PATH, CLIENT_SECRET_PATH, SCOPES
+from constants import TOKEN_PATH, CLIENT_SECRET_PATH, SCOPES
 
 logger = get_logger()
 
