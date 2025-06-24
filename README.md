@@ -104,9 +104,10 @@ GlowStatus/
   Select your calendar from the dropdown (all calendars you have access to will be listed).
 
 - **Tray Icon:**  
-  Pick any image from `/img` with `_tray_` in the filename to use as your system tray icon.
+  Pick any image from `/img` with `_tray_` in the filename to use as your system tray icon.  
+  The tray icon and the app's taskbar/dock icon will both show your chosen logo for a seamless experience on Windows and macOS.
 
-- - **Status/Color Mapping:**  
+- **Status/Color Mapping:**  
   Add, edit, or remove status keywords (e.g., `focus`, `in_meeting`, `available`, `lunch`, etc.) and assign RGB colors and a "Power Off" option for each. 
 
   - **To add a custom status:** Click "Add Status" in the settings window, enter your keyword (e.g., `lunch`), set a color (or leave blank), and check "Power Off" if you want the light to turn off for that status.
@@ -132,6 +133,18 @@ GlowStatus/
 
 - **Persistent Sync State:**  
   The app remembers whether sync was enabled or disabled between runs.
+
+---
+
+## ✨ Cool Feature: Meeting Reminder via Lights
+
+Ever been off in space, deep in thought, working on something intently... and suddenly your lights come on?  
+That's GlowStatus giving you a heads-up:  **"Oh crap, I have a minute or so to get to the meeting!"**  
+Thanks to GlowStatus, you'll never miss that last-minute dash—your lights will gently remind you when a meeting is about to start.
+
+You'll never shine if you dont glow ✨
+
+---
 
 ## 🧑‍💻 macOS Local Development Setup
 
