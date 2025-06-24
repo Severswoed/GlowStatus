@@ -1,0 +1,15 @@
+{
+  "GOVEE_DEVICE_ID": "10:00:D7:C1:83:46:65:8C",
+  "GOVEE_DEVICE_MODEL": "H6159",
+  "TRAY_ICON": "GlowStatus_tray_tp_tight.png",
+  "SELECTED_CALENDAR_ID": "severswoed@gmail.com",
+  "REFRESH_INTERVAL": 60,
+  "DISABLE_CALENDAR_SYNC": false,
+  "POWER_OFF_WHEN_AVAILABLE": true,
+  "OFF_FOR_UNKNOWN_STATUS": true,
+  "STATUS_COLOR_MAP": {
+    "in_meeting": "255,0,0",
+    "focus": "0,0,255",
+    "available": "0,255,0"
+  }
+}

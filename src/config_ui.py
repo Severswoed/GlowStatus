@@ -1,7 +1,11 @@
-import sys, os, json, keyring, pickle
+import sys
+import os
+import json
+import keyring
+import pickle
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout,
-    QMessageBox, QColorDialog, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QInputDialog, QCheckBox, QSpinBox
+    QMessageBox, QColorDialog, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QCheckBox, QSpinBox, QFrame
 )
 from PySide6.QtCore import Qt
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -31,7 +35,7 @@ def load_secret(key):
     return keyring.get_password("GlowStatus", key)
 
 class ConfigWindow(QWidget):
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
         self.setWindowTitle("GlowStatus Configuration")
         self.setFixedWidth(500)
@@ -40,6 +44,16 @@ class ConfigWindow(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout()
+
+        # Authenticated email label (added)
+        self.google_email_label = QLabel("Not authenticated")
+        layout.addWidget(self.google_email_label)
+
+        # --- Govee Configuration Section ---
+        line1 = QFrame()
+        line1.setFrameShape(QFrame.HLine)
+        line1.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line1)
 
         # Govee API Key
         self.govee_api_input = QLineEdit()
@@ -57,15 +71,28 @@ class ConfigWindow(QWidget):
         layout.addWidget(QLabel("Govee Device Model:"))
         layout.addWidget(self.govee_model_input)
 
-        # Google Calendar ID (auto-filled)
-        self.calendar_id_input = QLineEdit()
-        layout.addWidget(QLabel("Google Calendar ID:"))
-        layout.addWidget(self.calendar_id_input)
+        # --- Google Calendar Configuration Section ---
+        line2 = QFrame()
+        line2.setFrameShape(QFrame.HLine)
+        line2.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line2)
 
         # Google OAuth Button
         self.oauth_btn = QPushButton("Connect Google Calendar (OAuth)")
         self.oauth_btn.clicked.connect(self.handle_oauth)
         layout.addWidget(self.oauth_btn)
+
+        # Calendar Selection Dropdown
+        self.calendar_dropdown = QComboBox()
+        self.calendar_dropdown.setEditable(False)
+        layout.addWidget(QLabel("Select Calendar to Monitor:"))
+        layout.addWidget(self.calendar_dropdown)
+
+        # --- Other Settings Section ---
+        line3 = QFrame()
+        line3.setFrameShape(QFrame.HLine)
+        line3.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line3)
 
         # Refresh Interval
         self.refresh_interval_input = QSpinBox()
@@ -83,6 +110,11 @@ class ConfigWindow(QWidget):
         self.power_off_input.setChecked(True)
         layout.addWidget(self.power_off_input)
 
+        # Off for Unknown Status
+        self.off_for_unknown_input = QCheckBox("Turn lights off for unknown status")
+        self.off_for_unknown_input.setChecked(True)
+        layout.addWidget(self.off_for_unknown_input)
+
         # Status/Color Mapping Table
         self.status_table = QTableWidget(3, 2)
         self.status_table.setHorizontalHeaderLabels(["Status Keyword", "Color (RGB)"])
@@ -94,6 +126,19 @@ class ConfigWindow(QWidget):
         layout.addWidget(QLabel("Status/Color Mapping:"))
         layout.addWidget(self.status_table)
 
+        # --- Tray Icon Section ---
+        line_tray = QFrame()
+        line_tray.setFrameShape(QFrame.HLine)
+        line_tray.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line_tray)
+
+        # Tray Icon Picker
+        img_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../img"))
+        tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f]
+        self.tray_icon_dropdown = QComboBox()
+        self.tray_icon_dropdown.addItems(tray_icons)
+        layout.addWidget(QLabel("Tray Icon:"))
+        layout.addWidget(self.tray_icon_dropdown)
         self.setLayout(layout)
 
         # Save Button
@@ -115,10 +160,10 @@ class ConfigWindow(QWidget):
         config = load_config()
         self.govee_id_input.setText(config.get("GOVEE_DEVICE_ID", ""))
         self.govee_model_input.setText(config.get("GOVEE_DEVICE_MODEL", ""))
-        self.calendar_id_input.setText(config.get("GOOGLE_CALENDAR_ID", ""))
         self.refresh_interval_input.setValue(config.get("REFRESH_INTERVAL", 60))
         self.disable_calendar_sync_input.setChecked(bool(config.get("DISABLE_CALENDAR_SYNC", False)))
         self.power_off_input.setChecked(bool(config.get("POWER_OFF_WHEN_AVAILABLE", True)))
+        self.off_for_unknown_input.setChecked(bool(config.get("OFF_FOR_UNKNOWN_STATUS", True)))
         api_key = load_secret("GOVEE_API_KEY")
         if api_key:
             self.govee_api_input.setText(api_key)
@@ -128,6 +173,39 @@ class ConfigWindow(QWidget):
             if i < self.status_table.rowCount():
                 self.status_table.setItem(i, 0, QTableWidgetItem(status))
                 self.status_table.setItem(i, 1, QTableWidgetItem(color))
+        # Tray icon
+        img_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../img"))
+        tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f]
+        self.tray_icon_dropdown.clear()
+        self.tray_icon_dropdown.addItems(tray_icons)
+        self.tray_icon_dropdown.setCurrentText(config.get("TRAY_ICON", tray_icons[0] if tray_icons else ""))
+
+        # Load calendar selection
+        self.selected_calendar_id = config.get("SELECTED_CALENDAR_ID", "")
+        self.calendar_dropdown.clear()
+        if os.path.exists(TOKEN_PATH):
+            try:
+                with open(TOKEN_PATH, "rb") as token:
+                    creds = pickle.load(token)
+                service = build("calendar", "v3", credentials=creds)
+                user_info = service.calendarList().list().execute()
+                primary_calendar = next((cal for cal in user_info.get("items", []) if cal.get("primary")), None)
+                email = primary_calendar.get("id") if primary_calendar else "Unknown"
+                self.google_email_label.setText(f"Authenticated as: {email}")
+
+                calendars = user_info.get("items", [])
+                for cal in calendars:
+                    label = f"{cal.get('summary')} ({cal.get('id')})"
+                    self.calendar_dropdown.addItem(label, cal.get("id"))
+                # Set dropdown to saved calendar if present
+                if self.selected_calendar_id:
+                    idx = self.calendar_dropdown.findData(self.selected_calendar_id)
+                    if idx >= 0:
+                        self.calendar_dropdown.setCurrentIndex(idx)
+            except Exception:
+                self.google_email_label.setText("Not authenticated")
+        else:
+            self.google_email_label.setText("Not authenticated")
 
     def save_config(self):
         # Save status/color mapping
@@ -140,10 +218,12 @@ class ConfigWindow(QWidget):
         config = {
             "GOVEE_DEVICE_ID": self.govee_id_input.text().strip(),
             "GOVEE_DEVICE_MODEL": self.govee_model_input.text().strip(),
-            "GOOGLE_CALENDAR_ID": self.calendar_id_input.text().strip(),
+            "TRAY_ICON": self.tray_icon_dropdown.currentText(),
+            "SELECTED_CALENDAR_ID": self.calendar_dropdown.currentData(),
             "REFRESH_INTERVAL": self.refresh_interval_input.value(),
             "DISABLE_CALENDAR_SYNC": self.disable_calendar_sync_input.isChecked(),
             "POWER_OFF_WHEN_AVAILABLE": self.power_off_input.isChecked(),
+            "OFF_FOR_UNKNOWN_STATUS": self.off_for_unknown_input.isChecked(),
             "STATUS_COLOR_MAP": mapping,
         }
         save_config(config)
@@ -152,7 +232,6 @@ class ConfigWindow(QWidget):
         self.close()
 
     def handle_oauth(self):
-        # Run OAuth flow and let user pick a calendar
         creds = None
         if os.path.exists(TOKEN_PATH):
             with open(TOKEN_PATH, "rb") as token:
@@ -163,16 +242,22 @@ class ConfigWindow(QWidget):
             with open(TOKEN_PATH, "wb") as token:
                 pickle.dump(creds, token)
         service = build("calendar", "v3", credentials=creds)
-        calendars = service.calendarList().list().execute().get("items", [])
+        user_info = service.calendarList().list().execute()
+        primary_calendar = next((cal for cal in user_info.get("items", []) if cal.get("primary")), None)
+        email = primary_calendar.get("id") if primary_calendar else "Unknown"
+        self.google_email_label.setText(f"Authenticated as: {email}")
+
+        calendars = user_info.get("items", [])
+        self.calendar_dropdown.clear()
         if not calendars:
             QMessageBox.warning(self, "No Calendars", "No calendars found for this account.")
             return
-        calendar_names = [f"{c.get('summary')} ({c.get('id')})" for c in calendars]
-        selected_idx, ok = QInputDialog.getItem(self, "Select Calendar", "Choose your calendar:", calendar_names, 0, False)
-        if ok and selected_idx:
-            selected = calendars[calendar_names.index(selected_idx)]
-            self.calendar_id_input.setText(selected.get("id"))
-            QMessageBox.information(self, "Google OAuth", f"Connected to calendar: {selected.get('summary')}")
+        for cal in calendars:
+            label = f"{cal.get('summary')} ({cal.get('id')})"
+            self.calendar_dropdown.addItem(label, cal.get("id"))
+        if calendars:
+            self.calendar_dropdown.setCurrentIndex(0)
+            QMessageBox.information(self, "Google OAuth", f"Connected to calendar: {calendars[0].get('summary')}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

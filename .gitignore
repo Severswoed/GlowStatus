@@ -66,6 +66,8 @@ logs/
 govee_temp.json
 auth_token.txt
 google_service_account.json
+*.pickle
+client_secret.json
 
 # Optional
 *.bak
