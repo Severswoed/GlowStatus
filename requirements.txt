@@ -1,7 +1,8 @@
 python-dateutil
-python-dotenv
 requests
 google-api-python-client
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
+PySide6
+keyring
