@@ -24,6 +24,8 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 - **Persistent Sync State** – Sync on/off state is remembered between runs.
 - **Efficient Calendar Sync** – Only fetches events from the last 15 minutes up to midnight, for fast performance even on busy calendars.
 - **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use.
+- **Secure by Default** – Uses `.env` for secure API key and token management in dev.
+- **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
 
 ---
 
@@ -60,6 +62,9 @@ GlowStatus/
 ---
 
 ## 🛠️ Setup Instructions
+
+### [macOS Local Development Setup](#macos-local-development-setup)
+### [Windows Local Development Setup](#windows-local-development-setup)
 
 1. **Clone the Repo**
    ```bash
@@ -123,6 +128,63 @@ GlowStatus/
 
 - **Persistent Sync State:**  
   The app remembers whether sync was enabled or disabled between runs.
+
+## 🧑‍💻 macOS Local Development Setup
+
+1. **Install Python 3.9+**  
+   You can use [Homebrew](https://brew.sh/):
+   ```bash
+   brew install python
+   ```
+
+2. **(Recommended) Create a Virtual Environment**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   pip3 install -r requirements.txt
+   ```
+
+4. **Continue with the main setup instructions above.**
+
+---
+
+## 🖥️ Windows Local Development Setup
+
+1. **Install Python 3.9+**  
+   Download from [python.org](https://www.python.org/downloads/windows/) and ensure "Add Python to PATH" is checked.
+
+2. **(Recommended) Create a Virtual Environment**
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**
+   ```powershell
+   pip install -r requirements.txt
+   ```
+
+4. **Continue with the main setup instructions above.**
+
+---
+
+## 🧪 Example `.env`
+
+```env
+# .env.example
+GOVEE_API_KEY=your-govee-api-key
+GOVEE_DEVICE_ID=your-light-device-id
+GOVEE_DEVICE_MODEL=your-device-model
+GOOGLE_CALENDAR_ID=your_email@gmail.com
+GOOGLE_SERVICE_ACCOUNT_JSON=./google_service_account.json
+REFRESH_INTERVAL=60
+DISABLE_CALENDAR_SYNC=0
+POWER_OFF_WHEN_AVAILABLE=1
+```
 
 ---
 
@@ -193,4 +255,4 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
 ---
 
-Light up your availability!
+Light up your availability! 💙
