@@ -10,13 +10,20 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 
 ## 🚀 Features
 
-- **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events.
+- **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events (case-insensitive, matches anywhere in event title).
 - **Smart Light Control** – Uses Govee API to change light colors based on your calendar status.
 - **Configurable Modes** – Custom color themes for:
   - In a Meeting (red)
   - Focus Mode (blue)
   - Available (green)
   - Offline (gray)
+  - Add your own status keywords and colors!
+- **Secure by Default** – All configuration is handled via a graphical UI (no manual file editing or `.env` required for users).
+- **Manual Override & Tray Icon** – Change your status or open settings from the system tray.
+- **Tray Icon Picker** – Choose your tray icon from any image in `/img` with `_tray_` in the filename.
+- **Persistent Sync State** – Sync on/off state is remembered between runs.
+- **Efficient Calendar Sync** – Only fetches events from the last 15 minutes up to midnight, for fast performance even on busy calendars.
+- **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use.
 - **Secure by Default** – Uses `.env` for secure API key and token management in dev.
 - **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
 
@@ -31,14 +38,22 @@ GlowStatus/
 │   ├── govee_controller.py     # Govee API integration
 │   ├── calendar_sync.py        # Google Calendar sync logic
 │   ├── logger.py               # Logging utilities
-│   └── utils.py                # Helper functions
+│   ├── utils.py                # Helper functions
+│   ├── config_ui.py            # Configuration UI for setup
+│   └── tray_app.py             # System tray app entrypoint
+├── config/
+│   ├── glowstatus_config.json  # User configuration (auto-generated)
+│   └── google_token.pickle     # Google OAuth token (auto-generated)
+├── resources/
+│   └── client_secret.json      # Google OAuth client secret (bundled)
+├── img/
+│   └── GlowStatus_tray_*.png   # Tray icon images (selectable)
 ├── tests/
 │   └── test_main.py            # Unit tests
 ├── docs/
 │   ├── govee_apikey_instructions.md
 │   ├── govee_device_id_instructions.md
 │   └── google_calendar_apikey_instructions.md
-├── .env.example                # Sample env config
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # You're here!
 └── LICENSE                     # MIT License
@@ -59,21 +74,60 @@ GlowStatus/
 
 2. **Install Dependencies**
    ```bash
+   python -m venv .venv
+   .\.venv\Scripts\Activate
    pip install -r requirements.txt
    ```
 
-3. **Create and Configure `.env`**
+3. **Launch the App (with Tray Icon)**
    ```bash
-   cp .env.example .env
-   # Fill in Govee API Key, Device ID, Google Calendar ID, and service account JSON path.
+   python src/tray_app.py
    ```
+   - Click the GlowStatus tray icon and select **"Open Settings"** to enter your Govee and Google details, connect your Google account, and customize status colors and options.
+   - All settings are saved securely—no manual file editing required!
 
-4. **Run the App**
+4. **(Optional) Run the Main App Directly**
    ```bash
    python src/glowstatus.py
    ```
+   - This will use your saved config and secrets.
 
 ---
+
+## ⚙️ Settings & Options
+
+- **Govee API Key, Device ID, Device Model:**  
+  Enter your Govee credentials in the settings window.
+
+- **Google OAuth:**  
+  Click "Connect Google Calendar (OAuth)" and sign in.  
+  Select your calendar from the dropdown (all calendars you have access to will be listed).
+
+- **Tray Icon:**  
+  Pick any image from `/img` with `_tray_` in the filename to use as your system tray icon.
+
+- **Status/Color Mapping:**  
+  Add or edit status keywords (e.g., `focus`, `in_meeting`, `available`) and assign RGB colors.  
+  Status detection is **case-insensitive** and matches keywords anywhere in the event title.
+
+- **Refresh Interval:**  
+  Set how often (in seconds) the app checks your calendar for status changes.
+
+- **Disable Calendar Sync:**  
+  Temporarily disables automatic status updates from your calendar.
+
+- **Power Off When Available:**  
+  Turns off your Govee light when your status is "available" (optional).
+
+- **Turn Lights Off for Unknown Status:**  
+  If enabled, the light turns off when your status doesn't match any keyword; otherwise, it turns white.
+
+- **Manual Override:**  
+  Use the tray menu to set your status manually.  
+  Clear override to return to automatic calendar-based status.
+
+- **Persistent Sync State:**  
+  The app remembers whether sync was enabled or disabled between runs.
 
 ## 🧑‍💻 macOS Local Development Setup
 
@@ -136,21 +190,7 @@ POWER_OFF_WHEN_AVAILABLE=1
 
 ## 🧑‍💻 Codespaces/iPad Quick Start
 
-1. Open your repo in GitHub Codespaces.
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Copy `.env.example` to `.env` and fill in your credentials:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys and paths
-   ```
-4. Upload your Google service account JSON file.
-5. Start the app:
-   ```bash
-   python src/glowstatus.py
-   ```
+> **Note:** The configuration UI requires a desktop environment. For Codespaces or iPad, edit `config/glowstatus_config.json` manually and use the CLI.
 
 ---
 
@@ -167,33 +207,33 @@ POWER_OFF_WHEN_AVAILABLE=1
 
 ---
 
-## 🧪 CLI Test Example
+## 🛠️ Troubleshooting
 
-```bash
-curl -X PUT "https://developer-api.govee.com/v1/devices/control" \
-  -H "Govee-API-Key: GOVEE_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "device": "GOVEE_DEVICE_ID",
-    "model": "GOVEE_DEVICE_MODEL",
-    "cmd": {
-      "name": "turn",
-      "value": "on"
-    }
-  }'
-```
-> To turn off, set `"value": "off"`
+- **Tray icon or config UI does not appear:**  
+  Make sure you are running the app on a desktop environment (not Codespaces or iPad browser).
+
+- **Govee device not responding:**  
+  Double-check your API key, device ID, and model. See [Govee API Key Instructions](./docs/govee_apikey_instructions.md).
+
+- **Status colors not changing:**  
+  Ensure your status keywords and color mappings are correct in the config UI.
+
+- **Missing `client_secret.json`:**  
+  This file should be bundled in `resources/` with your app. If missing, contact the app maintainer.
+
+- **Manual override not working:**  
+  Make sure you clear manual override from the tray menu if you want to return to automatic status.
+
+- **Other errors:**  
+  Check the logs for details. File an issue if you need help!
 
 ---
 
 ## 🎯 Future Roadmap
 
-- OAuth 2.0 Google authentication
-- Customized colors / status'
 - Slack/Teams status sync
-- Tray icon/manual override
 - Time-based or ambient-light auto dimming
-- Config UI for non-technical users
+- More integrations and automations
 
 ---
 

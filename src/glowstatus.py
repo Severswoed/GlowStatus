@@ -1,121 +1,141 @@
-import datetime
-import os
+import threading
 import time
-from dotenv import load_dotenv
+import datetime
 
 from govee_controller import GoveeController
 from calendar_sync import CalendarSync
+from config_ui import load_config, load_secret
 from logger import get_logger
-from utils import (
-    clamp_rgb,
-    is_valid_govee_api_key,
-    is_valid_govee_device_id,
-    is_valid_govee_device_model,
-    is_valid_google_calendar_id,
-)
-
-# Load environment variables
-load_dotenv()
-GOVEE_API_KEY = os.getenv("GOVEE_API_KEY")
-GOVEE_DEVICE_ID = os.getenv("GOVEE_DEVICE_ID")
-GOVEE_DEVICE_MODEL = os.getenv("GOVEE_DEVICE_MODEL")
-GOOGLE_CALENDAR_ID = os.getenv("GOOGLE_CALENDAR_ID")
-REFRESH_INTERVAL = int(os.getenv("REFRESH_INTERVAL", 60))
-DISABLE_CALENDAR_SYNC = os.getenv("DISABLE_CALENDAR_SYNC", "0") == "1"
-POWER_OFF_WHEN_AVAILABLE = os.getenv("POWER_OFF_WHEN_AVAILABLE", "0") == "1"
 
 logger = get_logger()
 
-def get_status_color(status):
-    """Map calendar status to Govee color."""
-    color_map = {
-        "in_meeting": (255, 0, 0),      # Red
-        "available": (0, 255, 0),       # Green
-        "focus": (0, 0, 255),           # Blue
-        "offline": (128, 128, 128),     # Gray
-    }
-    return color_map.get(status, (255, 255, 255))  # Default: White
+class GlowStatusController:
+    def __init__(self):
+        self._running = False
+        self._thread = None
 
-def main():
-    # Validate environment variables
-    if not is_valid_govee_api_key(GOVEE_API_KEY):
-        logger.error("Invalid or missing GOVEE_API_KEY.")
-        return
-    if not is_valid_govee_device_id(GOVEE_DEVICE_ID):
-        logger.error("Invalid or missing GOVEE_DEVICE_ID.")
-        return
-    if not is_valid_govee_device_model(GOVEE_DEVICE_MODEL):
-        logger.error("Invalid or missing GOVEE_DEVICE_MODEL.")
-        return
-    if not DISABLE_CALENDAR_SYNC and not is_valid_google_calendar_id(GOOGLE_CALENDAR_ID):
-        logger.error("Invalid or missing GOOGLE_CALENDAR_ID.")
-        return
+    def start(self):
+        if self._running:
+            return
+        self._running = True
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
 
-    logger.info("Starting GlowStatus...")
-    govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
+    def stop(self):
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=2)
+            self._thread = None
 
-    if DISABLE_CALENDAR_SYNC:
-        logger.info("Calendar sync is disabled. Testing Govee functions only.")
-        # Example: cycle through colors for testing
-        test_colors = [
-            (255, 0, 0),    # Red
-            (0, 255, 0),    # Green
-            (0, 0, 255),    # Blue
-            (255, 255, 0),  # Yellow
-            (255, 255, 255) # White
-        ]
-        try:
-            logger.info("Starting GlowStatus test mode...")
-            logger.info("Turning on Govee device...")
-            govee.set_power("on")
-            for color in test_colors:
-                logger.info(f"Setting Govee color to: {color}")
-                color = clamp_rgb(*color)
-                if not color:
-                    logger.error("Invalid RGB color values.")
-                    continue
-                logger.info(f"Setting Govee color to RGB{color}")
-                govee.set_color(*color)
-                time.sleep(10)  # Increase delay to avoid rate limit
-            logger.info("GlowStatus test completed.")
-            logger.info("GlowStatus is exiting.")
-            govee.set_power("off")
-        except KeyboardInterrupt:
-            logger.info("GlowStatus stopped by user.")
-            logger.info("GlowStatus test completed.")
-            logger.info("GlowStatus is exiting.")
-            govee.set_power("off")
-        return
+    def update_now(self):
+        config = load_config()
+        GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
+        GOVEE_DEVICE_ID = config.get("GOVEE_DEVICE_ID")
+        GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
+        SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID", config.get("GOOGLE_CALENDAR_ID"))
+        STATUS_COLOR_MAP = config.get("STATUS_COLOR_MAP", {})
+        POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
+        OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
+        DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
 
-    calendar = CalendarSync(GOOGLE_CALENDAR_ID)
+        govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 
-    try:
-        while True:
-            try:
-                # Get current status, but allow "in_meeting" up to 1 minute before the meeting starts
+        manual_status = config.get("CURRENT_STATUS")
+        if DISABLE_CALENDAR_SYNC:
+            if manual_status:
+                status = manual_status
+            else:
+                govee.set_power("off")
+                return
+        else:
+            if manual_status:
+                status = manual_status
+            else:
+                calendar = CalendarSync(SELECTED_CALENDAR_ID)
                 status, next_event_start = calendar.get_current_status(return_next_event_time=True)
-                logger.info(f"Current status: {status}")
-
-                # If next event is within 1 minute and is a meeting, treat as "in_meeting"
                 if (
                     status == "available"
                     and next_event_start is not None
                     and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
                 ):
-                    logger.info("Upcoming meeting within 1 minute. Setting status to 'in_meeting'.")
                     status = "in_meeting"
 
-                if status == "available" and POWER_OFF_WHEN_AVAILABLE:
-                    logger.info("Status is 'available' and POWER_OFF_WHEN_AVAILABLE is set. Turning off Govee device.")
-                    govee.set_power("off")
+        color_map = STATUS_COLOR_MAP or {
+            "in_meeting": "255,0,0",
+            "available": "0,255,0",
+            "focus": "0,0,255",
+            "offline": "128,128,128",
+        }
+
+        if status in color_map:
+            rgb_str = color_map[status]
+            r, g, b = map(int, rgb_str.split(","))
+            if status == "available" and POWER_OFF_WHEN_AVAILABLE:
+                govee.set_power("off")
+            else:
+                govee.set_power("on")
+                govee.set_color(r, g, b)
+        else:
+            if OFF_FOR_UNKNOWN_STATUS:
+                govee.set_power("off")
+            else:
+                govee.set_power("on")
+                govee.set_color(255, 255, 255)
+
+    def _run(self):
+        while self._running:
+            config = load_config()
+            GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
+            GOVEE_DEVICE_ID = config.get("GOVEE_DEVICE_ID")
+            GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
+            SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID", config.get("GOOGLE_CALENDAR_ID"))
+            STATUS_COLOR_MAP = config.get("STATUS_COLOR_MAP", {})
+            REFRESH_INTERVAL = int(config.get("REFRESH_INTERVAL", 60))
+            POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
+            OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
+            DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
+
+            govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
+
+            if DISABLE_CALENDAR_SYNC:
+                time.sleep(REFRESH_INTERVAL)
+                continue
+
+            calendar = CalendarSync(SELECTED_CALENDAR_ID)
+            try:
+                manual_status = config.get("CURRENT_STATUS")
+                if manual_status:
+                    status = manual_status
                 else:
-                    color = get_status_color(status)
-                    govee.set_power("on")
-                    govee.set_color(*color)
+                    status, next_event_start = calendar.get_current_status(return_next_event_time=True)
+                    if (
+                        status == "available"
+                        and next_event_start is not None
+                        and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                    ):
+                        status = "in_meeting"
+
+                color_map = STATUS_COLOR_MAP or {
+                    "in_meeting": "255,0,0",
+                    "available": "0,255,0",
+                    "focus": "0,0,255",
+                    "offline": "128,128,128",
+                }
+
+                if status in color_map:
+                    rgb_str = color_map[status]
+                    r, g, b = map(int, rgb_str.split(","))
+                    if status == "available" and POWER_OFF_WHEN_AVAILABLE:
+                        govee.set_power("off")
+                    else:
+                        govee.set_power("on")
+                        govee.set_color(r, g, b)
+                else:
+                    if OFF_FOR_UNKNOWN_STATUS:
+                        govee.set_power("off")
+                    else:
+                        govee.set_power("on")
+                        govee.set_color(255, 255, 255)
             except Exception as e:
                 logger.error(f"Error updating status: {e}")
             time.sleep(REFRESH_INTERVAL)
-    except KeyboardInterrupt:
-        logger.info("GlowStatus stopped by user.")
-if __name__ == "__main__":
-    main()
