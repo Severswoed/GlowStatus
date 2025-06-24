@@ -6,6 +6,7 @@ from govee_controller import GoveeController
 from calendar_sync import CalendarSync
 from config_ui import load_config, load_secret
 from logger import get_logger
+from utils import normalize_status
 
 logger = get_logger()
 
@@ -64,18 +65,20 @@ class GlowStatusController:
                     status = "in_meeting"
 
         color_map = STATUS_COLOR_MAP or {
-            "in_meeting": "255,0,0",
-            "available": "0,255,0",
-            "focus": "0,0,255",
-            "offline": "128,128,128",
+            "in_meeting": {"color": "255,0,0", "power_off": False},
+            "available": {"color": "0,255,0", "power_off": True},
+            "focus": {"color": "0,0,255", "power_off": False},
+            "offline": {"color": "128,128,128", "power_off": False},
         }
 
-        if status in color_map:
-            rgb_str = color_map[status]
-            r, g, b = map(int, rgb_str.split(","))
-            if status == "available" and POWER_OFF_WHEN_AVAILABLE:
+        status_key = status.lower()
+        entry = color_map.get(status_key)
+        if entry:
+            if entry.get("power_off"):
                 govee.set_power("off")
             else:
+                rgb_str = entry.get("color", "255,255,255")
+                r, g, b = map(int, rgb_str.split(","))
                 govee.set_power("on")
                 govee.set_color(r, g, b)
         else:
@@ -123,18 +126,20 @@ class GlowStatusController:
                         status = "in_meeting"
 
                 color_map = STATUS_COLOR_MAP or {
-                    "in_meeting": "255,0,0",
-                    "available": "0,255,0",
-                    "focus": "0,0,255",
-                    "offline": "128,128,128",
+                    "in_meeting": {"color": "255,0,0", "power_off": False},
+                    "available": {"color": "0,255,0", "power_off": True},
+                    "focus": {"color": "0,0,255", "power_off": False},
+                    "offline": {"color": "128,128,128", "power_off": False},
                 }
 
-                if status in color_map:
-                    rgb_str = color_map[status]
-                    r, g, b = map(int, rgb_str.split(","))
-                    if status == "available" and POWER_OFF_WHEN_AVAILABLE:
+                status_key = status.lower()
+                entry = color_map.get(status_key)
+                if entry:
+                    if entry.get("power_off"):
                         govee.set_power("off")
                     else:
+                        rgb_str = entry.get("color", "255,255,255")
+                        r, g, b = map(int, rgb_str.split(","))
                         govee.set_power("on")
                         govee.set_color(r, g, b)
                 else:
