@@ -8,13 +8,19 @@ def clamp_rgb(r, g, b):
         max(0, min(255, int(b))),
     )
 
-def normalize_status(summary):
-    summary = summary.lower()
-    if "focus" in summary:
-        return "focus"
-    if "meeting" in summary or "call" in summary:
+def normalize_status(summary, color_map=None):
+    """
+    Return the status keyword if any status keyword is found in the summary (case-insensitive, substring match).
+    If color_map is provided, use its keys as keywords. Otherwise, use default keywords.
+    """
+    if not summary:
         return "in_meeting"
-    return "in_meeting"  # Or "available" if you want non-meeting events to not trigger the light
+    summary_lower = summary.lower()
+    keywords = color_map.keys() if color_map else ["in_meeting", "focus", "available", "offline"]
+    for keyword in keywords:
+        if keyword.lower() in summary_lower:
+            return keyword
+    return "in_meeting"
 
 def format_time(dt):
     """Format a datetime object for logging/display."""
@@ -41,4 +47,4 @@ def is_valid_google_calendar_id(calendar_id):
         return True
     if calendar_id.endswith("@group.calendar.google.com"):
         return True
-    return False
+    return
