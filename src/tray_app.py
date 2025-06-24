@@ -1,4 +1,5 @@
 import sys
+import os
 from PySide6.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
@@ -9,13 +10,29 @@ from config_ui import ConfigWindow, load_config, save_config
 from glowstatus import GlowStatusController
 
 def main():
+    # --- App Setup ---
+    config = load_config()
+    app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+
+    # Set the application icon for the taskbar/dock
+    icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../img/GlowStatus_tray_tp_tight.png"))
+    app.setWindowIcon(QIcon(icon_path))
+
+    tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
+    tray = QSystemTrayIcon(QIcon(f"img/{tray_icon}"), parent=app)
+
+    glowstatus = GlowStatusController()
+    sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
+    if sync_enabled[0]:
+        glowstatus.start()
+
     # --- Helper Functions ---
     def update_tray_tooltip():
         config = load_config()
         status = config.get("CURRENT_STATUS", "unknown")
         cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
         tray.setToolTip(f"GlowStatus - {status} ({cal_id})")
-
 
     def show_config():
         config_window = ConfigWindow()
@@ -81,19 +98,6 @@ def main():
     def quit_app():
         glowstatus.stop()
         app.quit()
-
-    # --- App Setup ---
-    config = load_config()
-    app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
-
-    tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-    tray = QSystemTrayIcon(QIcon(f"img/{tray_icon}"), parent=app)
-
-    glowstatus = GlowStatusController()
-    sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
-    if sync_enabled[0]:
-        glowstatus.start()
 
     update_tray_tooltip()
     glowstatus.update_now()
