@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QSpinBox, QFormLayout, QLineEdit
 )
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from logger import get_logger
 
 CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/glowstatus_config.json"))
@@ -23,6 +24,7 @@ def save_config(config):
 class ConfigWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon(os.path.abspath(os.path.join(os.path.dirname(__file__), "../img/GlowStatus_tray_tp_tight.png"))))
         self.setWindowTitle("GlowStatus Settings")
         self.init_ui()
 
