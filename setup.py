@@ -1,8 +1,9 @@
 from setuptools import setup
+import glob
 
 APP = ['src/tray_app.py']
 DATA_FILES = [
-    ('img', ['img/GlowStatus.icns', 'img/GlowStatus_tray_tp_tight.png']),
+    ('img', glob.glob('img/*')),  # Bundle all files in img/
     ('resources', ['resources/client_secret.json']),
     # Add other needed data files/folders here
 ]
@@ -11,9 +12,9 @@ OPTIONS = {
     'packages': ['PySide6', 'google_auth_oauthlib', 'googleapiclient'],
     'resources': DATA_FILES,
     'plist': {
-        'CFBundleName': 'GlowStatus',            # App bundle name
-        'CFBundleDisplayName': 'GlowStatus',     # Display name in Dock
-        'CFBundleExecutable': 'GlowStatus',      # Executable name inside .app
+        'CFBundleName': 'GlowStatus',
+        'CFBundleDisplayName': 'GlowStatus',
+        'CFBundleExecutable': 'GlowStatus',
         'CFBundleIdentifier': 'com.severswoed.glowstatus',
         'CFBundleShortVersionString': '2.0.0',
         'CFBundleVersion': '2.0.0',

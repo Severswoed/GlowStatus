@@ -41,7 +41,7 @@ def main():
             QSystemTrayIcon.Information,
             10000  # duration in ms (10 seconds)
         )
-        
+
     glowstatus = GlowStatusController()
     sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
     if sync_enabled[0]:
@@ -58,6 +58,8 @@ def main():
         config_window = ConfigWindow()
         config_window.setAttribute(Qt.WA_DeleteOnClose)
         config_window.show()
+        config_window.raise_()           # Bring window to front
+        config_window.activateWindow()   # Give it focus
         app.config_window = config_window
 
         def on_config_closed():
