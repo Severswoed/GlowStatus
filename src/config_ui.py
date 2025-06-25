@@ -205,20 +205,34 @@ class ConfigWindow(QWidget):
         try:
             from calendar_sync import CalendarSync
             cal_sync = CalendarSync("primary")
-            cal_sync._get_service()
-            authenticated_email = getattr(cal_sync, "calendar_id", None)
-            if authenticated_email:
-                self.google_calendar_id_label.setText(authenticated_email)
-                config = load_config()
-                config["SELECTED_CALENDAR_ID"] = authenticated_email
-                save_config(config)
-                logger.info(f"OAuth Success: Google account connected as {authenticated_email}.")
+            service = cal_sync._get_service()
+            if service:
+                # Fetch the user's email from the primary calendar
+                calendar_list = service.calendarList().list().execute()
+                calendars = calendar_list.get("items", [])
+                user_email = None
+                for cal in calendars:
+                    if cal.get("primary"):
+                        user_email = cal.get("id")
+                        break
+                if not user_email and calendars:
+                    user_email = calendars[0].get("id", "Unknown")
+                if user_email:
+                    self.google_calendar_id_label.setText(user_email)
+                    config = load_config()
+                    config["SELECTED_CALENDAR_ID"] = user_email
+                    save_config(config)
+                    logger.info(f"OAuth Success: Google account connected as {user_email}.")
+                else:
+                    self.google_calendar_id_label.setText("No calendars found")
+                    logger.info("OAuth Success: Google account connected, but no calendars found.")
             else:
-                logger.info("OAuth Success: Google account connected, but email not found.")
+                self.google_calendar_id_label.setText("Not authenticated")
+                logger.info("OAuth failed: Service not initialized.")
             self.load_calendars()  # Refresh calendar list after OAuth
         except Exception as e:
             logger.error(f"OAuth Error: Failed to connect Google account: {e}")
-
+    
     def save_config(self):
         config = load_config()
         color_map = {}
