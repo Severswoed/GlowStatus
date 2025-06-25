@@ -10,7 +10,13 @@ DATA_FILES = [
 ]
 OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
-    'packages': ['PySide6', 'google_auth_oauthlib', 'googleapiclient'],
+    'packages': [
+        'PySide6',
+        'google_auth_oauthlib',
+        'googleapiclient',
+        'keyring',
+        'keyrings.alt',
+    ],
     'resources': DATA_FILES,
     'plist': {
         'CFBundleName': 'GlowStatus',
