@@ -11,6 +11,13 @@ OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     'packages': ['PySide6', 'google_auth_oauthlib', 'googleapiclient'],
     'resources': DATA_FILES,
+    'plist': {
+        'CFBundleName': 'GlowStatus',  # This sets the .app bundle name
+        'CFBundleDisplayName': 'GlowStatus',
+        'CFBundleIdentifier': 'com.severswoed.glowstatus',
+        'CFBundleShortVersionString': '2.0.0',
+        'CFBundleVersion': '2.0.0',
+    },
 }
 
 setup(
