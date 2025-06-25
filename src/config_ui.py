@@ -1,6 +1,7 @@
 import os
 import json
 import keyring
+from keyring.errors import NoKeyringError
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
     QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QSpinBox, QFormLayout, QLineEdit
@@ -67,10 +68,14 @@ class ConfigWindow(QWidget):
         form_layout = QFormLayout()
 
         # Govee API Key (securely stored in keyring)
-        api_key = keyring.get_password("GlowStatus", "GOVEE_API_KEY") or os.environ.get("GOVEE_API_KEY", "")
+        try:
+            api_key = keyring.get_password("GlowStatus", "GOVEE_API_KEY")
+        except NoKeyringError:
+            logger.error("No secure keyring backend available. Please ensure your system keychain is accessible.")
+            api_key = ""
         self.govee_api_key_edit = QLineEdit()
         self.govee_api_key_edit.setText(api_key if api_key else "")
-        self.govee_api_key_edit.setPlaceholderText("Set in environment or .env for security")
+        self.govee_api_key_edit.setPlaceholderText("Set in keychain for security")
         self.govee_api_key_edit.setEchoMode(QLineEdit.Password)
         form_layout.addRow("Govee API Key:", self.govee_api_key_edit)
 
@@ -265,4 +270,8 @@ class ConfigWindow(QWidget):
         # Save Govee API key securely to keyring
         api_key = self.govee_api_key_edit.text().strip()
         if api_key and api_key != "Set in environment or .env for security":
-            keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
+            try:
+                keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
+                logger.info("Govee API key saved to keyring.")
+            except NoKeyringError:
+                logger.error("No secure keyring backend available. Cannot save API key.")
