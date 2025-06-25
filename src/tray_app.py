@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt
-
+from utils import resource_path
 from config_ui import ConfigWindow, load_config, save_config
 from glowstatus import GlowStatusController
 
@@ -30,7 +30,8 @@ def main():
         missing.append("Govee Device Model")
     if not config.get("SELECTED_CALENDAR_ID"):
         missing.append("Google Calendar")
-    if not os.path.exists("resources/client_secret.json"):
+    client_secret_path = resource_path('resources/client_secret.json')
+    if not os.path.exists(client_secret_path):
         missing.append("Google client_secret.json")
 
     if missing:

@@ -7,7 +7,7 @@ from govee_controller import GoveeController
 from calendar_sync import CalendarSync
 from config_ui import load_config
 from logger import get_logger
-from utils import normalize_status, load_secret
+from utils import normalize_status, load_secret, resource_path
 
 logger = get_logger()
 
@@ -95,7 +95,8 @@ class GlowStatusController:
                 status = manual_status
             else:
                 # Guard: If calendar ID or client_secret.json is missing, skip calendar sync
-                if not SELECTED_CALENDAR_ID or not os.path.exists("resources/client_secret.json"):
+                client_secret_path = resource_path('resources/client_secret.json')
+                if not SELECTED_CALENDAR_ID or not os.path.exists(client_secret_path):
                     logger.warning("Google Calendar ID or client_secret.json not set. Please configure in Settings.")
                     govee.set_power("off")
                     return
