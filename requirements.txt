@@ -6,3 +6,4 @@ google-auth-oauthlib
 google-auth-httplib2
 PySide6
 keyring
+keyrings.alt
