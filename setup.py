@@ -4,6 +4,7 @@ import glob
 APP = ['src/tray_app.py']
 DATA_FILES = [
     ('img', glob.glob('img/*')),  # Bundle all files in img/
+    ('config', glob.glob('config/*')),
     ('resources', ['resources/client_secret.json']),
     # Add other needed data files/folders here
 ]

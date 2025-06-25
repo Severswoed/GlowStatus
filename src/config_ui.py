@@ -9,7 +9,7 @@ from PySide6.QtGui import QIcon
 from logger import get_logger
 from utils import resource_path
 
-CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/glowstatus_config.json"))
+CONFIG_PATH = resource_path('config/glowstatus_config.json')
 logger = get_logger()
 
 def load_config():
@@ -39,6 +39,15 @@ class ConfigWindow(QWidget):
 
         config = load_config()
         color_map = config.get("STATUS_COLOR_MAP", {})
+        if not color_map:
+            # Provide sensible defaults if missing
+            color_map = {
+                "in_meeting": {"color": "255,0,0", "power_off": False},
+                "focus": {"color": "0,0,255", "power_off": False},
+                "available": {"color": "0,255,0", "power_off": True},
+                "lunch": {"color": "0,255,0", "power_off": True},
+                "offline": {"color": "128,128,128", "power_off": False},
+            }
         for status, entry in color_map.items():
             self.add_status_row(status, entry.get("color", ""), entry.get("power_off", False))
 
