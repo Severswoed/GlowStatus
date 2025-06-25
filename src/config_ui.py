@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from logger import get_logger
+from utils import resource_path
 
 CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config/glowstatus_config.json"))
 logger = get_logger()
@@ -116,8 +117,12 @@ class ConfigWindow(QWidget):
         line_tray.setFrameShape(QFrame.HLine)
         line_tray.setFrameShadow(QFrame.Sunken)
         layout.addWidget(line_tray)
-        img_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../img"))
-        tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f]
+
+        img_dir = resource_path('img')
+        if os.path.exists(img_dir):
+            tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f]
+        else:
+            tray_icons = []
         self.tray_icon_dropdown = QComboBox()
         self.tray_icon_dropdown.addItems(tray_icons)
         if config.get("TRAY_ICON") in tray_icons:

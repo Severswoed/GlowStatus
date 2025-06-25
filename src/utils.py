@@ -1,5 +1,18 @@
 import re
 import os
+import sys
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller/py2app bundle."""
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller
+        base_path = sys._MEIPASS
+    elif getattr(sys, 'frozen', False):
+        # py2app
+        base_path = os.environ.get('RESOURCEPATH', os.path.abspath("."))
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 def clamp_rgb(r, g, b):
     """Clamp RGB values to the 0-255 range."""
