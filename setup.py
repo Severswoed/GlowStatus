@@ -7,13 +7,13 @@ DATA_FILES = [
     # Add other needed data files/folders here
 ]
 OPTIONS = {
-    'argv_emulation': True,
     'iconfile': 'img/GlowStatus.icns',
     'packages': ['PySide6', 'google_auth_oauthlib', 'googleapiclient'],
     'resources': DATA_FILES,
     'plist': {
-        'CFBundleName': 'GlowStatus',  # This sets the .app bundle name
-        'CFBundleDisplayName': 'GlowStatus',
+        'CFBundleName': 'GlowStatus',            # App bundle name
+        'CFBundleDisplayName': 'GlowStatus',     # Display name in Dock
+        'CFBundleExecutable': 'GlowStatus',      # Executable name inside .app
         'CFBundleIdentifier': 'com.severswoed.glowstatus',
         'CFBundleShortVersionString': '2.0.0',
         'CFBundleVersion': '2.0.0',
