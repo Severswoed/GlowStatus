@@ -1,6 +1,7 @@
 import threading
 import time
 import datetime
+import os
 
 from govee_controller import GoveeController
 from calendar_sync import CalendarSync
@@ -71,7 +72,12 @@ class GlowStatusController:
         POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
         OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
         DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
-    
+
+        # Guard: If Govee credentials are missing, skip light control
+        if not GOVEE_API_KEY or not GOVEE_DEVICE_ID or not GOVEE_DEVICE_MODEL:
+            logger.warning("Govee API key, Device ID, or Device Model not set. Please configure in Settings.")
+            return
+        
         govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 
         manual_status = config.get("CURRENT_STATUS")
@@ -88,6 +94,11 @@ class GlowStatusController:
             elif manual_status:
                 status = manual_status
             else:
+                # Guard: If calendar ID or client_secret.json is missing, skip calendar sync
+                if not SELECTED_CALENDAR_ID or not os.path.exists("resources/client_secret.json"):
+                    logger.warning("Google Calendar ID or client_secret.json not set. Please configure in Settings.")
+                    govee.set_power("off")
+                    return
                 calendar = CalendarSync(SELECTED_CALENDAR_ID)
                 status, next_event_start = calendar.get_current_status(return_next_event_time=True)
                 if (

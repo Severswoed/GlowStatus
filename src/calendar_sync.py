@@ -22,6 +22,11 @@ def ensure_aware(dt):
 class CalendarSync:
     def __init__(self, calendar_id):
         self.calendar_id = calendar_id
+        # Check for client_secret.json before proceeding
+        if not os.path.exists(CLIENT_SECRET_PATH):
+            logger.warning("Google client_secret.json not found. Please connect your Google account in Settings.")
+            self.service = None
+            return
         self.service = self._get_service()
         self._log_calendar_email()
 
@@ -39,6 +44,10 @@ class CalendarSync:
     def _get_service(self):
         """Authenticate and return a Google Calendar API service using OAuth."""
         creds = None
+        # Check for client_secret.json before proceeding
+        if not os.path.exists(CLIENT_SECRET_PATH):
+            logger.warning("Google client_secret.json not found. Please connect your Google account in Settings.")
+            return None
         # Load token if it exists
         if os.path.exists(TOKEN_PATH):
             with open(TOKEN_PATH, "rb") as token:

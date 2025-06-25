@@ -22,6 +22,26 @@ def main():
     tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
     tray = QSystemTrayIcon(QIcon(f"img/{tray_icon}"), parent=app)
 
+    # --- Show tooltip if setup is incomplete ---
+    missing = []
+    if not config.get("GOVEE_DEVICE_ID"):
+        missing.append("Govee Device ID")
+    if not config.get("GOVEE_DEVICE_MODEL"):
+        missing.append("Govee Device Model")
+    if not config.get("SELECTED_CALENDAR_ID"):
+        missing.append("Google Calendar")
+    if not os.path.exists("resources/client_secret.json"):
+        missing.append("Google client_secret.json")
+
+    if missing:
+        tray.show()
+        tray.showMessage(
+            "GlowStatus Setup Required",
+            "Please complete setup in the Settings window:\n" + ", ".join(missing),
+            QSystemTrayIcon.Information,
+            10000  # duration in ms (10 seconds)
+        )
+        
     glowstatus = GlowStatusController()
     sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
     if sync_enabled[0]:
