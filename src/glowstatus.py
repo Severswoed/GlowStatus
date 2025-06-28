@@ -63,6 +63,9 @@ class GlowStatusController:
                 govee.set_color(255, 255, 255)
 
     def update_now(self):
+        now = datetime.datetime.now()
+        logger.info(f"Manual status update at: {now.strftime('%H:%M:%S.%f')[:-3]}")
+        
         config = load_config()
         GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
         GOVEE_DEVICE_ID = config.get("GOVEE_DEVICE_ID")
@@ -122,7 +125,23 @@ class GlowStatusController:
 
         self.apply_status_to_light(govee, status, color_map, OFF_FOR_UNKNOWN_STATUS)
 
+    def _sync_to_minute_boundary(self):
+        """Calculate seconds until the next minute boundary and sleep until then."""
+        now = datetime.datetime.now()
+        seconds_into_minute = now.second + now.microsecond / 1_000_000
+        seconds_until_next_minute = 60 - seconds_into_minute
+        
+        if seconds_until_next_minute < 1:
+            # If we're very close to the boundary, wait until the next one
+            seconds_until_next_minute += 60
+            
+        logger.info(f"Syncing to minute boundary: waiting {seconds_until_next_minute:.2f} seconds")
+        time.sleep(seconds_until_next_minute)
+
     def _run(self):
+        # First, sync to the minute boundary for precise timing
+        self._sync_to_minute_boundary()
+        
         while self._running:
             config = load_config()
             GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
@@ -135,10 +154,15 @@ class GlowStatusController:
             OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
             DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
 
+            # Log the exact time we're checking for precision verification
+            now = datetime.datetime.now()
+            logger.info(f"Status check at: {now.strftime('%H:%M:%S.%f')[:-3]} (:{now.second:02d}.{now.microsecond//1000:03d})")
+
             govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 
             if DISABLE_CALENDAR_SYNC:
-                time.sleep(REFRESH_INTERVAL)
+                # Even when sync is disabled, maintain minute timing for consistency
+                self._sleep_until_next_interval(REFRESH_INTERVAL)
                 continue
 
             calendar = CalendarSync(SELECTED_CALENDAR_ID)
@@ -146,7 +170,7 @@ class GlowStatusController:
                 manual_status = config.get("CURRENT_STATUS")
                 if manual_status == "meeting_ended_early":
                     govee.set_power("off")
-                    time.sleep(REFRESH_INTERVAL)
+                    self._sleep_until_next_interval(REFRESH_INTERVAL)
                     continue
                 elif manual_status:
                     status = manual_status
@@ -171,4 +195,20 @@ class GlowStatusController:
                 self.apply_status_to_light(govee, status, color_map, OFF_FOR_UNKNOWN_STATUS)
             except Exception as e:
                 logger.error(f"Error updating status: {e}")
-            time.sleep(REFRESH_INTERVAL)
+            
+            # Sleep until next scheduled check time (maintaining minute synchronization)
+            self._sleep_until_next_interval(REFRESH_INTERVAL)
+
+    def _sleep_until_next_interval(self, interval_seconds):
+        """Sleep until the next scheduled check time, maintaining minute synchronization."""
+        if interval_seconds == 60:
+            # For 60-second intervals, sleep exactly until the next minute boundary
+            now = datetime.datetime.now()
+            seconds_into_minute = now.second + now.microsecond / 1_000_000
+            sleep_time = 60 - seconds_into_minute
+        else:
+            # For other intervals, just sleep the specified time
+            sleep_time = interval_seconds
+            
+        if sleep_time > 0:
+            time.sleep(sleep_time)
