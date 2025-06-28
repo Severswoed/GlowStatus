@@ -5,7 +5,7 @@ import os
 
 from govee_controller import GoveeController
 from calendar_sync import CalendarSync
-from config_ui import load_config
+from config_ui import load_config, save_config
 from logger import get_logger
 from utils import normalize_status, load_secret, resource_path
 
@@ -101,7 +101,7 @@ class GlowStatusController:
                     govee.set_power("off")
                     return
                 calendar = CalendarSync(SELECTED_CALENDAR_ID)
-                status, next_event_start = calendar.get_current_status(return_next_event_time=True)
+                status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
                 if (
                     status == "available"
                     and next_event_start is not None
@@ -115,6 +115,10 @@ class GlowStatusController:
             "focus": {"color": "0,0,255", "power_off": False},
             "offline": {"color": "128,128,128", "power_off": False},
         }
+
+        logger.info(f"Current status: {status} | Color map keys: {list(color_map.keys())}")
+        config["CURRENT_STATUS"] = status
+        save_config(config)
 
         self.apply_status_to_light(govee, status, color_map, OFF_FOR_UNKNOWN_STATUS)
 
@@ -147,7 +151,7 @@ class GlowStatusController:
                 elif manual_status:
                     status = manual_status
                 else:
-                    status, next_event_start = calendar.get_current_status(return_next_event_time=True)
+                    status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
                     if (
                         status == "available"
                         and next_event_start is not None
@@ -161,6 +165,8 @@ class GlowStatusController:
                     "focus": {"color": "0,0,255", "power_off": False},
                     "offline": {"color": "128,128,128", "power_off": False},
                 }
+
+                logger.info(f"Current status: {status} | Color map keys: {list(color_map.keys())}")
 
                 self.apply_status_to_light(govee, status, color_map, OFF_FOR_UNKNOWN_STATUS)
             except Exception as e:
