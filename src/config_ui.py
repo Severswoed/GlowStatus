@@ -63,8 +63,8 @@ def load_config():
         config["DISABLE_CALENDAR_SYNC"] = True
     
     if "DISABLE_LIGHT_CONTROL" not in config:
-        # Auto-enable light control if Govee credentials are configured
-        # since users can only have one set of lights paired
+        # Set default for new installations based on available credentials
+        # This only runs once when the setting doesn't exist yet
         govee_api_key = config.get("GOVEE_API_KEY", "").strip()
         govee_device_id = config.get("GOVEE_DEVICE_ID", "").strip()
         
@@ -79,7 +79,7 @@ def load_config():
         
         if govee_api_key and govee_device_id:
             config["DISABLE_LIGHT_CONTROL"] = False
-            logger.info("Auto-enabled light control since Govee credentials are configured")
+            logger.info("Auto-enabled light control for new installation (Govee credentials detected)")
         else:
             # Default to disabled since we'll support multiple light controller brands
             config["DISABLE_LIGHT_CONTROL"] = True
@@ -646,16 +646,8 @@ class ConfigWindow(QWidget):
         config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
         config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
         
-        # Auto-enable light control if Govee credentials are being saved
-        # since users can only have one set of lights paired
-        govee_api_key = self.govee_api_key_edit.text().strip()
-        govee_device_id = config["GOVEE_DEVICE_ID"]
-        if (govee_api_key and govee_api_key != "Set in environment or .env for security" 
-            and govee_device_id):
-            if config["DISABLE_LIGHT_CONTROL"]:
-                config["DISABLE_LIGHT_CONTROL"] = False
-                self.disable_light_chk.setChecked(False)
-                logger.info("Auto-enabled light control since Govee credentials are configured")
+        # Note: Respecting user's explicit choice to disable light control
+        # Even if Govee credentials are configured, user may want to disable lights
         
         # Save the selected calendar ID from the dropdown
         selected_idx = self.selected_calendar_id_dropdown.currentIndex()
