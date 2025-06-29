@@ -261,7 +261,7 @@ GlowStatus includes a comprehensive test suite that covers all major functionali
 
 ```bash
 # Run all tests
-python tests/run_all_tests.py
+python tests/final_test_verification.py
 
 # Run comprehensive verification
 python tests/final_test_verification.py

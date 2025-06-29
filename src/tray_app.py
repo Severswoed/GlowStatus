@@ -205,7 +205,9 @@ def main():
 
         glowstatus = GlowStatusController()
         sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
+        light_enabled = [not config.get("DISABLE_LIGHT_CONTROL", False)]
         sync_toggle_action = [None]  # Store reference to sync toggle action
+        light_toggle_action = [None]  # Store reference to light toggle action
         if sync_enabled[0]:
             glowstatus.start()
 
@@ -214,7 +216,20 @@ def main():
             config = load_config()
             status = config.get("CURRENT_STATUS", "unknown")
             cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
-            tray.setToolTip(f"GlowStatus - {status} ({cal_id})")
+            
+            # Add status indicators for disabled features
+            status_indicators = []
+            if config.get("DISABLE_CALENDAR_SYNC", False):
+                status_indicators.append("Sync OFF")
+            if config.get("DISABLE_LIGHT_CONTROL", False):
+                status_indicators.append("Lights OFF")
+            
+            if status_indicators:
+                indicator_text = f" ({', '.join(status_indicators)})"
+            else:
+                indicator_text = ""
+            
+            tray.setToolTip(f"GlowStatus - {status} ({cal_id}){indicator_text}")
 
         def show_config():
             # Store config window as an attribute of the app to prevent garbage collection
@@ -329,6 +344,25 @@ def main():
                 sync_toggle_action[0].setText("Enable Sync")
                 sync_enabled[0] = False
 
+        def toggle_light():
+            config = load_config()
+            if not light_enabled[0]:
+                config["DISABLE_LIGHT_CONTROL"] = False
+                save_config(config)
+                light_toggle_action[0].setText("Disable Lights")
+                light_enabled[0] = True
+                logger.info("Light control enabled by user")
+                # Update immediately to apply current status to lights
+                glowstatus.update_now()
+                update_tray_tooltip()
+            else:
+                config["DISABLE_LIGHT_CONTROL"] = True
+                save_config(config)
+                light_toggle_action[0].setText("Enable Lights")
+                light_enabled[0] = False
+                logger.info("Light control disabled by user")
+                update_tray_tooltip()
+
         def quit_app():
             glowstatus.stop()
             cleanup_lock_file()  # Ensure lock file is cleaned up
@@ -353,7 +387,9 @@ def main():
             manual_end_meeting = QAction("End Meeting Early", menu)
             reset_override = QAction(f"Reset status: {current_status}", menu)
             sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync", menu)
+            light_toggle = QAction("Disable Lights" if light_enabled[0] else "Enable Lights", menu)
             sync_toggle_action[0] = sync_toggle  # Store reference for toggle_sync function
+            light_toggle_action[0] = light_toggle  # Store reference for toggle_light function
             quit_action = QAction("Quit", menu)
 
             config_action.triggered.connect(show_config)
@@ -363,6 +399,7 @@ def main():
             manual_end_meeting.triggered.connect(set_end_meeting)
             reset_override.triggered.connect(reset_state)
             sync_toggle.triggered.connect(toggle_sync)
+            light_toggle.triggered.connect(toggle_light)
             quit_action.triggered.connect(quit_app)
 
             menu.addAction(config_action)
@@ -375,6 +412,7 @@ def main():
             menu.addAction(reset_override)
             menu.addSeparator()
             menu.addAction(sync_toggle)
+            menu.addAction(light_toggle)
             menu.addSeparator()
             menu.addAction(quit_action)
             
