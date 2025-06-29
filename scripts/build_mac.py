@@ -131,225 +131,116 @@ DATA_FILES = [
 ]
 OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
-    'packages': [
-        # Only essential PySide6 components
+    
+    # MINIMAL APPROACH: Only include what we absolutely need
+    'includes': [
+        # Core Python modules only
+        'threading', 'queue', 'json', 'datetime', 'tempfile', 'atexit', 'time', 'os', 'sys',
+        
+        # ONLY the PySide6 modules we actually use
         'PySide6.QtCore',
         'PySide6.QtGui', 
         'PySide6.QtWidgets',
-        'shiboken6',
-        # Essential for tray functionality
+        
+        # Only essential dependencies
+        'requests', 'urllib3', 'certifi',
         'keyring',
-        'keyrings.alt', 
-        'requests',
-        'dateutil',
-        # Google packages (only if available)
-        'google_auth_oauthlib',
-        'googleapiclient',
-    ],
-    'includes': [
-        # Core Python modules
-        'threading',
-        'queue',
-        'json',
-        'datetime',
-        'tempfile',
-        'atexit',
-        # Only essential PySide6 modules
-        'PySide6.QtCore',
-        'PySide6.QtGui',
-        'PySide6.QtWidgets',
-        'shiboken6',
-        # Google auth essentials only (if available)
+        
+        # Google packages (minimal)
         'google_auth_oauthlib.flow',
         'googleapiclient.discovery',
-        # Essential dependencies
-        'requests',
-        'urllib3',
-        'certifi',
     ],
+    
+    # AGGRESSIVE EXCLUSIONS: Everything we don't need
     'excludes': [
-        # GUI frameworks we don't use
-        'tkinter',
-        'PyQt5',
-        'PyQt6',
-        'test',
-        'unittest',
-        'distutils',
-        'setuptools',
-        'pip',
-        'wheel',
-        # Large packages we don't need
-        'numpy',
-        'scipy',
-        'matplotlib',
-        'pandas',
-        'jupyter',
-        'IPython',
-        'tornado',
-        'notebook',
-        # Development tools
-        'pytest',
-        'pylint',
-        'black',
-        'mypy',
-        # Documentation tools
-        'sphinx',
-        'docutils',
-        # Testing frameworks
-        'nose',
-        'coverage',
-        # Unused GUI frameworks
-        'wx',
-        'Tkinter',
-        'gtk',
-        # Large standard library modules we don't use
-        'pydoc_data',
-        'multiprocessing',
-        'xml',
-        'xmlrpc',
-        'html',
-        'http.server',
-        'wsgiref',
-        'sqlite3',
-        'curses',
-        'turtle',
-        # MASSIVE PySide6 components we don't need
-        'PySide6.QtWebEngine',
-        'PySide6.QtWebEngineCore',
-        'PySide6.QtWebEngineWidgets',
-        'PySide6.QtWebEngineQuick',
-        'PySide6.QtWebView',
-        'PySide6.QtWebSockets',
-        'PySide6.QtWebChannel',
-        'PySide6.Qt3D',
-        'PySide6.Qt3DCore',
-        'PySide6.Qt3DRender',
-        'PySide6.Qt3DInput',
-        'PySide6.Qt3DLogic',
-        'PySide6.Qt3DExtras',
-        'PySide6.Qt3DAnimation',
-        'PySide6.QtQuick3D',
-        'PySide6.QtQuick3DRuntimeRender',
-        'PySide6.QtQuick3DUtils',
-        'PySide6.QtQuick3DHelpers',
-        'PySide6.QtQuick3DEffects',
-        'PySide6.QtQuick3DParticles',
-        'PySide6.QtQuick3DAssetImport',
-        'PySide6.QtQuick3DAssetUtils',
-        'PySide6.QtQuick3DGlslParser',
-        'PySide6.QtQuick3DHelpersImpl',
-        'PySide6.QtQuick3DIblBaker',
-        'PySide6.QtQuick3DSpatialAudio',
-        'PySide6.QtQuick3DParticleEffects',
-        'PySide6.QtQuick3DXr',
-        'PySide6.QtMultimedia',
-        'PySide6.QtMultimediaWidgets',
-        'PySide6.QtMultimediaQuick',
-        'PySide6.QtCharts',
-        'PySide6.QtChartsQml',
-        'PySide6.QtDataVisualization',
-        'PySide6.QtDataVisualizationQml',
-        'PySide6.QtGraphs',
-        'PySide6.QtGraphsWidgets',
-        'PySide6.QtQuick',
-        'PySide6.QtQuickControls2',
-        'PySide6.QtQuickWidgets',
-        'PySide6.QtQuickTemplates2',
-        'PySide6.QtQuickLayouts',
-        'PySide6.QtQuickParticles',
-        'PySide6.QtQuickShapes',
-        'PySide6.QtQuickTest',
-        'PySide6.QtQuickEffects',
-        'PySide6.QtQuickTimeline',
-        'PySide6.QtQuickTimelineBlendTrees',
-        'PySide6.QtQuickVectorImage',
-        'PySide6.QtQuickVectorImageGenerator',
-        'PySide6.QtQuickDialogs2',
-        'PySide6.QtQuickDialogs2Utils',
-        'PySide6.QtQuickDialogs2QuickImpl',
-        'PySide6.QtQuickControls2Basic',
-        'PySide6.QtQuickControls2BasicStyleImpl',
-        'PySide6.QtQuickControls2Fusion',
-        'PySide6.QtQuickControls2FusionStyleImpl',
-        'PySide6.QtQuickControls2Imagine',
-        'PySide6.QtQuickControls2ImagineStyleImpl',
-        'PySide6.QtQuickControls2Material',
-        'PySide6.QtQuickControls2MaterialStyleImpl',
-        'PySide6.QtQuickControls2Universal',
-        'PySide6.QtQuickControls2UniversalStyleImpl',
-        'PySide6.QtQuickControls2MacOSStyleImpl',
-        'PySide6.QtQuickControls2IOSStyleImpl',
-        'PySide6.QtQuickControls2FluentWinUI3StyleImpl',
-        'PySide6.QtQuickControls2Impl',
-        'PySide6.QtQml',
-        'PySide6.QtQmlCore',
-        'PySide6.QtQmlNetwork',
-        'PySide6.QtQmlModels',
-        'PySide6.QtQmlWorkerScript',
-        'PySide6.QtQmlCompiler',
-        'PySide6.QtQmlMeta',
-        'PySide6.QtQmlLocalStorage',
-        'PySide6.QtQmlXmlListModel',
-        'PySide6.QtDesigner',
-        'PySide6.QtDesignerComponents',
-        'PySide6.QtUiTools',
-        'PySide6.QtHelp',
-        'PySide6.QtPrintSupport',
-        'PySide6.QtSvg',
-        'PySide6.QtSvgWidgets',
-        'PySide6.QtOpenGL',
-        'PySide6.QtOpenGLWidgets',
-        'PySide6.QtBluetooth',
-        'PySide6.QtNfc',
-        'PySide6.QtPositioning',
-        'PySide6.QtPositioningQuick',
-        'PySide6.QtLocation',
-        'PySide6.QtSensors',
-        'PySide6.QtSensorsQuick',
-        'PySide6.QtSerialPort',
-        'PySide6.QtSerialBus',
-        'PySide6.QtNetworkAuth',
-        'PySide6.QtRemoteObjects',
-        'PySide6.QtRemoteObjectsQml',
-        'PySide6.QtScxml',
-        'PySide6.QtScxmlQml',
-        'PySide6.QtStateMachine',
-        'PySide6.QtStateMachineQml',
-        'PySide6.QtTextToSpeech',
-        'PySide6.QtVirtualKeyboard',
-        'PySide6.QtVirtualKeyboardQml',
-        'PySide6.QtVirtualKeyboardSettings',
-        'PySide6.QtSpatialAudio',
-        'PySide6.QtPdf',
-        'PySide6.QtPdfWidgets',
-        'PySide6.QtPdfQuick',
-        'PySide6.QtHttpServer',
-        'PySide6.QtShaderTools',
-        'PySide6.QtConcurrent',
-        'PySide6.QtTest',
-        'PySide6.QtSql',
-        'PySide6.QtXml',
-        'PySide6.QtDBus',
-        'PySide6.QtWebChannelQuick',
-        'PySide6.QtLabsPlatform',
-        'PySide6.QtLabsAnimation',
-        'PySide6.QtLabsFolderListModel',
-        'PySide6.QtLabsQmlModels',
-        'PySide6.QtLabsSettings',
-        'PySide6.QtLabsSharedImage',
-        'PySide6.QtLabsWavefrontMesh',
-        # FFmpeg and multimedia codecs
-        'libavcodec',
-        'libavformat',
-        'libavutil',
-        'libswscale',
-        'libswresample',
+        # Remove all other PySide6 modules - we only need Core, Gui, Widgets
+        'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
+        'PySide6.QtTest', 'PySide6.QtConcurrent', 'PySide6.QtDBus', 'PySide6.QtHelp',
+        'PySide6.QtPrintSupport', 'PySide6.QtSvg', 'PySide6.QtSvgWidgets',
+        
+        # MASSIVE PySide6 components we definitely don't need
+        'PySide6.QtWebEngine', 'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 'PySide6.QtWebEngineQuick',
+        'PySide6.QtWebView', 'PySide6.QtWebSockets', 'PySide6.QtWebChannel', 'PySide6.QtWebChannelQuick',
+        
+        # All Qt3D frameworks
+        'PySide6.Qt3D', 'PySide6.Qt3DCore', 'PySide6.Qt3DRender', 'PySide6.Qt3DInput', 'PySide6.Qt3DLogic', 
+        'PySide6.Qt3DExtras', 'PySide6.Qt3DAnimation', 'PySide6.Qt3DQuick', 'PySide6.Qt3DQuickRender',
+        'PySide6.Qt3DQuickInput', 'PySide6.Qt3DQuickExtras', 'PySide6.Qt3DQuickAnimation', 'PySide6.Qt3DQuickScene2D',
+        
+        # All QtQuick3D frameworks  
+        'PySide6.QtQuick3D', 'PySide6.QtQuick3DRuntimeRender', 'PySide6.QtQuick3DUtils', 'PySide6.QtQuick3DHelpers',
+        'PySide6.QtQuick3DEffects', 'PySide6.QtQuick3DParticles', 'PySide6.QtQuick3DAssetImport', 'PySide6.QtQuick3DAssetUtils',
+        'PySide6.QtQuick3DGlslParser', 'PySide6.QtQuick3DHelpersImpl', 'PySide6.QtQuick3DIblBaker', 'PySide6.QtQuick3DSpatialAudio',
+        'PySide6.QtQuick3DParticleEffects', 'PySide6.QtQuick3DXr',
+        
+        # All multimedia frameworks
+        'PySide6.QtMultimedia', 'PySide6.QtMultimediaWidgets', 'PySide6.QtMultimediaQuick', 'PySide6.QtSpatialAudio',
+        
+        # All charting/visualization frameworks
+        'PySide6.QtCharts', 'PySide6.QtChartsQml', 'PySide6.QtDataVisualization', 'PySide6.QtDataVisualizationQml',
+        'PySide6.QtGraphs', 'PySide6.QtGraphsWidgets',
+        
+        # All QML/Quick frameworks (we only use QtWidgets)
+        'PySide6.QtQuick', 'PySide6.QtQuickControls2', 'PySide6.QtQuickWidgets', 'PySide6.QtQuickTemplates2',
+        'PySide6.QtQuickLayouts', 'PySide6.QtQuickParticles', 'PySide6.QtQuickShapes', 'PySide6.QtQuickTest',
+        'PySide6.QtQuickEffects', 'PySide6.QtQuickTimeline', 'PySide6.QtQuickTimelineBlendTrees', 'PySide6.QtQuickVectorImage',
+        'PySide6.QtQuickVectorImageGenerator', 'PySide6.QtQuickDialogs2', 'PySide6.QtQuickDialogs2Utils', 'PySide6.QtQuickDialogs2QuickImpl',
+        
+        # All style implementations
+        'PySide6.QtQuickControls2Basic', 'PySide6.QtQuickControls2BasicStyleImpl', 'PySide6.QtQuickControls2Fusion',
+        'PySide6.QtQuickControls2FusionStyleImpl', 'PySide6.QtQuickControls2Imagine', 'PySide6.QtQuickControls2ImagineStyleImpl',
+        'PySide6.QtQuickControls2Material', 'PySide6.QtQuickControls2MaterialStyleImpl', 'PySide6.QtQuickControls2Universal',
+        'PySide6.QtQuickControls2UniversalStyleImpl', 'PySide6.QtQuickControls2MacOSStyleImpl', 'PySide6.QtQuickControls2IOSStyleImpl',
+        'PySide6.QtQuickControls2FluentWinUI3StyleImpl', 'PySide6.QtQuickControls2Impl',
+        
+        # All QML framework components
+        'PySide6.QtQml', 'PySide6.QtQmlCore', 'PySide6.QtQmlNetwork', 'PySide6.QtQmlModels', 'PySide6.QtQmlWorkerScript',
+        'PySide6.QtQmlCompiler', 'PySide6.QtQmlMeta', 'PySide6.QtQmlLocalStorage', 'PySide6.QtQmlXmlListModel',
+        
+        # Designer and development tools
+        'PySide6.QtDesigner', 'PySide6.QtDesignerComponents', 'PySide6.QtUiTools',
+        
+        # Hardware/connectivity we don't use
+        'PySide6.QtBluetooth', 'PySide6.QtNfc', 'PySide6.QtPositioning', 'PySide6.QtPositioningQuick',
+        'PySide6.QtLocation', 'PySide6.QtSensors', 'PySide6.QtSensorsQuick', 'PySide6.QtSerialPort', 'PySide6.QtSerialBus',
+        
+        # Advanced features we don't use
+        'PySide6.QtNetworkAuth', 'PySide6.QtRemoteObjects', 'PySide6.QtRemoteObjectsQml', 'PySide6.QtScxml', 'PySide6.QtScxmlQml',
+        'PySide6.QtStateMachine', 'PySide6.QtStateMachineQml', 'PySide6.QtTextToSpeech', 'PySide6.QtVirtualKeyboard',
+        'PySide6.QtVirtualKeyboardQml', 'PySide6.QtVirtualKeyboardSettings', 'PySide6.QtPdf', 'PySide6.QtPdfWidgets',
+        'PySide6.QtPdfQuick', 'PySide6.QtHttpServer', 'PySide6.QtShaderTools',
+        
+        # All Labs components (experimental)
+        'PySide6.QtLabsPlatform', 'PySide6.QtLabsAnimation', 'PySide6.QtLabsFolderListModel', 'PySide6.QtLabsQmlModels',
+        'PySide6.QtLabsSettings', 'PySide6.QtLabsSharedImage', 'PySide6.QtLabsWavefrontMesh',
+        
+        # Standard library modules we don't use
+        'tkinter', 'turtle', 'curses', 'sqlite3', 'multiprocessing', 'xml', 'xmlrpc', 'html', 'http.server', 'wsgiref',
+        'pydoc_data', 'distutils', 'setuptools', 'pip', 'wheel', 'test', 'unittest', 'doctest',
+        
+        # Development and testing frameworks
+        'pytest', 'pylint', 'black', 'mypy', 'sphinx', 'docutils', 'nose', 'coverage',
+        
+        # Scientific/data packages we don't use
+        'numpy', 'scipy', 'matplotlib', 'pandas', 'jupyter', 'IPython', 'tornado', 'notebook',
+        
+        # Other GUI frameworks
+        'PyQt5', 'PyQt6', 'wx', 'gtk',
+        
+        # FFmpeg and multimedia codecs (these are HUGE)
+        'libavcodec', 'libavformat', 'libavutil', 'libswscale', 'libswresample',
     ],
+    
+    # Don't include packages that aren't explicitly needed
+    'packages': [],
+    
     'resources': DATA_FILES,
     'argv_emulation': False,
-    'site_packages': False,  # Don't include entire site-packages
-    'optimize': 2,  # Enable bytecode optimization
+    'site_packages': False,  # Critical: Don't include entire site-packages
+    'optimize': 2,  # Maximum bytecode optimization
     'strip': True,  # Strip debug symbols
+    'compressed': True,  # Compress the bundle
+    
     'plist': {
         'CFBundleName': 'GlowStatus',
         'CFBundleDisplayName': 'GlowStatus',
@@ -359,6 +250,7 @@ OPTIONS = {
         'CFBundleVersion': '2.0.0',
         'LSUIElement': True,  # Run as background app without dock icon
         'NSHighResolutionCapable': True,  # Support retina displays
+        'LSMinimumSystemVersion': '10.15',  # Require macOS 10.15+
     },
 }
 
