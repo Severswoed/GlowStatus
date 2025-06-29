@@ -3,44 +3,17 @@ import os
 import tempfile
 import atexit
 from PySide6.QtWidgets import (
-    QApplication, QSystemTrayIcon, QMenu, QMessageBox,    # Create the tray icon
-    print(f"ICON DEBUG: Creating QSystemTrayIcon...")
-    if isinstance(tray_icon_path, str):
-        qicon = QIcon(tray_icon_path)
-        print(f"ICON DEBUG: QIcon created from path: {tray_icon_path}")
-        print(f"ICON DEBUG: QIcon valid: {not qicon.isNull()}")
-        if not qicon.isNull():
-            sizes = qicon.availableSizes()
-            print(f"ICON DEBUG: Available icon sizes: {sizes}")
-        tray = QSystemTrayIcon(qicon, parent=app)
-    else:
-        print(f"ICON DEBUG: Using QPixmap fallback")
-        tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)  # pixmap fallback
-    
-    print(f"ICON DEBUG: QSystemTrayIcon created")
-    logger.info(f"System tray icon initialized with: {tray_icon_path}")
-    
-    # Check if system tray is available
-    if not QSystemTrayIcon.isSystemTrayAvailable():
-        print("ERROR: System tray is not available!")
-        QMessageBox.critical(None, "System Tray", "System tray is not available on this system.")
-        sys.exit(1)
-    else:
-        print("ICON DEBUG: System tray is available")
-    
-    # Ensure the tray icon is visible
-    if not tray.icon().isNull():
-        print("ICON DEBUG: Tray icon successfully loaded")
-        logger.info("Tray icon successfully loaded")
-    else:
-        print("ERROR: Tray icon failed to load - icon is null")
-        logger.error("Tray icon failed to load - icon is null")out, QLabel, QComboBox, QPushButton
+    QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt
 from utils import resource_path
 from config_ui import ConfigWindow, load_config, save_config
 from glowstatus import GlowStatusController
+from logger import get_logger
+
+# Initialize logger
+logger = get_logger("TrayApp")
 
 # Global variable to hold the lock file handle
 lock_file_handle = None
@@ -125,262 +98,262 @@ def main():
         app.setQuitOnLastWindowClosed(False)
         print("Qt Application created")
 
-    # Set the application icon for the taskbar/dock
-    icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
-    app.setWindowIcon(QIcon(icon_path))
+        # Set the application icon for the taskbar/dock
+        icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
+        app.setWindowIcon(QIcon(icon_path))
 
-    # Set up system tray icon with fallback
-    tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-    tray_icon_path = resource_path(f"img/{tray_icon}")
-    
-    print(f"ICON DEBUG: Tray icon config: {tray_icon}")
-    print(f"ICON DEBUG: Trying icon path: {tray_icon_path}")
-    print(f"ICON DEBUG: Icon file exists: {os.path.exists(tray_icon_path)}")
-    
-    # Check if the icon file exists, fallback to default if not
-    if not os.path.exists(tray_icon_path):
-        print(f"ICON DEBUG: Primary icon not found: {tray_icon_path}")
-        logger.warning(f"Tray icon not found: {tray_icon_path}")
-        # Try a few fallback icons
-        fallback_icons = [
-            "GlowStatus.png",
-            "GlowStatus_tray_tp.png", 
-            "GlowStatus_tray_bk.png",
-            "GlowStatus-Small.png"
-        ]
-        tray_icon_path = None
-        for fallback in fallback_icons:
-            fallback_path = resource_path(f"img/{fallback}")
-            print(f"ICON DEBUG: Trying fallback: {fallback_path}")
-            if os.path.exists(fallback_path):
-                tray_icon_path = fallback_path
-                print(f"ICON DEBUG: Using fallback tray icon: {fallback}")
-                logger.info(f"Using fallback tray icon: {fallback}")
-                break
+        # Set up system tray icon with fallback
+        tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
+        tray_icon_path = resource_path(f"img/{tray_icon}")
         
-        if not tray_icon_path:
-            logger.error("No tray icon files found in img/ directory")
-            # Create a simple colored icon as last resort
-            from PySide6.QtGui import QPixmap, QPainter, QBrush
-            pixmap = QPixmap(16, 16)
-            pixmap.fill(Qt.blue)  # Simple blue square as fallback
-            tray_icon_path = pixmap
-    
-    # Create the system tray icon
-    if isinstance(tray_icon_path, str):
-        tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
-    else:
-        tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)  # pixmap fallback
-    
-    logger.info(f"System tray icon initialized with: {tray_icon_path}")
-    
-    # Check if system tray is available
-    if not QSystemTrayIcon.isSystemTrayAvailable():
-        QMessageBox.critical(None, "System Tray", "System tray is not available on this system.")
-        sys.exit(1)
-    
-    # Ensure the tray icon is visible
-    if not tray.icon().isNull():
-        logger.info("Tray icon successfully loaded")
-    else:
-        logger.error("Tray icon failed to load - icon is null")
+        print(f"ICON DEBUG: Tray icon config: {tray_icon}")
+        print(f"ICON DEBUG: Trying icon path: {tray_icon_path}")
+        print(f"ICON DEBUG: Icon file exists: {os.path.exists(tray_icon_path)}")
+        
+        # Check if the icon file exists, fallback to default if not
+        if not os.path.exists(tray_icon_path):
+            print(f"ICON DEBUG: Primary icon not found: {tray_icon_path}")
+            logger.warning(f"Tray icon not found: {tray_icon_path}")
+            # Try a few fallback icons
+            fallback_icons = [
+                "GlowStatus.png",
+                "GlowStatus_tray_tp.png", 
+                "GlowStatus_tray_bk.png",
+                "GlowStatus-Small.png"
+            ]
+            tray_icon_path = None
+            for fallback in fallback_icons:
+                fallback_path = resource_path(f"img/{fallback}")
+                print(f"ICON DEBUG: Trying fallback: {fallback_path}")
+                if os.path.exists(fallback_path):
+                    tray_icon_path = fallback_path
+                    print(f"ICON DEBUG: Using fallback tray icon: {fallback}")
+                    logger.info(f"Using fallback tray icon: {fallback}")
+                    break
+            
+            if not tray_icon_path:
+                logger.error("No tray icon files found in img/ directory")
+                # Create a simple colored icon as last resort
+                from PySide6.QtGui import QPixmap, QPainter, QBrush
+                pixmap = QPixmap(16, 16)
+                pixmap.fill(Qt.blue)  # Simple blue square as fallback
+                tray_icon_path = pixmap
+        
+        # Create the system tray icon
+        if isinstance(tray_icon_path, str):
+            tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
+        else:
+            tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)  # pixmap fallback
+        
+        logger.info(f"System tray icon initialized with: {tray_icon_path}")
+        
+        # Check if system tray is available
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            QMessageBox.critical(None, "System Tray", "System tray is not available on this system.")
+            sys.exit(1)
+        
+        # Ensure the tray icon is visible
+        if not tray.icon().isNull():
+            logger.info("Tray icon successfully loaded")
+        else:
+            logger.error("Tray icon failed to load - icon is null")
 
-    # --- Show tooltip if setup is incomplete ---
-    missing = []
-    
-    # Check for light controller configuration
-    govee_configured = bool(config.get("GOVEE_DEVICE_ID") and config.get("GOVEE_DEVICE_MODEL"))
-    
-    # Auto-disable light control if no device is configured
-    # This prepares for future Hue/LIFX/Nanoleaf support
-    if not govee_configured and "DISABLE_LIGHT_CONTROL" not in config:
-        config["DISABLE_LIGHT_CONTROL"] = True
-        save_config(config)
-        logger.info("Auto-disabled light control: no device configuration found")
-    
-    # Only show missing device warnings if light control is enabled
-    if not config.get("DISABLE_LIGHT_CONTROL", False):
-        if not config.get("GOVEE_DEVICE_ID"):
-            missing.append("Smart Light Device ID")
-        if not config.get("GOVEE_DEVICE_MODEL"):
-            missing.append("Smart Light Device Model")
-    
-    # Check for calendar configuration
-    if not config.get("SELECTED_CALENDAR_ID"):
-        missing.append("Google Calendar")
-    client_secret_path = resource_path('resources/client_secret.json')
-    if not os.path.exists(client_secret_path):
-        missing.append("Google client_secret.json")
+        # --- Show tooltip if setup is incomplete ---
+        missing = []
+        
+        # Check for light controller configuration
+        govee_configured = bool(config.get("GOVEE_DEVICE_ID") and config.get("GOVEE_DEVICE_MODEL"))
+        
+        # Auto-disable light control if no device is configured
+        # This prepares for future Hue/LIFX/Nanoleaf support
+        if not govee_configured and "DISABLE_LIGHT_CONTROL" not in config:
+            config["DISABLE_LIGHT_CONTROL"] = True
+            save_config(config)
+            logger.info("Auto-disabled light control: no device configuration found")
+        
+        # Only show missing device warnings if light control is enabled
+        if not config.get("DISABLE_LIGHT_CONTROL", False):
+            if not config.get("GOVEE_DEVICE_ID"):
+                missing.append("Smart Light Device ID")
+            if not config.get("GOVEE_DEVICE_MODEL"):
+                missing.append("Smart Light Device Model")
+        
+        # Check for calendar configuration
+        if not config.get("SELECTED_CALENDAR_ID"):
+            missing.append("Google Calendar")
+        client_secret_path = resource_path('resources/client_secret.json')
+        if not os.path.exists(client_secret_path):
+            missing.append("Google client_secret.json")
 
-    # Auto-disable calendar sync if no OAuth is configured
-    # This prepares for future Apple/Microsoft calendar support
-    if not os.path.exists(client_secret_path) and "DISABLE_CALENDAR_SYNC" not in config:
-        config["DISABLE_CALENDAR_SYNC"] = True
-        save_config(config)
-        logger.info("Auto-disabled calendar sync: no OAuth configuration found")
+        # Auto-disable calendar sync if no OAuth is configured
+        # This prepares for future Apple/Microsoft calendar support
+        if not os.path.exists(client_secret_path) and "DISABLE_CALENDAR_SYNC" not in config:
+            config["DISABLE_CALENDAR_SYNC"] = True
+            save_config(config)
+            logger.info("Auto-disabled calendar sync: no OAuth configuration found")
 
-    if missing:
-        tray.show()
-        tray.showMessage(
-            "GlowStatus Setup Required",
-            "Please complete setup in the Settings window:\n" + ", ".join(missing),
-            QSystemTrayIcon.Information,
-            10000  # duration in ms (10 seconds)
-        )
+        if missing:
+            tray.show()
+            tray.showMessage(
+                "GlowStatus Setup Required",
+                "Please complete setup in the Settings window:\n" + ", ".join(missing),
+                QSystemTrayIcon.Information,
+                10000  # duration in ms (10 seconds)
+            )
 
-    glowstatus = GlowStatusController()
-    sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
-    if sync_enabled[0]:
-        glowstatus.start()
+        glowstatus = GlowStatusController()
+        sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
+        if sync_enabled[0]:
+            glowstatus.start()
 
-    # --- Helper Functions ---
-    def update_tray_tooltip():
-        config = load_config()
-        status = config.get("CURRENT_STATUS", "unknown")
-        cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
-        tray.setToolTip(f"GlowStatus - {status} ({cal_id})")
-
-    def show_config():
-        config_window = ConfigWindow()
-        config_window.setAttribute(Qt.WA_DeleteOnClose)
-        config_window.show()
-        config_window.raise_()           # Bring window to front
-        config_window.activateWindow()   # Give it focus
-        app.config_window = config_window
-
-        def on_config_closed():
-            # Reload config and update tray icon
+        # --- Helper Functions ---
+        def update_tray_tooltip():
             config = load_config()
-            tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-            tray.setIcon(QIcon(f"img/{tray_icon}"))
-            update_tray_tooltip()
+            status = config.get("CURRENT_STATUS", "unknown")
+            cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
+            tray.setToolTip(f"GlowStatus - {status} ({cal_id})")
 
-        config_window.destroyed.connect(on_config_closed)
+        def show_config():
+            config_window = ConfigWindow()
+            config_window.setAttribute(Qt.WA_DeleteOnClose)
+            config_window.show()
+            config_window.raise_()           # Bring window to front
+            config_window.activateWindow()   # Give it focus
+            app.config_window = config_window
 
-    def show_status():
-        config = load_config()
-        status = config.get("CURRENT_STATUS", "unknown")
-        cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
-        QMessageBox.information(None, "Current Status", f"Current status: {status}\nCalendar: {cal_id}")
+            def on_config_closed():
+                # Reload config and update tray icon
+                config = load_config()
+                tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
+                tray.setIcon(QIcon(f"img/{tray_icon}"))
+                update_tray_tooltip()
 
-    def set_manual_status(status):
-        config = load_config()
-        import time
-        
-        # Store manual status with timestamp for expiration logic
-        config["CURRENT_STATUS"] = status
-        config["MANUAL_STATUS_TIMESTAMP"] = time.time()
-        
-        # Manual overrides expire after 2 hours to prevent missing meetings
-        config["MANUAL_STATUS_EXPIRY"] = 2 * 60 * 60  # 2 hours in seconds
-        
-        save_config(config)
-        update_tray_tooltip()
-        glowstatus.update_now()
-        update_tray_tooltip()
+            config_window.destroyed.connect(on_config_closed)
 
-    def set_end_meeting():
-        config = load_config()
-        config["CURRENT_STATUS"] = "meeting_ended_early"
-        save_config(config)
-        update_tray_tooltip()
-        glowstatus.update_now()
-        update_tray_tooltip()
+        def show_status():
+            config = load_config()
+            status = config.get("CURRENT_STATUS", "unknown")
+            cal_id = config.get("SELECTED_CALENDAR_ID", "primary")
+            QMessageBox.information(None, "Current Status", f"Current status: {status}\nCalendar: {cal_id}")
 
-    def reset_state():
-        config = load_config()
-        # Clear all manual override data
-        manual_cleared = False
-        if "CURRENT_STATUS" in config:
-            del config["CURRENT_STATUS"]
-            manual_cleared = True
-        if "MANUAL_STATUS_TIMESTAMP" in config:
-            del config["MANUAL_STATUS_TIMESTAMP"]
-            manual_cleared = True
-        if "MANUAL_STATUS_EXPIRY" in config:
-            del config["MANUAL_STATUS_EXPIRY"]
-        
-        if manual_cleared:
+        def set_manual_status(status):
+            config = load_config()
+            import time
+            
+            # Store manual status with timestamp for expiration logic
+            config["CURRENT_STATUS"] = status
+            config["MANUAL_STATUS_TIMESTAMP"] = time.time()
+            
+            # Manual overrides expire after 2 hours to prevent missing meetings
+            config["MANUAL_STATUS_EXPIRY"] = 2 * 60 * 60  # 2 hours in seconds
+            
             save_config(config)
             update_tray_tooltip()
             glowstatus.update_now()
             update_tray_tooltip()
-            logger.info("Manual status override cleared by user")
 
-    def toggle_sync():
-        config = load_config()
-        if not sync_enabled[0]:
-            config["DISABLE_CALENDAR_SYNC"] = False
+        def set_end_meeting():
+            config = load_config()
+            config["CURRENT_STATUS"] = "meeting_ended_early"
             save_config(config)
-            glowstatus.start()
-            sync_toggle.setText("Disable Sync")
-            sync_enabled[0] = True
-        else:
-            config["DISABLE_CALENDAR_SYNC"] = True
-            save_config(config)
+            update_tray_tooltip()
+            glowstatus.update_now()
+            update_tray_tooltip()
+
+        def reset_state():
+            config = load_config()
+            # Clear all manual override data
+            manual_cleared = False
+            if "CURRENT_STATUS" in config:
+                del config["CURRENT_STATUS"]
+                manual_cleared = True
+            if "MANUAL_STATUS_TIMESTAMP" in config:
+                del config["MANUAL_STATUS_TIMESTAMP"]
+                manual_cleared = True
+            if "MANUAL_STATUS_EXPIRY" in config:
+                del config["MANUAL_STATUS_EXPIRY"]
+            
+            if manual_cleared:
+                save_config(config)
+                update_tray_tooltip()
+                glowstatus.update_now()
+                update_tray_tooltip()
+                logger.info("Manual status override cleared by user")
+
+        def toggle_sync():
+            config = load_config()
+            if not sync_enabled[0]:
+                config["DISABLE_CALENDAR_SYNC"] = False
+                save_config(config)
+                glowstatus.start()
+                sync_toggle.setText("Disable Sync")
+                sync_enabled[0] = True
+            else:
+                config["DISABLE_CALENDAR_SYNC"] = True
+                save_config(config)
+                glowstatus.stop()
+                sync_toggle.setText("Enable Sync")
+                sync_enabled[0] = False
+
+        def quit_app():
             glowstatus.stop()
-            sync_toggle.setText("Enable Sync")
-            sync_enabled[0] = False
+            cleanup_lock_file()  # Ensure lock file is cleaned up
+            app.quit()
 
-    def quit_app():
-        glowstatus.stop()
-        cleanup_lock_file()  # Ensure lock file is cleaned up
-        app.quit()
+        update_tray_tooltip()
+        glowstatus.update_now()
 
-    update_tray_tooltip()
-    glowstatus.update_now()
+        # --- Menu Setup (Dynamic) ---
+        def create_context_menu():
+            """Create context menu with current status displayed"""
+            config = load_config()
+            current_status = config.get("CURRENT_STATUS", "unknown")
+            
+            menu = QMenu()
+            config_action = QAction("Open Settings")
+            manual_meeting = QAction("Set Status: In Meeting")
+            manual_focus = QAction("Set Status: Focus")
+            manual_available = QAction("Set Status: Available")
+            manual_end_meeting = QAction("End Meeting Early")
+            reset_override = QAction(f"Clear Manual Override (Current: {current_status})")
+            sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync")
+            quit_action = QAction("Quit")
 
-    # --- Menu Setup (Dynamic) ---
-    def create_context_menu():
-        """Create context menu with current status displayed"""
-        config = load_config()
-        current_status = config.get("CURRENT_STATUS", "unknown")
+            config_action.triggered.connect(show_config)
+            manual_meeting.triggered.connect(lambda: set_manual_status("in_meeting"))
+            manual_focus.triggered.connect(lambda: set_manual_status("focus"))
+            manual_available.triggered.connect(lambda: set_manual_status("available"))
+            manual_end_meeting.triggered.connect(set_end_meeting)
+            reset_override.triggered.connect(reset_state)
+            sync_toggle.triggered.connect(toggle_sync)
+            quit_action.triggered.connect(quit_app)
+
+            menu.addAction(config_action)
+            menu.addSeparator()
+            menu.addAction(manual_meeting)
+            menu.addAction(manual_focus)
+            menu.addAction(manual_available)
+            menu.addSeparator()
+            menu.addAction(manual_end_meeting)
+            menu.addAction(reset_override)
+            menu.addSeparator()
+            menu.addAction(sync_toggle)
+            menu.addSeparator()
+            menu.addAction(quit_action)
+            return menu
         
-        menu = QMenu()
-        config_action = QAction("Open Settings")
-        manual_meeting = QAction("Set Status: In Meeting")
-        manual_focus = QAction("Set Status: Focus")
-        manual_available = QAction("Set Status: Available")
-        manual_end_meeting = QAction("End Meeting Early")
-        reset_override = QAction(f"Clear Manual Override (Current: {current_status})")
-        sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync")
-        quit_action = QAction("Quit")
+        # Update context menu dynamically when right-clicked
+        def on_tray_activated(reason):
+            if reason == QSystemTrayIcon.Context:
+                tray.setContextMenu(create_context_menu())
+        
+        tray.activated.connect(on_tray_activated)
+        tray.setContextMenu(create_context_menu())
 
-        config_action.triggered.connect(show_config)
-        manual_meeting.triggered.connect(lambda: set_manual_status("in_meeting"))
-        manual_focus.triggered.connect(lambda: set_manual_status("focus"))
-        manual_available.triggered.connect(lambda: set_manual_status("available"))
-        manual_end_meeting.triggered.connect(set_end_meeting)
-        reset_override.triggered.connect(reset_state)
-        sync_toggle.triggered.connect(toggle_sync)
-        quit_action.triggered.connect(quit_app)
-
-        menu.addAction(config_action)
-        menu.addSeparator()
-        menu.addAction(manual_meeting)
-        menu.addAction(manual_focus)
-        menu.addAction(manual_available)
-        menu.addSeparator()
-        menu.addAction(manual_end_meeting)
-        menu.addAction(reset_override)
-        menu.addSeparator()
-        menu.addAction(sync_toggle)
-        menu.addSeparator()
-        menu.addAction(quit_action)
-        return menu
-    
-    # Update context menu dynamically when right-clicked
-    def on_tray_activated(reason):
-        if reason == QSystemTrayIcon.Context:
-            tray.setContextMenu(create_context_menu())
-    
-    tray.activated.connect(on_tray_activated)
-    tray.setContextMenu(create_context_menu())
-
-    print("Tray icon setup complete, showing tray...")
-    tray.show()
-    print("Starting Qt event loop...")
-    sys.exit(app.exec())
+        print("Tray icon setup complete, showing tray...")
+        tray.show()
+        print("Starting Qt event loop...")
+        sys.exit(app.exec())
 
     except Exception as e:
         error_msg = f"GlowStatus startup error: {str(e)}"
