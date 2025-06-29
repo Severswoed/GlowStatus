@@ -363,9 +363,12 @@ def main():
                 # Double-click opens settings
                 show_config()
             elif reason == QSystemTrayIcon.Trigger:
-                print("DEBUG: Left-click detected, opening settings")
-                # Left-click also opens settings as fallback
-                show_config()
+                print("DEBUG: Left-click detected, showing context menu")
+                # Left-click also shows context menu
+                menu = create_context_menu()
+                cursor_pos = QCursor.pos()
+                print(f"DEBUG: Showing menu at cursor position: {cursor_pos}")
+                menu.exec(cursor_pos)
             elif reason == QSystemTrayIcon.MiddleClick:
                 print("DEBUG: Middle-click detected")
         
