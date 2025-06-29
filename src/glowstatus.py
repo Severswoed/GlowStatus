@@ -115,8 +115,12 @@ class GlowStatusController:
             if manual_status:
                 status = manual_status
             else:
-                govee.set_power("off")
-                return
+                # When calendar sync is disabled and no manual override, default to available
+                status = "available"
+                # Only turn off light if specifically configured to do so
+                if config.get("POWER_OFF_WHEN_AVAILABLE", True):
+                    govee.set_power("off")
+                    return
         else:
             if manual_status == "meeting_ended_early":
                 govee.set_power("off")
@@ -223,7 +227,25 @@ class GlowStatusController:
             govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 
             if DISABLE_CALENDAR_SYNC:
-                # Even when sync is disabled, maintain minute timing for consistency
+                # When sync is disabled, still process manual status and control lights
+                manual_status = config.get("CURRENT_STATUS")
+                if manual_status:
+                    # Process manual status with light control
+                    try:
+                        self.set_light_status(manual_status, govee)
+                        logger.info(f"Manual status: {manual_status} (sync disabled)")
+                    except Exception as e:
+                        logger.error(f"Error setting light for manual status: {e}")
+                else:
+                    # No manual status, default behavior
+                    if config.get("POWER_OFF_WHEN_AVAILABLE", True):
+                        try:
+                            govee.set_power("off")
+                            logger.info("No manual status - lights off (sync disabled)")
+                        except Exception as e:
+                            logger.error(f"Error turning off lights: {e}")
+                
+                # Sleep until next interval and continue
                 self._sleep_until_next_interval(REFRESH_INTERVAL)
                 continue
 
