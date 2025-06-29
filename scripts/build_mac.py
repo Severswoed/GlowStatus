@@ -412,7 +412,7 @@ OPTIONS = {
         'PySide6.QtLabsSettings', 'PySide6.QtLabsSharedImage', 'PySide6.QtLabsWavefrontMesh',
         
         # Standard library modules we don't use
-        'tkinter', 'turtle', 'curses', 'sqlite3', 'multiprocessing', 'xml', 'xmlrpc', 'html', 'http.server', 'wsgiref',
+        'tkinter', 'turtle', 'curses', 'sqlite3', 'xml', 'xmlrpc', 'html', 'http.server', 'wsgiref',
         'pydoc_data', 'distutils', 'setuptools', 'pip', 'wheel', 'test', 'unittest', 'doctest',
         
         # Development and testing frameworks
