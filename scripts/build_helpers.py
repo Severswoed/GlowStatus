@@ -1,12 +1,47 @@
-from setuptools import setup
+"""Helper functions for setup and build processes."""
+
 import glob
 import subprocess
 import sys
 import os
+import site
+
+
+def fix_google_namespace_packages():
+    """Create __init__.py files for Google namespace packages if they don't exist."""
+    try:
+        import google
+        google_path = os.path.dirname(google.__file__)
+        
+        # Ensure google/__init__.py exists
+        google_init = os.path.join(google_path, '__init__.py')
+        if not os.path.exists(google_init):
+            print(f"Creating {google_init} for py2app compatibility...")
+            with open(google_init, 'w') as f:
+                f.write('# Namespace package\n__path__ = __import__("pkgutil").extend_path(__path__, __name__)\n')
+        
+        # Also check for any google.* subpackages
+        for subdir in ['auth', 'oauth2']:
+            subdir_path = os.path.join(google_path, subdir)
+            if os.path.exists(subdir_path):
+                subdir_init = os.path.join(subdir_path, '__init__.py')
+                if not os.path.exists(subdir_init):
+                    print(f"Creating {subdir_init} for py2app compatibility...")
+                    with open(subdir_init, 'w') as f:
+                        f.write('# Namespace package\n')
+                        
+    except ImportError:
+        print("Google packages not found - skipping namespace fix")
+    except Exception as e:
+        print(f"Warning: Could not fix Google namespace packages: {e}")
+
 
 def check_and_install_requirements():
     """Check if requirements are installed and install them if needed."""
-    requirements_file = 'requirements.txt'
+    # Get the parent directory (project root) from the scripts directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    requirements_file = os.path.join(project_root, 'requirements.txt')
     
     if not os.path.exists(requirements_file):
         print(f"Warning: {requirements_file} not found, skipping dependency check")
@@ -36,6 +71,7 @@ def check_and_install_requirements():
     except Exception as e:
         print(f"❌ Unexpected error checking requirements: {e}")
         print(f"💡 Please run manually: {pip_cmd} install -r requirements.txt")
+
 
 def verify_critical_modules():
     """Verify that critical modules can be imported."""
@@ -69,80 +105,3 @@ def verify_critical_modules():
     
     print("✓ All critical modules verified")
     return True
-
-# Check requirements before building
-if 'py2app' in sys.argv:
-    print("🚀 Preparing GlowStatus for macOS app bundle creation...")
-    check_and_install_requirements()
-    if not verify_critical_modules():
-        print("❌ Critical modules missing. Please fix the above issues and try again.")
-        sys.exit(1)
-    print("✅ Ready to build!")
-    print()
-
-APP = ['src/tray_app.py']
-DATA_FILES = [
-    ('img', glob.glob('img/*')),  # Bundle all files in img/
-    ('config', glob.glob('config/*')),
-    ('resources', ['resources/client_secret.json']),
-    # Add other needed data files/folders here
-]
-OPTIONS = {
-    'iconfile': 'img/GlowStatus.icns',
-    'packages': [
-        'PySide6',
-        'google',
-        'google.auth',
-        'google.oauth2',
-        'google_auth_oauthlib',
-        'googleapiclient',
-        'keyring',
-        'keyrings.alt',
-        'requests',
-        'dateutil',
-    ],
-    'includes': [
-        'threading',
-        'queue',
-        'PySide6.QtCore',
-        'PySide6.QtGui',
-        'PySide6.QtWidgets',
-        'PySide6.QtNetwork',
-        'shiboken6',
-        'google',
-        'google.auth',
-        'google.oauth2',
-        'google_auth_oauthlib',
-        'googleapiclient',
-        'googleapiclient.discovery',
-    ],
-    'excludes': [
-        'tkinter',
-        'PyQt5',
-        'PyQt6',
-        'test',
-        'unittest',
-        'distutils',
-        'setuptools',
-        'pip',
-        'wheel',
-    ],
-    'resources': DATA_FILES,
-    'argv_emulation': False,
-    'site_packages': True,
-    'plist': {
-        'CFBundleName': 'GlowStatus',
-        'CFBundleDisplayName': 'GlowStatus',
-        'CFBundleExecutable': 'GlowStatus',
-        'CFBundleIdentifier': 'com.severswoed.glowstatus',
-        'CFBundleShortVersionString': '2.0.0',
-        'CFBundleVersion': '2.0.0',
-    },
-}
-
-setup(
-    app=APP,
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
-)

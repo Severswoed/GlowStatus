@@ -11,6 +11,7 @@ tests/
 ├── test_main.py                       # Core utilities and validation functions
 ├── test_config_ui.py                  # Configuration UI and management
 ├── test_config.py                     # Configuration loading and path resolution
+├── test_setup_functions.py            # Build and setup helper function tests
 ├── test_calendar_sync.py              # Google Calendar integration
 ├── test_govee_controller.py           # Govee smart light control
 ├── test_glowstatus.py                 # Main application logic
@@ -39,6 +40,12 @@ python tests/test_main.py
 
 # Configuration management
 python tests/test_config_ui.py
+
+# Configuration loading and path resolution
+python tests/test_config.py
+
+# Build and setup helper functions
+python tests/test_setup_functions.py
 
 # Google Calendar integration
 python tests/test_calendar_sync.py
@@ -109,7 +116,19 @@ python tests/verify_tests.py
 - Invalid JSON handling and fallback mechanisms
 - Configuration validation and defaults
 
-### 3. Google Calendar Integration (`test_calendar_sync.py`) ✅
+### 4. Build & Setup Helper Functions (`test_setup_functions.py`) ✅
+- **Dependency checking**: Automated requirements installation verification
+- **Module verification**: Critical module availability checks for builds
+- **Namespace fixes**: Google API namespace package compatibility
+- **Build preparation**: Helper functions for reliable cross-platform builds
+
+**Key Features Tested:**
+- `check_and_install_requirements()` - Automated dependency management
+- `verify_critical_modules()` - Missing module detection for py2app builds
+- `fix_google_namespace_packages()` - Google API namespace package fixes
+- Build helper function error handling and return values
+
+### 5. Google Calendar Integration (`test_calendar_sync.py`) ✅
 - **OAuth flow**: Authentication, token management, refresh
 - **Event parsing**: Meeting detection, timezone handling
 - **Status detection**: In meeting, available, focus time
@@ -123,7 +142,7 @@ python tests/verify_tests.py
 - Timezone-aware event processing
 - Google API integration patterns
 
-### 4. Govee Smart Light Control (`test_govee_controller.py`) ✅
+### 6. Govee Smart Light Control (`test_govee_controller.py`) ✅
 - **API communication**: HTTP requests, error handling
 - **Device control**: Color changes, brightness, power state
 - **Credential validation**: API key and device ID formats
@@ -137,7 +156,7 @@ python tests/verify_tests.py
 - API error handling and recovery
 - Device authentication
 
-### 5. Application Logic (`test_glowstatus.py`) ✅
+### 7. Application Logic (`test_glowstatus.py`) ✅
 - **Status application**: Color mapping, light control
 - **Integration testing**: Calendar + Govee coordination
 - **Manual overrides**: User-initiated status changes
