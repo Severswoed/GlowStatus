@@ -32,7 +32,6 @@ OPTIONS = {
         'PyQt5',
         'PyQt6',
     ],
-    'strip_debug_info': False,
     'resources': DATA_FILES,
     'plist': {
         'CFBundleName': 'GlowStatus',
