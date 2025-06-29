@@ -310,8 +310,8 @@ def main():
             config = load_config()
             current_status = config.get("CURRENT_STATUS", "unknown")
             
-            # Create menu with tray as parent for proper Windows behavior
-            menu = QMenu(tray)
+            # Create menu without parent (QSystemTrayIcon is not a QWidget)
+            menu = QMenu()
             config_action = QAction("Open Settings", menu)
             manual_meeting = QAction("Set Status: In Meeting", menu)
             manual_focus = QAction("Set Status: Focus", menu)
