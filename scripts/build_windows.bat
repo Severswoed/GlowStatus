@@ -31,3 +31,4 @@ if exist dist\GlowStatus\GlowStatus.exe (
 
 echo.
 echo Build process finished!
+pause
