@@ -41,17 +41,30 @@ def setup_build_logging():
         def __init__(self, file_path):
             self.terminal = sys.stdout
             self.log = open(file_path, 'w')
+            self.closed = False
             
         def write(self, message):
             self.terminal.write(message)
-            self.log.write(message)
-            self.log.flush()
+            if not self.closed:
+                self.log.write(message)
+                self.log.flush()
             
         def flush(self):
             self.terminal.flush()
-            self.log.flush()
-            
-    sys.stdout = TeeOutput(log_file)
+            if not self.closed:
+                self.log.flush()
+        
+        def close(self):
+            if not self.closed:
+                self.log.close()
+                self.closed = True
+                
+    # Store the original stdout and the TeeOutput instance globally
+    global original_stdout, tee_output
+    original_stdout = sys.stdout
+    tee_output = TeeOutput(log_file)
+    sys.stdout = tee_output
+    
     print(f"📝 Build log will be saved to: {log_file}")
     print(f"🕐 Build started at: {datetime.datetime.now()}")
     print(f"📁 Project root: {PROJECT_ROOT}")
@@ -89,6 +102,10 @@ if 'py2app' in sys.argv:
     
     print()
 
+# Initialize global variables for logging
+original_stdout = None
+tee_output = None
+
 # Change to project root directory for the build process
 original_cwd = os.getcwd()
 os.chdir(PROJECT_ROOT)
@@ -104,14 +121,21 @@ DATA_FILES = [
 OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     'packages': [
-        'PySide6',
+        # Only essential PySide6 components
+        'PySide6.QtCore',
+        'PySide6.QtGui', 
+        'PySide6.QtWidgets',
+        'shiboken6',
+        # Essential for tray functionality
         'keyring',
         'keyrings.alt', 
         'requests',
         'dateutil',
-        # Google packages
-        'google_auth_oauthlib',
-        'googleapiclient',
+        # Google packages (minimal)
+        'google.auth',
+        'google.oauth2',
+        'google_auth_oauthlib.flow',
+        'googleapiclient.discovery',
     ],
     'includes': [
         # Core Python modules
@@ -121,7 +145,7 @@ OPTIONS = {
         'datetime',
         'tempfile',
         'atexit',
-        # PySide6 essentials only
+        # Only essential PySide6 modules
         'PySide6.QtCore',
         'PySide6.QtGui',
         'PySide6.QtWidgets',
@@ -137,6 +161,7 @@ OPTIONS = {
         'certifi',
     ],
     'excludes': [
+        # GUI frameworks we don't use
         'tkinter',
         'PyQt5',
         'PyQt6',
@@ -181,11 +206,143 @@ OPTIONS = {
         'sqlite3',
         'curses',
         'turtle',
+        # MASSIVE PySide6 components we don't need
+        'PySide6.QtWebEngine',
+        'PySide6.QtWebEngineCore',
+        'PySide6.QtWebEngineWidgets',
+        'PySide6.QtWebEngineQuick',
+        'PySide6.QtWebView',
+        'PySide6.QtWebSockets',
+        'PySide6.QtWebChannel',
+        'PySide6.Qt3D',
+        'PySide6.Qt3DCore',
+        'PySide6.Qt3DRender',
+        'PySide6.Qt3DInput',
+        'PySide6.Qt3DLogic',
+        'PySide6.Qt3DExtras',
+        'PySide6.Qt3DAnimation',
+        'PySide6.QtQuick3D',
+        'PySide6.QtQuick3DRuntimeRender',
+        'PySide6.QtQuick3DUtils',
+        'PySide6.QtQuick3DHelpers',
+        'PySide6.QtQuick3DEffects',
+        'PySide6.QtQuick3DParticles',
+        'PySide6.QtQuick3DAssetImport',
+        'PySide6.QtQuick3DAssetUtils',
+        'PySide6.QtQuick3DGlslParser',
+        'PySide6.QtQuick3DHelpersImpl',
+        'PySide6.QtQuick3DIblBaker',
+        'PySide6.QtQuick3DSpatialAudio',
+        'PySide6.QtQuick3DParticleEffects',
+        'PySide6.QtQuick3DXr',
+        'PySide6.QtMultimedia',
+        'PySide6.QtMultimediaWidgets',
+        'PySide6.QtMultimediaQuick',
+        'PySide6.QtCharts',
+        'PySide6.QtChartsQml',
+        'PySide6.QtDataVisualization',
+        'PySide6.QtDataVisualizationQml',
+        'PySide6.QtGraphs',
+        'PySide6.QtGraphsWidgets',
+        'PySide6.QtQuick',
+        'PySide6.QtQuickControls2',
+        'PySide6.QtQuickWidgets',
+        'PySide6.QtQuickTemplates2',
+        'PySide6.QtQuickLayouts',
+        'PySide6.QtQuickParticles',
+        'PySide6.QtQuickShapes',
+        'PySide6.QtQuickTest',
+        'PySide6.QtQuickEffects',
+        'PySide6.QtQuickTimeline',
+        'PySide6.QtQuickTimelineBlendTrees',
+        'PySide6.QtQuickVectorImage',
+        'PySide6.QtQuickVectorImageGenerator',
+        'PySide6.QtQuickDialogs2',
+        'PySide6.QtQuickDialogs2Utils',
+        'PySide6.QtQuickDialogs2QuickImpl',
+        'PySide6.QtQuickControls2Basic',
+        'PySide6.QtQuickControls2BasicStyleImpl',
+        'PySide6.QtQuickControls2Fusion',
+        'PySide6.QtQuickControls2FusionStyleImpl',
+        'PySide6.QtQuickControls2Imagine',
+        'PySide6.QtQuickControls2ImagineStyleImpl',
+        'PySide6.QtQuickControls2Material',
+        'PySide6.QtQuickControls2MaterialStyleImpl',
+        'PySide6.QtQuickControls2Universal',
+        'PySide6.QtQuickControls2UniversalStyleImpl',
+        'PySide6.QtQuickControls2MacOSStyleImpl',
+        'PySide6.QtQuickControls2IOSStyleImpl',
+        'PySide6.QtQuickControls2FluentWinUI3StyleImpl',
+        'PySide6.QtQuickControls2Impl',
+        'PySide6.QtQml',
+        'PySide6.QtQmlCore',
+        'PySide6.QtQmlNetwork',
+        'PySide6.QtQmlModels',
+        'PySide6.QtQmlWorkerScript',
+        'PySide6.QtQmlCompiler',
+        'PySide6.QtQmlMeta',
+        'PySide6.QtQmlLocalStorage',
+        'PySide6.QtQmlXmlListModel',
+        'PySide6.QtDesigner',
+        'PySide6.QtDesignerComponents',
+        'PySide6.QtUiTools',
+        'PySide6.QtHelp',
+        'PySide6.QtPrintSupport',
+        'PySide6.QtSvg',
+        'PySide6.QtSvgWidgets',
+        'PySide6.QtOpenGL',
+        'PySide6.QtOpenGLWidgets',
+        'PySide6.QtBluetooth',
+        'PySide6.QtNfc',
+        'PySide6.QtPositioning',
+        'PySide6.QtPositioningQuick',
+        'PySide6.QtLocation',
+        'PySide6.QtSensors',
+        'PySide6.QtSensorsQuick',
+        'PySide6.QtSerialPort',
+        'PySide6.QtSerialBus',
+        'PySide6.QtNetworkAuth',
+        'PySide6.QtRemoteObjects',
+        'PySide6.QtRemoteObjectsQml',
+        'PySide6.QtScxml',
+        'PySide6.QtScxmlQml',
+        'PySide6.QtStateMachine',
+        'PySide6.QtStateMachineQml',
+        'PySide6.QtTextToSpeech',
+        'PySide6.QtVirtualKeyboard',
+        'PySide6.QtVirtualKeyboardQml',
+        'PySide6.QtVirtualKeyboardSettings',
+        'PySide6.QtSpatialAudio',
+        'PySide6.QtPdf',
+        'PySide6.QtPdfWidgets',
+        'PySide6.QtPdfQuick',
+        'PySide6.QtHttpServer',
+        'PySide6.QtShaderTools',
+        'PySide6.QtConcurrent',
+        'PySide6.QtTest',
+        'PySide6.QtSql',
+        'PySide6.QtXml',
+        'PySide6.QtDBus',
+        'PySide6.QtWebChannelQuick',
+        'PySide6.QtLabsPlatform',
+        'PySide6.QtLabsAnimation',
+        'PySide6.QtLabsFolderListModel',
+        'PySide6.QtLabsQmlModels',
+        'PySide6.QtLabsSettings',
+        'PySide6.QtLabsSharedImage',
+        'PySide6.QtLabsWavefrontMesh',
+        # FFmpeg and multimedia codecs
+        'libavcodec',
+        'libavformat',
+        'libavutil',
+        'libswscale',
+        'libswresample',
     ],
     'resources': DATA_FILES,
     'argv_emulation': False,
     'site_packages': False,  # Don't include entire site-packages
     'optimize': 2,  # Enable bytecode optimization
+    'strip': True,  # Strip debug symbols
     'plist': {
         'CFBundleName': 'GlowStatus',
         'CFBundleDisplayName': 'GlowStatus',
@@ -194,6 +351,7 @@ OPTIONS = {
         'CFBundleShortVersionString': '2.0.0',
         'CFBundleVersion': '2.0.0',
         'LSUIElement': True,  # Run as background app without dock icon
+        'NSHighResolutionCapable': True,  # Support retina displays
     },
 }
 
@@ -222,6 +380,8 @@ if 'py2app' in sys.argv:
     print(f"   cat {log_file}")
     print(f"   or open {log_file} in your text editor")
     
-    # Close the log file
-    if hasattr(sys.stdout, 'log'):
-        sys.stdout.log.close()
+    # Properly close the log file and restore stdout
+    if tee_output:
+        tee_output.close()
+    if original_stdout:
+        sys.stdout = original_stdout
