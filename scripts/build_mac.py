@@ -114,31 +114,27 @@ def analyze_qt_frameworks(app_path):
         print("✅ No large Qt frameworks found!")
 
 def aggressive_pyside6_cleanup(app_path):
-    """
-    Ultra-aggressive cleanup of PySide6 bloat that py2app insists on including.
-    Remove entire plugin directories and unused Qt components.
-    """
-    # Find the actual Python version directory
+    print("\n===== DEBUG: Starting aggressive_pyside6_cleanup =====")
     resources_lib_path = os.path.join(app_path, 'Contents', 'Resources', 'lib')
+    print(f"DEBUG: resources_lib_path = {resources_lib_path}")
     if not os.path.exists(resources_lib_path):
-        print("📁 No Resources/lib directory found in app bundle")
+        print("ERROR: No Resources/lib directory found in app bundle")
         return False
-    
-    # Find Python version directory (python3.9, python3.12, etc.)
+
     python_dirs = [d for d in os.listdir(resources_lib_path) if d.startswith('python3.')]
+    print(f"DEBUG: python_dirs found = {python_dirs}")
     if not python_dirs:
-        print("📁 No python3.x directory found in Resources/lib")
+        print("ERROR: No python3.x directory found in Resources/lib")
         return False
-    
-    python_version_dir = python_dirs[0]  # Use the first (and likely only) Python directory
+
+    python_version_dir = python_dirs[0]
     pyside6_path = os.path.join(resources_lib_path, python_version_dir, 'PySide6')
-    
+    print(f"DEBUG: pyside6_path = {pyside6_path}")
+
     if not os.path.exists(pyside6_path):
-        print(f"📁 No PySide6 directory found in {python_version_dir}")
+        print(f"ERROR: No PySide6 directory found in {python_version_dir}")
         return False
-    
-    print(f"🔍 Found PySide6 at: {pyside6_path}")
-    
+
     # Directories to completely remove
     bloat_directories = [
         'Qt/plugins/qmltooling',      # QML debugging tools (200MB+)
@@ -159,31 +155,35 @@ def aggressive_pyside6_cleanup(app_path):
         'Qt/qml',                     # Entire QML directory (200MB+)
         'Qt/libexec',                 # Qt build tools (50MB+)
     ]
-    
+
     total_removed = 0
     removed_count = 0
-    
+
     for bloat_dir in bloat_directories:
         full_path = os.path.join(pyside6_path, bloat_dir)
+        print(f"DEBUG: Checking {full_path}")
         if os.path.exists(full_path):
             try:
-                # Get size before removal
+                import subprocess
                 result = subprocess.run(['du', '-sm', full_path], capture_output=True, text=True)
-                if result.returncode == 0:
-                    size_mb = int(result.stdout.split('\t')[0])
-                    total_removed += size_mb
-                
+                size_mb = int(result.stdout.split('\t')[0]) if result.returncode == 0 else 0
+                total_removed += size_mb
+                import shutil
                 shutil.rmtree(full_path)
                 removed_count += 1
                 print(f"🗑️  Removed {bloat_dir} ({size_mb}MB)")
             except Exception as e:
-                print(f"⚠️  Could not remove {bloat_dir}: {e}")
-    
+                print(f"ERROR: Could not remove {bloat_dir}: {e}")
+        else:
+            print(f"DEBUG: {bloat_dir} does not exist, skipping.")
+
     if removed_count > 0:
         print(f"✅ Aggressive PySide6 cleanup: Removed {removed_count} directories (~{total_removed}MB)")
+        print("===== DEBUG: aggressive_pyside6_cleanup finished =====\n")
         return True
     else:
-        print("📝 No PySide6 bloat directories found")
+        print("WARNING: No PySide6 bloat directories found or removed!")
+        print("===== DEBUG: aggressive_pyside6_cleanup finished =====\n")
         return False
 
 def manual_qt_cleanup(app_path):
