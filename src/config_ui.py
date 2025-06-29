@@ -163,6 +163,19 @@ class ConfigWindow(QWidget):
         self.add_btn.clicked.connect(self.add_status_row)
         self.remove_btn = QPushButton("Remove Selected")
         self.remove_btn.clicked.connect(self.remove_selected_row)
+        
+        # Make table buttons consistently sized
+        add_text_width = self.add_btn.fontMetrics().horizontalAdvance("Add Status")
+        remove_text_width = self.remove_btn.fontMetrics().horizontalAdvance("Remove Selected")
+        button_text_height = self.add_btn.fontMetrics().height()
+        
+        table_button_height = button_text_height + 12
+        add_button_width = max(100, add_text_width + 20)
+        remove_button_width = max(130, remove_text_width + 20)
+        
+        self.add_btn.setMinimumSize(add_button_width, table_button_height)
+        self.remove_btn.setMinimumSize(remove_button_width, table_button_height)
+        
         btn_layout.addWidget(self.add_btn)
         btn_layout.addWidget(self.remove_btn)
         layout.addLayout(btn_layout)
@@ -249,7 +262,19 @@ class ConfigWindow(QWidget):
         # Google Sign-in Button (following Google branding guidelines)
         self.oauth_btn = QPushButton("Sign in with Google")
         self.oauth_btn.clicked.connect(self.run_oauth_flow)
-        self.oauth_btn.setFixedSize(180, 40)  # Slightly smaller for better balance
+        
+        # Set button size relative to text content
+        button_text = self.oauth_btn.text()
+        font_metrics = self.oauth_btn.fontMetrics()
+        text_width = font_metrics.horizontalAdvance(button_text)
+        text_height = font_metrics.height()
+        
+        # Add padding around text (40px horizontal, 12px vertical)
+        button_width = max(200, text_width + 40)  # Minimum 200px, or text + padding
+        button_height = max(36, text_height + 12)  # Minimum 36px, or text + padding
+        
+        self.oauth_btn.setMinimumSize(button_width, button_height)
+        self.oauth_btn.setMaximumHeight(button_height)
         
         # Apply Google branding styles
         self.apply_google_button_style(self.oauth_btn)
@@ -261,7 +286,14 @@ class ConfigWindow(QWidget):
         # Disconnect Button
         self.disconnect_btn = QPushButton("Disconnect")
         self.disconnect_btn.clicked.connect(self.disconnect_oauth)
-        self.disconnect_btn.setFixedSize(120, 40)  # Smaller since shorter text
+        
+        # Set button size relative to text content
+        disconnect_text = self.disconnect_btn.text()
+        disconnect_text_width = font_metrics.horizontalAdvance(disconnect_text)
+        disconnect_button_width = max(120, disconnect_text_width + 32)  # Minimum 120px, smaller padding
+        
+        self.disconnect_btn.setMinimumSize(disconnect_button_width, button_height)
+        self.disconnect_btn.setMaximumHeight(button_height)
         
         # Style disconnect button to be less prominent
         self.disconnect_btn.setStyleSheet("""
@@ -364,10 +396,24 @@ class ConfigWindow(QWidget):
         
         self.save_btn = QPushButton("Save")
         self.save_btn.clicked.connect(self.save_config)
-        button_layout.addWidget(self.save_btn)
         
         self.exit_btn = QPushButton("Exit")
         self.exit_btn.clicked.connect(self.exit_settings)
+        
+        # Make buttons appropriately sized for their text
+        save_text_width = self.save_btn.fontMetrics().horizontalAdvance("Save")
+        exit_text_width = self.exit_btn.fontMetrics().horizontalAdvance("Exit")
+        text_height = self.save_btn.fontMetrics().height()
+        
+        # Set consistent button height and minimum width based on text
+        button_height = text_height + 16  # Text height + padding
+        save_width = max(80, save_text_width + 24)  # Minimum 80px
+        exit_width = max(80, exit_text_width + 24)  # Minimum 80px
+        
+        self.save_btn.setMinimumSize(save_width, button_height)
+        self.exit_btn.setMinimumSize(exit_width, button_height)
+        
+        button_layout.addWidget(self.save_btn)
         button_layout.addWidget(self.exit_btn)
         
         layout.addLayout(button_layout)
