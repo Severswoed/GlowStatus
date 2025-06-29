@@ -139,10 +139,16 @@ class GlowStatusController:
                 
                 # Check for imminent meeting (within 1 minute) - this overrides manual status
                 imminent_meeting = (
-                    calendar_status == "available"
-                    and next_event_start is not None
+                    next_event_start is not None
                     and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
                 )
+                
+                # Enhanced logging for debugging
+                if next_event_start:
+                    time_to_next = (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
+                    logger.info(f"Next meeting in {time_to_next:.1f} seconds | Calendar status: {calendar_status} | Manual status: {manual_status}")
+                    if imminent_meeting:
+                        logger.info("🚨 IMMINENT MEETING DETECTED - should turn on lights!")
                 
                 # Check for active meeting - this also overrides manual status
                 active_meeting = calendar_status == "in_meeting"
