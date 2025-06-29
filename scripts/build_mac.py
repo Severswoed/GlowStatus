@@ -21,8 +21,8 @@ from build_helpers import check_and_install_requirements, verify_critical_module
 
 def create_minimal_pyside6_recipe():
     """
-    Create a custom minimal PySide6 recipe that overrides py2app's bloated default recipe.
-    This prevents py2app from auto-including all Qt modules.
+    Remove py2app's PySide6 recipe entirely to prevent auto-inclusion of all Qt modules.
+    This is more reliable than trying to override it.
     """
     # Find py2app's recipe directory
     import py2app
@@ -33,7 +33,6 @@ def create_minimal_pyside6_recipe():
         print("⚠️  Could not find py2app recipes directory, skipping recipe override")
         return False
     
-    # Create a minimal PySide6 recipe that does nothing
     pyside6_recipe_path = os.path.join(recipes_dir, 'pyside6.py')
     
     # Backup original recipe if it exists
@@ -42,32 +41,18 @@ def create_minimal_pyside6_recipe():
         if not os.path.exists(backup_path):
             shutil.copy2(pyside6_recipe_path, backup_path)
             print(f"📋 Backed up original PySide6 recipe to: {backup_path}")
-    
-    # Create our minimal recipe that doesn't auto-include everything
-    minimal_recipe = '''"""
-Minimal PySide6 recipe for py2app - prevents auto-inclusion of all Qt modules.
-Only includes what we explicitly specify in the build script.
-"""
-
-def check(cmd, mf):
-    """Check if PySide6 is used - we handle this manually"""
-    # Always return False to prevent this recipe from running automatically
-    return False
-
-def recipe(cmd, mf):
-    """Minimal recipe that returns empty dict - we handle PySide6 includes manually"""
-    # Return empty dict instead of None to prevent py2app errors
-    return {}
-'''
-    
-    try:
-        with open(pyside6_recipe_path, 'w') as f:
-            f.write(minimal_recipe)
-        print(f"✅ Created minimal PySide6 recipe at: {pyside6_recipe_path}")
+        
+        # Remove the recipe entirely - this prevents py2app from auto-including Qt modules
+        try:
+            os.remove(pyside6_recipe_path)
+            print(f"🗑️  Removed PySide6 recipe entirely to prevent auto-bloat")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to remove PySide6 recipe: {e}")
+            return False
+    else:
+        print("📝 No PySide6 recipe found - nothing to remove")
         return True
-    except Exception as e:
-        print(f"❌ Failed to create minimal recipe: {e}")
-        return False
 
 def analyze_qt_frameworks(app_path):
     """
@@ -165,12 +150,8 @@ def restore_original_pyside6_recipe():
             print(f"🔄 Restored original PySide6 recipe from backup")
         except Exception as e:
             print(f"⚠️  Could not restore original recipe: {e}")
-    elif os.path.exists(pyside6_recipe_path):
-        try:
-            os.remove(pyside6_recipe_path)
-            print(f"🗑️  Removed minimal PySide6 recipe")
-        except Exception as e:
-            print(f"⚠️  Could not remove minimal recipe: {e}")
+    else:
+        print("� No backup found - PySide6 recipe will remain removed")
 
 # Check requirements before building
 if 'py2app' in sys.argv:
@@ -182,13 +163,13 @@ if 'py2app' in sys.argv:
     print("🔧 Fixing Google namespace packages for py2app...")
     fix_google_namespace_packages()
     
-    # CRITICAL: Override py2app's bloated PySide6 recipe
-    print("🔥 OVERRIDING py2app's PySide6 recipe to prevent auto-inclusion of all Qt modules...")
+    # CRITICAL: Remove py2app's bloated PySide6 recipe entirely
+    print("🔥 REMOVING py2app's PySide6 recipe to prevent auto-inclusion of all Qt modules...")
     recipe_success = create_minimal_pyside6_recipe()
     if recipe_success:
-        print("✅ PySide6 recipe override successful!")
+        print("✅ PySide6 recipe removal successful!")
     else:
-        print("⚠️  Recipe override failed - will rely on aggressive excludes")
+        print("⚠️  Recipe removal failed - will rely on aggressive excludes")
     
     print("✅ Ready to build!")
     print()
@@ -348,7 +329,7 @@ OPTIONS = {
 
 if 'py2app' in sys.argv:
     print()
-    print("🚫 USING CUSTOM MINIMAL PySide6 RECIPE - no auto-bloat!")
+    print("🚫 REMOVED PySide6 RECIPE ENTIRELY - no auto-bloat!")
     print("📦 Only including essential PySide6 components:")
     print("   - PySide6.QtCore (core functionality)")
     print("   - PySide6.QtGui (GUI basics)")  
@@ -363,7 +344,7 @@ if 'py2app' in sys.argv:
     print("   - QtQuick/QML (~50MB modern UI)")
     print("   - All style implementations (~20MB)")
     print()
-    print("🔧 Key optimization: Custom recipe override + aggressive excludes!")
+    print("🔧 Key optimization: Recipe removal + aggressive excludes!")
     print()
 
 setup(
