@@ -38,7 +38,7 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 2. **Build the Executable:**
     ```bash
-    pyinstaller --noconfirm --windowed --name=GlowStatus --icon=img/GlowStatus.ico --add-data "img;img" --add-
+    pyinstaller --noconfirm --windowed --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
     ```
     - The output will be in the `dist/` folder as a standalone `.exe`.
     - The icon will be used for the taskbar and window.
