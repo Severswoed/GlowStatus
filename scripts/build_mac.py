@@ -307,7 +307,6 @@ OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     
     # CRITICAL SIZE OPTIMIZATIONS
-    'argv-emulation': False,
     'site-packages': False,  # Don't include entire site-packages
     'optimize': 2,  # Maximum bytecode optimization
     'strip': True,  # Strip debug symbols
