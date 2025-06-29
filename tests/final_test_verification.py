@@ -53,7 +53,8 @@ def main():
             'test_google_oauth_token_path_bug.py',
             'test_govee_keyring_fix.py',
             'test_light_control_bug_fix.py',
-            'test_token_path_import.py'
+            'test_token_path_import.py',
+            'test_oauth_threading.py'
         ],
         'Feature Tests': [
             'test_light_toggle_tray_menu.py',

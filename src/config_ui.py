@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QSpinBox, QFormLayout, QLineEdit,
     QDialog, QTextEdit, QMessageBox, QFileDialog, QScrollArea
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, pyqtSignal
 from PySide6.QtGui import QIcon
 from logger import get_logger
 from utils import resource_path
@@ -36,6 +36,45 @@ os.makedirs(USER_CONFIG_DIR, exist_ok=True)
 CONFIG_PATH = os.path.join(USER_CONFIG_DIR, 'glowstatus_config.json')
 
 logger = get_logger()
+
+class OAuthWorker(QThread):
+    """Worker thread for OAuth flow to prevent UI blocking."""
+    
+    # Signals for communicating with the main thread
+    oauth_success = pyqtSignal(str, list)  # user_email, calendars
+    oauth_error = pyqtSignal(str)  # error_message
+    oauth_no_calendars = pyqtSignal()
+    
+    def run(self):
+        """Run the OAuth flow in a separate thread."""
+        try:
+            from calendar_sync import CalendarSync
+            cal_sync = CalendarSync("primary")
+            service = cal_sync._get_service()
+            
+            if service:
+                # Fetch the user's email from the primary calendar
+                calendar_list = service.calendarList().list().execute()
+                calendars = calendar_list.get("items", [])
+                user_email = None
+                
+                for cal in calendars:
+                    if cal.get("primary"):
+                        user_email = cal.get("id")
+                        break
+                        
+                if not user_email and calendars:
+                    user_email = calendars[0].get("id", "Unknown")
+                    
+                if user_email:
+                    self.oauth_success.emit(user_email, calendars)
+                else:
+                    self.oauth_no_calendars.emit()
+            else:
+                self.oauth_error.emit("Service not initialized")
+                
+        except Exception as e:
+            self.oauth_error.emit(str(e))
 
 def load_config():
     # If user config doesn't exist, copy from template
@@ -511,37 +550,87 @@ class ConfigWindow(QWidget):
         if consent_msg.exec() != QMessageBox.Ok:
             return
         
-        try:
-            from calendar_sync import CalendarSync
-            cal_sync = CalendarSync("primary")
-            service = cal_sync._get_service()
-            if service:
-                # Fetch the user's email from the primary calendar
-                calendar_list = service.calendarList().list().execute()
-                calendars = calendar_list.get("items", [])
-                user_email = None
-                for cal in calendars:
-                    if cal.get("primary"):
-                        user_email = cal.get("id")
-                        break
-                if not user_email and calendars:
-                    user_email = calendars[0].get("id", "Unknown")
-                if user_email:
-                    self.google_calendar_id_label.setText(user_email)
-                    config = load_config()
-                    config["SELECTED_CALENDAR_ID"] = user_email
-                    save_config(config)
-                    logger.info(f"OAuth Success: Google account connected as {user_email}.")
-                else:
-                    self.google_calendar_id_label.setText("No calendars found")
-                    logger.info("OAuth Success: Google account connected, but no calendars found.")
-            else:
-                self.google_calendar_id_label.setText("Not authenticated")
-                logger.info("OAuth failed: Service not initialized.")
-            self.load_calendars()  # Refresh calendar list after OAuth
-            self.update_oauth_status()  # Update OAuth status display
-        except Exception as e:
-            logger.error(f"OAuth Error: Failed to connect Google account: {e}")
+        # Disable UI elements during OAuth flow
+        self.oauth_btn.setEnabled(False)
+        self.disconnect_btn.setEnabled(False)
+        self.save_btn.setEnabled(False)
+        self.exit_btn.setEnabled(False)
+        
+        # Clear previous status
+        self.google_calendar_id_label.setText("Not authenticated")
+        self.selected_calendar_id_dropdown.clear()
+        self.selected_calendar_id_dropdown.addItem("Loading calendars...")
+        self.update_oauth_status()
+        
+        # Start the OAuth flow in a separate thread
+        self.oauth_worker = OAuthWorker()
+        self.oauth_worker.oauth_success.connect(self.on_oauth_success)
+        self.oauth_worker.oauth_error.connect(self.on_oauth_error)
+        self.oauth_worker.oauth_no_calendars.connect(self.on_oauth_no_calendars)
+        self.oauth_worker.finished.connect(self.on_oauth_finished)
+        self.oauth_worker.start()
+
+    def on_oauth_success(self, user_email, calendars):
+        """Handle successful OAuth authentication."""
+        self.google_calendar_id_label.setText(user_email)
+        config = load_config()
+        config["SELECTED_CALENDAR_ID"] = user_email
+        save_config(config)
+        logger.info(f"OAuth Success: Google account connected as {user_email}.")
+        
+        # Update calendar dropdown
+        self.selected_calendar_id_dropdown.clear()
+        for cal in calendars:
+            summary = cal.get("summary", "")
+            cal_id = cal.get("id", "")
+            display = f"{summary} ({cal_id})"
+            self.selected_calendar_id_dropdown.addItem(display, cal_id)
+        
+        # Set to saved value if present
+        saved_id = config.get("SELECTED_CALENDAR_ID", "")
+        if saved_id:
+            idx = self.selected_calendar_id_dropdown.findData(saved_id)
+            if idx != -1:
+                self.selected_calendar_id_dropdown.setCurrentIndex(idx)
+        
+        self.update_oauth_status()  # Update OAuth status display
+        
+        # Show success message
+        QMessageBox.information(self, "Success", f"Successfully connected to Google Calendar as {user_email}")
+
+    def on_oauth_error(self, error_message):
+        """Handle errors during OAuth authentication."""
+        self.google_calendar_id_label.setText("Not authenticated")
+        self.selected_calendar_id_dropdown.clear()
+        self.selected_calendar_id_dropdown.addItem("Please authenticate first")
+        self.update_oauth_status()
+        
+        logger.error(f"OAuth Error: {error_message}")
+        QMessageBox.critical(self, "Authentication Error", f"Failed to connect Google account:\n\n{error_message}")
+
+    def on_oauth_no_calendars(self):
+        """Handle case where no calendars are found after OAuth authentication."""
+        self.google_calendar_id_label.setText("No calendars found")
+        self.selected_calendar_id_dropdown.clear()
+        self.selected_calendar_id_dropdown.addItem("No calendars found")
+        logger.info("OAuth Success: Google account connected, but no calendars found.")
+        self.update_oauth_status()
+        
+        # Show info message
+        QMessageBox.information(self, "Connected", "Google account connected successfully, but no calendars were found.")
+
+    def on_oauth_finished(self):
+        """Called when the OAuth worker thread finishes (regardless of success/error)."""
+        # Re-enable UI elements
+        self.oauth_btn.setEnabled(True)
+        self.disconnect_btn.setEnabled(True)
+        self.save_btn.setEnabled(True)
+        self.exit_btn.setEnabled(True)
+        
+        # Clean up worker reference
+        if hasattr(self, 'oauth_worker'):
+            self.oauth_worker.deleteLater()
+            self.oauth_worker = None
 
     def validate_oauth_setup(self):
         """Validate OAuth setup for Google verification compliance."""
