@@ -5,7 +5,7 @@ from keyring.errors import NoKeyringError
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
     QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QSpinBox, QFormLayout, QLineEdit,
-    QDialog, QTextEdit, QMessageBox, QFileDialog
+    QDialog, QTextEdit, QMessageBox, QFileDialog, QScrollArea
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -110,10 +110,32 @@ class ConfigWindow(QWidget):
         super().__init__()
         self.setWindowIcon(QIcon(os.path.abspath(os.path.join(os.path.dirname(__file__), "../img/GlowStatus_tray_tp_tight.png"))))
         self.setWindowTitle("GlowStatus Settings")
+        
+        # Set better window size for macOS and responsive design
+        self.setMinimumSize(600, 700)  # Increased minimum height for better spacing
+        self.resize(650, 750)  # Default size that works well on different screen sizes
+        
+        # Track form changes for save status
+        self.form_dirty = False
+        self.original_values = {}
+        
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout()
+        # Create main layout with scroll area for better responsiveness
+        main_layout = QVBoxLayout()
+        
+        # Create a scroll area to handle content overflow
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        
+        # Create the content widget that goes inside the scroll area
+        content_widget = QWidget()
+        layout = QVBoxLayout(content_widget)
+        layout.setSpacing(10)  # Better spacing between sections
+        
         layout.addWidget(QLabel("Status/Color/Power Mapping:"))
 
         self.status_table = QTableWidget(0, 3)
@@ -147,6 +169,14 @@ class ConfigWindow(QWidget):
 
         # --- Other Settings ---
         form_layout = QFormLayout()
+        
+        # Fix label alignment for macOS (left-align labels instead of right-align)
+        form_layout.setLabelAlignment(Qt.AlignLeft)
+        form_layout.setFormAlignment(Qt.AlignLeft | Qt.AlignTop)
+        
+        # Add better spacing between rows for readability
+        form_layout.setVerticalSpacing(8)
+        form_layout.setHorizontalSpacing(10)
 
         # Govee API Key (securely stored in keyring)
         try:
@@ -172,21 +202,27 @@ class ConfigWindow(QWidget):
 
         # Google OAuth Setup Section
         oauth_label = QLabel("Google Calendar Setup:")
-        oauth_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        oauth_label.setStyleSheet("font-weight: bold; margin-top: 20px; margin-bottom: 10px;")
         form_layout.addRow(oauth_label)
         
-        # Privacy notice (required for OAuth compliance)
+        # Privacy notice (required for OAuth compliance) - with better spacing
         privacy_notice = QLabel(
             'By connecting your Google account, you agree to GlowStatus accessing your calendar data '
-            'in read-only mode to determine your meeting status. '
+            'in read-only mode to determine your meeting status.<br>'
             '<a href="https://www.glowstatus.app/privacy">Privacy Policy</a> | '
             '<a href="https://www.glowstatus.app/terms">Terms of Service</a> | '
             '<a href="https://myaccount.google.com/permissions">Manage Google Permissions</a>'
         )
         privacy_notice.setWordWrap(True)
         privacy_notice.setOpenExternalLinks(True)
-        privacy_notice.setStyleSheet("color: #666; font-size: 11px; margin: 5px 0;")
+        privacy_notice.setStyleSheet("color: #666; font-size: 11px; margin: 10px 0 15px 0; padding: 8px 0;")
+        privacy_notice.setMinimumHeight(50)  # Ensure enough space for wrapped text
         form_layout.addRow(privacy_notice)
+        
+        # Add a small spacer to prevent overlap
+        spacer_label = QLabel("")
+        spacer_label.setFixedHeight(5)
+        form_layout.addRow(spacer_label)
         
         # OAuth Status with verification info
         self.oauth_status_label = QLabel("Not configured")
@@ -317,15 +353,40 @@ class ConfigWindow(QWidget):
         layout.addWidget(QLabel("Tray Icon:"))
         layout.addWidget(self.tray_icon_dropdown)
 
+        # Save status label
+        self.save_status_label = QLabel("Ready")
+        self.save_status_label.setAlignment(Qt.AlignCenter)
+        self.save_status_label.setStyleSheet("color: #666; font-size: 12px; margin: 5px 0;")
+        layout.addWidget(self.save_status_label)
+
+        # Button layout for Save and Exit buttons
+        button_layout = QHBoxLayout()
+        
         self.save_btn = QPushButton("Save")
         self.save_btn.clicked.connect(self.save_config)
-        layout.addWidget(self.save_btn)
+        button_layout.addWidget(self.save_btn)
+        
+        self.exit_btn = QPushButton("Exit")
+        self.exit_btn.clicked.connect(self.exit_settings)
+        button_layout.addWidget(self.exit_btn)
+        
+        layout.addLayout(button_layout)
 
-        self.setLayout(layout)
+        # Set the content widget in the scroll area
+        scroll_area.setWidget(content_widget)
+        
+        # Add the scroll area to the main layout
+        main_layout.addWidget(scroll_area)
+        
+        # Set the main layout on the window
+        self.setLayout(main_layout)
         self.status_table.cellDoubleClicked.connect(self.open_color_picker)
 
         # Load calendars if authenticated
         self.load_calendars()
+        
+        # Set up form change tracking after all widgets are created
+        self.setup_form_change_tracking()
 
     def load_calendars(self):
         """Populate the calendar dropdown with available calendars if authenticated."""
@@ -626,48 +687,6 @@ class ConfigWindow(QWidget):
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Failed to disconnect: {e}")
                 logger.error(f"Failed to disconnect OAuth: {e}")
-    
-    def save_config(self):
-        config = load_config()
-        color_map = {}
-        for row in range(self.status_table.rowCount()):
-            status = self.status_table.item(row, 0).text().strip().lower()
-            color = self.status_table.item(row, 1).text().strip()
-            power_off = self.status_table.cellWidget(row, 2).isChecked()
-            if status:
-                color_map[status] = {"color": color, "power_off": power_off}
-        config["STATUS_COLOR_MAP"] = color_map
-        config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
-        config["REFRESH_INTERVAL"] = self.refresh_spin.value()
-        config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_chk.isChecked()
-        config["OFF_FOR_UNKNOWN_STATUS"] = self.off_for_unknown_chk.isChecked()
-        config["DISABLE_CALENDAR_SYNC"] = self.disable_sync_chk.isChecked()
-        config["DISABLE_LIGHT_CONTROL"] = self.disable_light_chk.isChecked()
-        config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
-        config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
-        
-        # Note: Respecting user's explicit choice to disable light control
-        # Even if Govee credentials are configured, user may want to disable lights
-        
-        # Save the selected calendar ID from the dropdown
-        selected_idx = self.selected_calendar_id_dropdown.currentIndex()
-        selected_id = self.selected_calendar_id_dropdown.itemData(selected_idx)
-        if selected_id:
-            config["SELECTED_CALENDAR_ID"] = selected_id
-        else:
-            config["SELECTED_CALENDAR_ID"] = self.google_calendar_id_label.text().strip()
-        save_config(config)
-        logger.info("Settings saved successfully.")
-
-        # Save Govee API key securely to keyring
-        api_key = self.govee_api_key_edit.text().strip()
-        if api_key and api_key != "Set in environment or .env for security":
-            try:
-                keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
-                logger.info("Govee API key saved to keyring.")
-            except NoKeyringError:
-                logger.error("No secure keyring backend available. Cannot save API key.")
-
     def apply_google_button_style(self, button):
         """Apply Google branding guidelines styling to OAuth button with logo."""
         # Try to load Google logo, fall back to text if not available
@@ -762,3 +781,154 @@ class ConfigWindow(QWidget):
             msg_box.setInformativeText("Please address the issues below before submitting for verification.")
         
         msg_box.exec()
+
+    def setup_form_change_tracking(self):
+        """Set up change tracking for all form fields."""
+        # Store original values
+        config = load_config()
+        try:
+            api_key = keyring.get_password("GlowStatus", "GOVEE_API_KEY") or ""
+        except:
+            api_key = ""
+        
+        self.original_values = {
+            'govee_api_key': api_key,
+            'govee_device_id': config.get("GOVEE_DEVICE_ID", ""),
+            'govee_device_model': config.get("GOVEE_DEVICE_MODEL", ""),
+            'selected_calendar': config.get("SELECTED_CALENDAR_ID", ""),
+            'refresh_interval': config.get("REFRESH_INTERVAL", 15),
+            'power_off_available': config.get("POWER_OFF_WHEN_AVAILABLE", True),
+            'off_for_unknown': config.get("OFF_FOR_UNKNOWN_STATUS", True),
+            'disable_calendar_sync': config.get("DISABLE_CALENDAR_SYNC", False),
+            'disable_light_control': config.get("DISABLE_LIGHT_CONTROL", False),
+            'tray_icon': config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
+        }
+        
+        # Connect change signals
+        self.govee_api_key_edit.textChanged.connect(self.on_form_changed)
+        self.govee_device_id_edit.textChanged.connect(self.on_form_changed)
+        self.govee_device_model_edit.textChanged.connect(self.on_form_changed)
+        self.selected_calendar_id_dropdown.currentTextChanged.connect(self.on_form_changed)
+        self.refresh_spin.valueChanged.connect(self.on_form_changed)
+        self.power_off_available_chk.toggled.connect(self.on_form_changed)
+        self.off_for_unknown_chk.toggled.connect(self.on_form_changed)
+        self.disable_sync_chk.toggled.connect(self.on_form_changed)
+        self.disable_light_chk.toggled.connect(self.on_form_changed)
+        self.tray_icon_dropdown.currentTextChanged.connect(self.on_form_changed)
+        self.status_table.cellChanged.connect(self.on_form_changed)
+        
+        # Initially not dirty
+        self.form_dirty = False
+        self.update_save_status()
+    
+    def on_form_changed(self):
+        """Called when any form field changes."""
+        self.form_dirty = True
+        self.update_save_status()
+    
+    def update_save_status(self):
+        """Update the save status label."""
+        if self.form_dirty:
+            self.save_status_label.setText("Not Saved")
+            self.save_status_label.setStyleSheet("color: #d93025; font-size: 12px; font-weight: bold; margin: 5px 0;")
+        else:
+            self.save_status_label.setText("Saved!")
+            self.save_status_label.setStyleSheet("color: #137333; font-size: 12px; font-weight: bold; margin: 5px 0;")
+    
+    def save_config(self):
+        """Save configuration and update status."""
+        # ...existing save logic...
+        config = load_config()
+        
+        # Save Govee API Key securely
+        api_key = self.govee_api_key_edit.text().strip()
+        if api_key:
+            try:
+                keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
+                logger.info("Govee API key saved to keyring")
+            except Exception as e:
+                logger.error(f"Failed to save Govee API key to keyring: {e}")
+                QMessageBox.warning(self, "Keyring Error", f"Failed to save API key securely: {e}")
+        else:
+            try:
+                keyring.delete_password("GlowStatus", "GOVEE_API_KEY")
+            except:
+                pass
+        
+        config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
+        config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
+        
+        # Calendar selection
+        calendar_data = self.selected_calendar_id_dropdown.currentData()
+        config["SELECTED_CALENDAR_ID"] = calendar_data if calendar_data else ""
+        
+        config["REFRESH_INTERVAL"] = self.refresh_spin.value()
+        config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_chk.isChecked()
+        config["OFF_FOR_UNKNOWN_STATUS"] = self.off_for_unknown_chk.isChecked()
+        config["DISABLE_CALENDAR_SYNC"] = self.disable_sync_chk.isChecked()
+        config["DISABLE_LIGHT_CONTROL"] = self.disable_light_chk.isChecked()
+        config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
+        
+        # Status/Color mappings
+        status_color_map = {}
+        for row in range(self.status_table.rowCount()):
+            status_item = self.status_table.item(row, 0)
+            color_item = self.status_table.item(row, 1)
+            power_widget = self.status_table.cellWidget(row, 2)
+            
+            if status_item and color_item and power_widget:
+                status = status_item.text()
+                color = color_item.text()
+                power_off = power_widget.isChecked()
+                status_color_map[status] = {"color": color, "power_off": power_off}
+        
+        config["STATUS_COLOR_MAP"] = status_color_map
+        
+        save_config(config)
+        
+        # Update form status
+        self.form_dirty = False
+        self.update_save_status()
+        
+        QMessageBox.information(self, "Settings Saved", "Configuration saved successfully!")
+    
+    def exit_settings(self):
+        """Exit the settings window, prompting if there are unsaved changes."""
+        if self.form_dirty:
+            reply = QMessageBox.question(
+                self, 
+                "Unsaved Changes", 
+                "You have unsaved changes. Do you want to save before exiting?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+            
+            if reply == QMessageBox.Save:
+                self.save_config()
+                self.close()
+            elif reply == QMessageBox.Discard:
+                self.close()
+            # Cancel: do nothing, stay open
+        else:
+            self.close()
+    
+    def closeEvent(self, event):
+        """Handle window close event to check for unsaved changes."""
+        if self.form_dirty:
+            reply = QMessageBox.question(
+                self, 
+                "Unsaved Changes", 
+                "You have unsaved changes. Do you want to save before closing?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+            
+            if reply == QMessageBox.Save:
+                self.save_config()
+                event.accept()
+            elif reply == QMessageBox.Discard:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
