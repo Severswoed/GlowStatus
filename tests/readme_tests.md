@@ -6,7 +6,7 @@ This directory contains the comprehensive test suite for the GlowStatus applicat
 
 ```
 tests/
-├── README.md                          # This file - comprehensive test documentation
+├── readme_tests.md                    # This file - comprehensive test documentation
 ├── __init__.py                        # Python package initialization
 ├── test_main.py                       # Core utilities and validation functions
 ├── test_config_ui.py                  # Configuration UI and management
@@ -15,10 +15,12 @@ tests/
 ├── test_glowstatus.py                 # Main application logic
 ├── test_light_control_bug_fix.py      # Specific bug fix verification
 ├── test_google_oauth_token_path_bug.py # Google OAuth token path bug fix
+├── test_light_toggle_tray_menu.py     # Light control toggle in tray menu
 ├── test_status_detection.py           # Status detection demonstration
 ├── test_status_fix.py                 # Status handling examples
 ├── test_timing_sync.py                # Timing and synchronization tests
-├── run_all_tests.py                   # Test runner for all tests
+├── manual_test_light_toggle_tray.py   # Manual test checklist for light toggle
+├── final_test_verification.py         # Comprehensive test runner and verification
 ├── verify_tests.py                    # Test verification utility
 ├── final_test_verification.py         # Comprehensive test status report
 └── RESOLUTION_SUMMARY.md              # Test suite development summary
@@ -46,15 +48,15 @@ python tests/test_glowstatus.py
 
 # Specific bug fix verification
 python tests/test_light_control_bug_fix.py
+
+# Light control toggle in tray menu
+python tests/test_light_toggle_tray_menu.py
 ```
 
 ### Running All Tests
 
 ```bash
-# Run all tests with detailed output
-python tests/run_all_tests.py
-
-# Get comprehensive test status report
+# Run comprehensive test verification (recommended)
 python tests/final_test_verification.py
 
 # Verify test environment and setup
@@ -282,7 +284,7 @@ The test suite is designed for automated environments:
 ```bash
 # GitHub Actions / CI pipeline
 python tests/final_test_verification.py
-python tests/run_all_tests.py
+python tests/final_test_verification.py
 
 # Exit codes indicate success/failure
 echo $?  # 0 = success, non-zero = failure
