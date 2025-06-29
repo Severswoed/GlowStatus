@@ -1,5 +1,7 @@
 import sys
 import os
+import tempfile
+import atexit
 from PySide6.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
@@ -9,7 +11,78 @@ from utils import resource_path
 from config_ui import ConfigWindow, load_config, save_config
 from glowstatus import GlowStatusController
 
+# Global variable to hold the lock file handle
+lock_file_handle = None
+
+def check_single_instance():
+    """
+    Ensure only one instance of GlowStatus is running.
+    Returns True if this is the only instance, False otherwise.
+    """
+    global lock_file_handle
+    
+    # Create a lock file in the temp directory
+    lock_file_path = os.path.join(tempfile.gettempdir(), "glowstatus.lock")
+    
+    try:
+        # Try to open the lock file exclusively
+        if os.name == 'nt':  # Windows
+            import msvcrt
+            lock_file_handle = open(lock_file_path, 'w')
+            msvcrt.locking(lock_file_handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:  # Unix/Linux/macOS
+            import fcntl
+            lock_file_handle = open(lock_file_path, 'w')
+            fcntl.lockf(lock_file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        
+        # Write our PID to the lock file
+        lock_file_handle.write(str(os.getpid()))
+        lock_file_handle.flush()
+        
+        # Register cleanup function
+        atexit.register(cleanup_lock_file)
+        
+        return True
+        
+    except (IOError, OSError):
+        # Lock file is already locked by another process
+        if lock_file_handle:
+            lock_file_handle.close()
+            lock_file_handle = None
+        return False
+
+def cleanup_lock_file():
+    """Clean up the lock file when the application exits."""
+    global lock_file_handle
+    if lock_file_handle:
+        try:
+            lock_file_handle.close()
+            # Try to remove the lock file
+            lock_file_path = os.path.join(tempfile.gettempdir(), "glowstatus.lock")
+            if os.path.exists(lock_file_path):
+                os.remove(lock_file_path)
+        except:
+            pass  # Ignore errors during cleanup
+        lock_file_handle = None
+
 def main():
+    # --- Single Instance Check ---
+    if not check_single_instance():
+        # Another instance is already running
+        print("GlowStatus is already running. Only one instance is allowed.")
+        # Try to show a message box if possible
+        try:
+            temp_app = QApplication(sys.argv)
+            QMessageBox.warning(
+                None, 
+                "GlowStatus Already Running", 
+                "GlowStatus is already running.\nOnly one instance is allowed at a time."
+            )
+            temp_app.quit()
+        except:
+            pass  # If GUI can't be created, just exit silently
+        sys.exit(1)
+    
     # --- App Setup ---
     config = load_config()
     app = QApplication(sys.argv)
@@ -120,6 +193,7 @@ def main():
 
     def quit_app():
         glowstatus.stop()
+        cleanup_lock_file()  # Ensure lock file is cleaned up
         app.quit()
 
     update_tray_tooltip()
