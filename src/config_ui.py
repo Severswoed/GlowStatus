@@ -274,7 +274,7 @@ class ConfigWindow(QWidget):
         self.refresh_spin = QSpinBox()
         self.refresh_spin.setMinimum(10)
         self.refresh_spin.setMaximum(3600)
-        self.refresh_spin.setValue(config.get("REFRESH_INTERVAL", 60))
+        self.refresh_spin.setValue(config.get("REFRESH_INTERVAL", 15))
         form_layout.addRow("Refresh Interval (seconds):", self.refresh_spin)
 
         # Power Off When Available

@@ -195,7 +195,7 @@ class GlowStatusController:
             GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
             SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID")
             STATUS_COLOR_MAP = config.get("STATUS_COLOR_MAP", {})
-            REFRESH_INTERVAL = int(config.get("REFRESH_INTERVAL", 60))
+            REFRESH_INTERVAL = int(config.get("REFRESH_INTERVAL", 15))
             POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
             OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
             DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
