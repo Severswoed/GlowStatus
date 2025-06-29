@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QComboBox, QHBoxLayout, QColorDialog, QCheckBox, QFrame, QSpinBox, QFormLayout, QLineEdit,
     QDialog, QTextEdit, QMessageBox, QFileDialog, QScrollArea
 )
-from PySide6.QtCore import Qt, QThread, pyqtSignal
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QIcon
 from logger import get_logger
 from utils import resource_path
@@ -41,9 +41,9 @@ class OAuthWorker(QThread):
     """Worker thread for OAuth flow to prevent UI blocking."""
     
     # Signals for communicating with the main thread
-    oauth_success = pyqtSignal(str, list)  # user_email, calendars
-    oauth_error = pyqtSignal(str)  # error_message
-    oauth_no_calendars = pyqtSignal()
+    oauth_success = Signal(str, list)  # user_email, calendars
+    oauth_error = Signal(str)  # error_message
+    oauth_no_calendars = Signal()
     
     def run(self):
         """Run the OAuth flow in a separate thread."""
@@ -552,6 +552,7 @@ class ConfigWindow(QWidget):
         
         # Disable UI elements during OAuth flow
         self.oauth_btn.setEnabled(False)
+        self.oauth_btn.setText("Connecting...")
         self.disconnect_btn.setEnabled(False)
         self.save_btn.setEnabled(False)
         self.exit_btn.setEnabled(False)
@@ -623,6 +624,7 @@ class ConfigWindow(QWidget):
         """Called when the OAuth worker thread finishes (regardless of success/error)."""
         # Re-enable UI elements
         self.oauth_btn.setEnabled(True)
+        self.oauth_btn.setText("Sign in with Google")
         self.disconnect_btn.setEnabled(True)
         self.save_btn.setEnabled(True)
         self.exit_btn.setEnabled(True)

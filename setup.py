@@ -12,10 +12,15 @@ OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     'packages': [
         'PySide6',
+        'PySide6.QtCore',
         'google_auth_oauthlib',
         'googleapiclient',
         'keyring',
         'keyrings.alt',
+    ],
+    'includes': [
+        'threading',
+        'queue',
     ],
     'resources': DATA_FILES,
     'plist': {
