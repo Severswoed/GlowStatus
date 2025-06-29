@@ -68,7 +68,7 @@ auth_token.txt
 google_service_account.json
 *.pickle
 # Ignore user-specific OAuth files but not the bundled template
-# resources/client_secret.json  # This line commented out to include bundled version
+resources/client_secret.json  # Ignore real OAuth credentials for security
 google_token.pickle
 
 # Optional
