@@ -186,17 +186,23 @@ class ConfigWindow(QWidget):
         # Check OAuth status and update display
         self.update_oauth_status()
         
+        # OAuth buttons layout (side by side)
+        oauth_buttons_layout = QHBoxLayout()
+        
         # Google Sign-in Button (following Google branding guidelines)
         self.oauth_btn = QPushButton("Sign in with Google")
         self.oauth_btn.clicked.connect(self.run_oauth_flow)
+        self.oauth_btn.setFixedSize(200, 40)  # Fixed size
         
         # Apply Google branding styles
         self.apply_google_button_style(self.oauth_btn)
-        form_layout.addRow(self.oauth_btn)
+        oauth_buttons_layout.addWidget(self.oauth_btn)
         
         # Disconnect Button
         self.disconnect_btn = QPushButton("Disconnect Google Account")
         self.disconnect_btn.clicked.connect(self.disconnect_oauth)
+        self.disconnect_btn.setFixedSize(200, 40)  # Fixed size to match
+        
         # Style disconnect button to be less prominent
         self.disconnect_btn.setStyleSheet("""
             QPushButton {
@@ -223,7 +229,12 @@ class ConfigWindow(QWidget):
                 border-color: #f8f9fa;
             }
         """)
-        form_layout.addRow(self.disconnect_btn)
+        oauth_buttons_layout.addWidget(self.disconnect_btn)
+        
+        # Add stretch to prevent buttons from expanding
+        oauth_buttons_layout.addStretch()
+        
+        form_layout.addRow(oauth_buttons_layout)
         
         # Google Calendar ID (display only)
         self.google_calendar_id_label = QLabel(config.get("SELECTED_CALENDAR_ID", "Not authenticated"))
@@ -657,12 +668,10 @@ class ConfigWindow(QWidget):
                 font-weight: 500;
                 padding: 10px 24px 10px 20px;
                 min-height: 20px;
-                min-width: 200px;
                 text-align: left;
             }
             QPushButton:hover {
                 background-color: #3367d6;
-                box-shadow: 0 1px 2px 0 rgba(66, 133, 244, 0.3), 0 1px 3px 1px rgba(66, 133, 244, 0.15);
             }
             QPushButton:pressed {
                 background-color: #2d5aa0;
@@ -673,10 +682,6 @@ class ConfigWindow(QWidget):
                 border: 1px solid #f8f9fa;
             }
         """)
-        
-        # Set appropriate size policy
-        from PySide6.QtWidgets import QSizePolicy
-        button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
     
     def create_google_g_icon(self, button):
         """Create a simple Google 'G' icon as fallback."""
