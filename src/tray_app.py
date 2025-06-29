@@ -92,9 +92,54 @@ def main():
     icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
     app.setWindowIcon(QIcon(icon_path))
 
+    # Set up system tray icon with fallback
     tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
     tray_icon_path = resource_path(f"img/{tray_icon}")
-    tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
+    
+    # Check if the icon file exists, fallback to default if not
+    if not os.path.exists(tray_icon_path):
+        logger.warning(f"Tray icon not found: {tray_icon_path}")
+        # Try a few fallback icons
+        fallback_icons = [
+            "GlowStatus.png",
+            "GlowStatus_tray_tp.png", 
+            "GlowStatus_tray_bk.png",
+            "GlowStatus-Small.png"
+        ]
+        tray_icon_path = None
+        for fallback in fallback_icons:
+            fallback_path = resource_path(f"img/{fallback}")
+            if os.path.exists(fallback_path):
+                tray_icon_path = fallback_path
+                logger.info(f"Using fallback tray icon: {fallback}")
+                break
+        
+        if not tray_icon_path:
+            logger.error("No tray icon files found in img/ directory")
+            # Create a simple colored icon as last resort
+            from PySide6.QtGui import QPixmap, QPainter, QBrush
+            pixmap = QPixmap(16, 16)
+            pixmap.fill(Qt.blue)  # Simple blue square as fallback
+            tray_icon_path = pixmap
+    
+    # Create the system tray icon
+    if isinstance(tray_icon_path, str):
+        tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
+    else:
+        tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)  # pixmap fallback
+    
+    logger.info(f"System tray icon initialized with: {tray_icon_path}")
+    
+    # Check if system tray is available
+    if not QSystemTrayIcon.isSystemTrayAvailable():
+        QMessageBox.critical(None, "System Tray", "System tray is not available on this system.")
+        sys.exit(1)
+    
+    # Ensure the tray icon is visible
+    if not tray.icon().isNull():
+        logger.info("Tray icon successfully loaded")
+    else:
+        logger.error("Tray icon failed to load - icon is null")
 
     # --- Show tooltip if setup is incomplete ---
     missing = []
