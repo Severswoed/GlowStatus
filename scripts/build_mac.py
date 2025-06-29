@@ -113,6 +113,63 @@ def analyze_qt_frameworks(app_path):
     else:
         print("✅ No large Qt frameworks found!")
 
+def aggressive_pyside6_cleanup(app_path):
+    """
+    Ultra-aggressive cleanup of PySide6 bloat that py2app insists on including.
+    Remove entire plugin directories and unused Qt components.
+    """
+    pyside6_path = os.path.join(app_path, 'Contents', 'Resources', 'lib', 'python3.9', 'PySide6')
+    if not os.path.exists(pyside6_path):
+        print("📁 No PySide6 directory found in app bundle")
+        return False
+    
+    # Directories to completely remove
+    bloat_directories = [
+        'Qt/plugins/qmltooling',      # QML debugging tools (200MB+)
+        'Qt/plugins/webview',         # WebView plugins 
+        'Qt/plugins/multimedia',      # FFmpeg multimedia (100MB+)
+        'Qt/plugins/position',        # GPS/location services
+        'Qt/plugins/canbus',          # Car diagnostic bus
+        'Qt/plugins/scxmldatamodel',  # State machine models
+        'Qt/plugins/assetimporters',  # 3D asset importing
+        'Qt/plugins/geometryloaders', # 3D geometry loading
+        'Qt/plugins/renderplugins',   # 3D rendering
+        'Qt/plugins/designer',        # Qt Designer plugins
+        'Qt/plugins/texttospeech',    # Text-to-speech
+        'Qt/plugins/generic',         # Generic input plugins
+        'Qt/plugins/networkinformation', # Network info
+        'Qt/plugins/sqldrivers',      # Database drivers (we don't use SQL)
+        'Qt/plugins/tls',             # TLS backends (we use requests for HTTPS)
+        'Qt/qml',                     # Entire QML directory (200MB+)
+        'Qt/libexec',                 # Qt build tools (50MB+)
+    ]
+    
+    total_removed = 0
+    removed_count = 0
+    
+    for bloat_dir in bloat_directories:
+        full_path = os.path.join(pyside6_path, bloat_dir)
+        if os.path.exists(full_path):
+            try:
+                # Get size before removal
+                result = subprocess.run(['du', '-sm', full_path], capture_output=True, text=True)
+                if result.returncode == 0:
+                    size_mb = int(result.stdout.split('\t')[0])
+                    total_removed += size_mb
+                
+                shutil.rmtree(full_path)
+                removed_count += 1
+                print(f"🗑️  Removed {bloat_dir} ({size_mb}MB)")
+            except Exception as e:
+                print(f"⚠️  Could not remove {bloat_dir}: {e}")
+    
+    if removed_count > 0:
+        print(f"✅ Aggressive PySide6 cleanup: Removed {removed_count} directories (~{total_removed}MB)")
+        return True
+    else:
+        print("📝 No PySide6 bloat directories found")
+        return False
+
 def manual_qt_cleanup(app_path):
     """
     Manual cleanup of unwanted Qt frameworks as a backup if recipe override doesn't work perfectly.
@@ -234,12 +291,11 @@ OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     
     # CRITICAL SIZE OPTIMIZATIONS
-    'argv_emulation': False,
-    'site_packages': False,  # Don't include entire site-packages
+    'argv-emulation': False,
+    'site-packages': False,  # Don't include entire site-packages
     'optimize': 2,  # Maximum bytecode optimization
     'strip': True,  # Strip debug symbols
-    'compressed': True,  # Compress the bundle
-    'no_chdir': True,  # Don't change working directory
+    'no-chdir': True,  # Don't change working directory
     
     # Only include what we absolutely need
     'includes': [
@@ -281,6 +337,14 @@ OPTIONS = {
         'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
         'PySide6.QtTest', 'PySide6.QtConcurrent', 'PySide6.QtDBus', 'PySide6.QtHelp',
         'PySide6.QtPrintSupport', 'PySide6.QtSvg', 'PySide6.QtSvgWidgets',
+        
+        # FORCE EXCLUDE the exact modules we saw in the log
+        'PySide6.QtQml', 'PySide6.QtQmlCore', 'PySide6.QtQmlModels', 'PySide6.QtQmlWorkerScript',
+        'PySide6.QtQuick', 'PySide6.QtQuickControls2', 'PySide6.QtQuickWidgets',
+        'PySide6.QtWebView', 'PySide6.QtMultimedia', 'PySide6.QtPositioning',
+        'PySide6.QtLocation', 'PySide6.QtSensors', 'PySide6.QtSerialBus',
+        'PySide6.QtScxml', 'PySide6.QtStateMachine', 'PySide6.QtTextToSpeech',
+        'PySide6.Qt3DCore', 'PySide6.Qt3DRender', 'PySide6.Qt3DInput',
         
         # MASSIVE PySide6 components we definitely don't need
         'PySide6.QtWebEngine', 'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 'PySide6.QtWebEngineQuick',
@@ -420,7 +484,11 @@ if 'py2app' in sys.argv:
             # Analyze what's included before cleanup
             analyze_qt_frameworks(app_path)
             
-            # Check if we need manual cleanup
+            # FIRST: Aggressive PySide6 directory cleanup
+            print("🧹 Performing aggressive PySide6 plugin/bloat cleanup...")
+            pyside6_cleanup_success = aggressive_pyside6_cleanup(app_path)
+            
+            # Check if we need manual framework cleanup
             cleanup_success = False
             needs_cleanup = False
             if 'G' in size_value:
@@ -432,13 +500,13 @@ if 'py2app' in sys.argv:
                 if size_mb > 200:  # If larger than 200MB, try manual cleanup
                     needs_cleanup = True
             
-            # Perform manual cleanup if needed
+            # Perform manual framework cleanup if needed
             if needs_cleanup:
                 print("🧹 Size still large - attempting manual Qt framework cleanup...")
                 cleanup_success = manual_qt_cleanup(app_path)
                 
-                if cleanup_success:
-                    # Recalculate size after cleanup
+                # Recalculate size after all cleanup
+                if pyside6_cleanup_success or cleanup_success:
                     result = subprocess.run(['du', '-sh', app_path], capture_output=True, text=True, check=True)
                     new_size_output = result.stdout.strip()
                     new_size_value = new_size_output.split('\t')[0]
