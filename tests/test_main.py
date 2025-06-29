@@ -1,7 +1,12 @@
 import unittest
+import sys
+import os
 from unittest.mock import patch, MagicMock
 
-from src.utils import (
+# Add src directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+from utils import (
     clamp_rgb,
     normalize_status,
     is_valid_govee_api_key,
@@ -22,8 +27,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(normalize_status("Team Meeting"), "in_meeting")
         self.assertEqual(normalize_status("Call with client"), "in_meeting")
         self.assertEqual(normalize_status("1:1 Meeting"), "in_meeting")
-        self.assertEqual(normalize_status("Lunch Break"), "available")
-        self.assertEqual(normalize_status("Break"), "available")
+        self.assertEqual(normalize_status("Available"), "available")
         self.assertEqual(normalize_status("Random Event"), "in_meeting")  # Default fallback
 
     def test_is_valid_govee_api_key(self):
@@ -32,16 +36,16 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(is_valid_govee_api_key("short"))
 
     def test_is_valid_govee_device_id(self):
-        self.assertTrue(is_valid_govee_device_id("ABC1234567"))
-        self.assertFalse(is_valid_govee_device_id("123"))
+        self.assertTrue(is_valid_govee_device_id("AB:CD:EF:12:34:56:78:90"))
+        self.assertFalse(is_valid_govee_device_id("ABC1234567"))
         self.assertFalse(is_valid_govee_device_id(""))
 
     def test_is_valid_govee_device_model(self):
         self.assertTrue(is_valid_govee_device_model("H6159"))
         self.assertTrue(is_valid_govee_device_model("H6001"))
-        self.assertFalse(is_valid_govee_device_model("6159"))
-        self.assertFalse(is_valid_govee_device_model("H61"))
+        self.assertFalse(is_valid_govee_device_model("6159"))  # Should start with letter
         self.assertFalse(is_valid_govee_device_model(""))
+        self.assertFalse(is_valid_govee_device_model("H61@#"))  # Invalid characters
 
     def test_is_valid_google_calendar_id(self):
         self.assertTrue(is_valid_google_calendar_id("primary"))

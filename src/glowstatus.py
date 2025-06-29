@@ -81,7 +81,8 @@ class GlowStatusController:
         if DISABLE_LIGHT_CONTROL:
             logger.info("Light control disabled - status tracking only")
             if not DISABLE_CALENDAR_SYNC:
-                status = get_current_status(SELECTED_CALENDAR_ID, STATUS_COLOR_MAP)
+                calendar = CalendarSync(SELECTED_CALENDAR_ID)
+                status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
             else:
                 status = config.get("CURRENT_STATUS", "available")
             
@@ -232,7 +233,13 @@ class GlowStatusController:
                 if manual_status:
                     # Process manual status with light control
                     try:
-                        self.set_light_status(manual_status, govee)
+                        color_map = STATUS_COLOR_MAP or {
+                            "in_meeting": {"color": "255,0,0", "power_off": False},
+                            "available": {"color": "0,255,0", "power_off": True},
+                            "focus": {"color": "0,0,255", "power_off": False},
+                            "offline": {"color": "128,128,128", "power_off": False},
+                        }
+                        self.apply_status_to_light(govee, manual_status, color_map, OFF_FOR_UNKNOWN_STATUS)
                         logger.info(f"Manual status: {manual_status} (sync disabled)")
                     except Exception as e:
                         logger.error(f"Error setting light for manual status: {e}")

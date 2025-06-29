@@ -63,8 +63,26 @@ def load_config():
         config["DISABLE_CALENDAR_SYNC"] = True
     
     if "DISABLE_LIGHT_CONTROL" not in config:
-        # Default to disabled since we'll support multiple light controller brands
-        config["DISABLE_LIGHT_CONTROL"] = True
+        # Auto-enable light control if Govee credentials are configured
+        # since users can only have one set of lights paired
+        govee_api_key = config.get("GOVEE_API_KEY", "").strip()
+        govee_device_id = config.get("GOVEE_DEVICE_ID", "").strip()
+        
+        # Also check keyring for API key if not in config
+        if not govee_api_key:
+            try:
+                keyring_api_key = keyring.get_password("GlowStatus", "GOVEE_API_KEY")
+                if keyring_api_key:
+                    govee_api_key = keyring_api_key.strip()
+            except Exception:
+                pass  # Keyring not available or other error
+        
+        if govee_api_key and govee_device_id:
+            config["DISABLE_LIGHT_CONTROL"] = False
+            logger.info("Auto-enabled light control since Govee credentials are configured")
+        else:
+            # Default to disabled since we'll support multiple light controller brands
+            config["DISABLE_LIGHT_CONTROL"] = True
     
     return config
 
@@ -627,6 +645,18 @@ class ConfigWindow(QWidget):
         config["DISABLE_LIGHT_CONTROL"] = self.disable_light_chk.isChecked()
         config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
         config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
+        
+        # Auto-enable light control if Govee credentials are being saved
+        # since users can only have one set of lights paired
+        govee_api_key = self.govee_api_key_edit.text().strip()
+        govee_device_id = config["GOVEE_DEVICE_ID"]
+        if (govee_api_key and govee_api_key != "Set in environment or .env for security" 
+            and govee_device_id):
+            if config["DISABLE_LIGHT_CONTROL"]:
+                config["DISABLE_LIGHT_CONTROL"] = False
+                self.disable_light_chk.setChecked(False)
+                logger.info("Auto-enabled light control since Govee credentials are configured")
+        
         # Save the selected calendar ID from the dropdown
         selected_idx = self.selected_calendar_id_dropdown.currentIndex()
         selected_id = self.selected_calendar_id_dropdown.itemData(selected_idx)
