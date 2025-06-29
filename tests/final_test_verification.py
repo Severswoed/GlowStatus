@@ -64,7 +64,8 @@ def main():
             'test_immediate_actions.py',
             'test_status_detection.py',
             'test_timing_sync.py',
-            'test_status_fix.py'
+            'test_status_fix.py',
+            'test_meeting_transitions.py'
         ],
         'Demo/Manual Tests': [
             'demo_govee_fix.py',
