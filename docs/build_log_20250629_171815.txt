@@ -1,0 +1,634 @@
+GlowStatus macOS Build Log - 20250629_171815
+==================================================
+
+Final app bundle size: 1.2G
+App path: /Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app
+Recipe override used: True
+Manual cleanup performed: False
+
+Build completed successfully.
+
+ Mach-O universal (x86_64 arm64) [libqmldbg_server-555549446b98ca1b5f22349fbce6c2c60106ca63]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/qmltooling/libqmldbg_native.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/qmltooling/libqmldbg_native.dylib: signed Mach-O universal (x86_64 arm64) [libqmldbg_native-555549447c5c530545e338da82adb3aca359fc1a]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/qmltooling/libqmldbg_debugger.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/qmltooling/libqmldbg_debugger.dylib: signed Mach-O universal (x86_64 arm64) [libqmldbg_debugger-55554944bd473a9b544235b5aa578bc52ca37056]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/assetimporters/libassimp.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/assetimporters/libassimp.dylib: signed Mach-O universal (x86_64 arm64) [libassimp-5555494475930b81a2ae357c9acf79b733ab7b6f]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/position/libqtposition_positionpoll.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/position/libqtposition_positionpoll.dylib: signed Mach-O universal (x86_64 arm64) [libqtposition_positionpoll-55554944be8f1a56f45634d29a575b4c9ee7dfcc]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/position/libqtposition_cl.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/position/libqtposition_cl.dylib: signed Mach-O universal (x86_64 arm64) [libqtposition_cl-55554944fa98357b981c39e2b3de9bd2fd232f9a]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/position/libqtposition_nmea.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/position/libqtposition_nmea.dylib: signed Mach-O universal (x86_64 arm64) [libqtposition_nmea-55554944f5f4082b713539b89930c70b6b04ed26]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/webview/libqtwebview_webengine.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/webview/libqtwebview_webengine.dylib: signed Mach-O universal (x86_64 arm64) [libqtwebview_webengine-55554944a0ff975e36b0353dad77a7bfde8297da]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/webview/libqtwebview_darwin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/webview/libqtwebview_darwin.dylib: signed Mach-O universal (x86_64 arm64) [libqtwebview_darwin-5555494444dcadcdf2de38478569b930f232c71e]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/geometryloaders/libdefaultgeometryloader.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/geometryloaders/libdefaultgeometryloader.dylib: signed Mach-O universal (x86_64 arm64) [libdefaultgeometryloader-5555494445fdf55bd47f3a6694cb91a9b80e516e]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/geometryloaders/libgltfgeometryloader.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/geometryloaders/libgltfgeometryloader.dylib: signed Mach-O universal (x86_64 arm64) [libgltfgeometryloader-5555494410d4bd4898883488b63b7e500f5c53b0]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/scxmldatamodel/libqscxmlecmascriptdatamodel.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/scxmldatamodel/libqscxmlecmascriptdatamodel.dylib: signed Mach-O universal (x86_64 arm64) [libqscxmlecmascriptdatamodel-55554944a1d6b8c176f8329a967ae55bbbac463d]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/styles/libqmacstyle.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/styles/libqmacstyle.dylib: signed Mach-O universal (x86_64 arm64) [libqmacstyle-55554944e337df1c6c8f3c8f801bd23394f34e54]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqttinycanbus.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqttinycanbus.dylib: signed Mach-O universal (x86_64 arm64) [libqttinycanbus-55554944aa02a00c54fa3993ada4afaa0c2591a6]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqtpassthrucanbus.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqtpassthrucanbus.dylib: signed Mach-O universal (x86_64 arm64) [libqtpassthrucanbus-55554944ed434f72d07038d782a78c12512fb7d7]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqtvirtualcanbus.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqtvirtualcanbus.dylib: signed Mach-O universal (x86_64 arm64) [libqtvirtualcanbus-55554944f0e4099163c33dcba9d706dc8765fa3f]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqtpeakcanbus.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/canbus/libqtpeakcanbus.dylib: signed Mach-O universal (x86_64 arm64) [libqtpeakcanbus-55554944143f6212659b35cbb59545c37ec806f0]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/tls/libqsecuretransportbackend.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/tls/libqsecuretransportbackend.dylib: signed Mach-O universal (x86_64 arm64) [libqsecuretransportbackend-555549449fb01cd30c763dbbbcfe1dc03aa4eca8]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/tls/libqopensslbackend.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/tls/libqopensslbackend.dylib: signed Mach-O universal (x86_64 arm64) [libqopensslbackend-5555494472c4b6d5bf9d3577b919515de6d4296e]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/tls/libqcertonlybackend.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/tls/libqcertonlybackend.dylib: signed Mach-O universal (x86_64 arm64) [libqcertonlybackend-5555494468e205fe49d23e798178a43cef16cca0]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/iconengines/libqsvgicon.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/iconengines/libqsvgicon.dylib: signed Mach-O universal (x86_64 arm64) [libqsvgicon-5555494426d218499cfe337d949e9cbd4e503f85]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlite.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlite.dylib: signed Mach-O universal (x86_64 arm64) [libqsqlite-55554944aed1a7ae18e93e9f85f11edc3d42898d]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlodbc.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlodbc.dylib: signed Mach-O universal (x86_64 arm64) [libqsqlodbc-55554944f9f5a48e818230479f83bd87235f6ad7]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlpsql.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlpsql.dylib: signed Mach-O universal (x86_64 arm64) [libqsqlpsql-55554944f6b231d798aa347b90e1b97242fe27d7]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlmimer.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/sqldrivers/libqsqlmimer.dylib: signed Mach-O universal (x86_64 arm64) [libqsqlmimer-5555494450f4df5ecb0b3f40b32121b4d6d01dca]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/multimedia/libffmpegmediaplugin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/multimedia/libffmpegmediaplugin.dylib: signed Mach-O universal (x86_64 arm64) [libffmpegmediaplugin-555549440bd72b647b0d3f6587e120df6aac9d61]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/multimedia/libdarwinmediaplugin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/multimedia/libdarwinmediaplugin.dylib: signed Mach-O universal (x86_64 arm64) [libdarwinmediaplugin-555549449aeb831f95bc385286d707d57d2f33ba]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqgif.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqgif.dylib: signed Mach-O universal (x86_64 arm64) [libqgif-5555494449245d4265e9352f8fd31d017307b76f]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqwbmp.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqwbmp.dylib: signed Mach-O universal (x86_64 arm64) [libqwbmp-55554944c287c6b8171534429633835470ea9e73]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqwebp.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqwebp.dylib: signed Mach-O universal (x86_64 arm64) [libqwebp-5555494423620a414ee13ba09b7828112eaee45f]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqico.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqico.dylib: signed Mach-O universal (x86_64 arm64) [libqico-555549449ae5af3456f432159bf8dd11f454abbc]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqmacheif.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqmacheif.dylib: signed Mach-O universal (x86_64 arm64) [libqmacheif-5555494494a9d34a6bbe36e4b72bbdd2fa268627]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqjpeg.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqjpeg.dylib: signed Mach-O universal (x86_64 arm64) [libqjpeg-55554944ae24cdb29d4b3b519e7efd7ba2b98252]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqtiff.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqtiff.dylib: signed Mach-O universal (x86_64 arm64) [libqtiff-55554944f2431097c044389792af3246ab45832b]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqsvg.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqsvg.dylib: signed Mach-O universal (x86_64 arm64) [libqsvg-5555494433ac3ae4fdf93a41a816d7e72a13350b]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqpdf.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqpdf.dylib: signed Mach-O universal (x86_64 arm64) [libqpdf-555549440cc375d2266339e48f9c9ae526554b0f]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqicns.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqicns.dylib: signed Mach-O universal (x86_64 arm64) [libqicns-55554944bac81f78086730d9ab6dbe06cf32c9c3]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqtga.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqtga.dylib: signed Mach-O universal (x86_64 arm64) [libqtga-55554944362b193ad4273ff9a29345332709b288]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqmacjp2.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/imageformats/libqmacjp2.dylib: signed Mach-O universal (x86_64 arm64) [libqmacjp2-5555494479c5c7d4e3653b06923ebb4becef9275]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/qmllint/libquicklintplugin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/qmllint/libquicklintplugin.dylib: signed Mach-O universal (x86_64 arm64) [libquicklintplugin-555549444bd31333aff13521b8856e2c44b877b1]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/designer/libqquickwidget.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/designer/libqquickwidget.dylib: signed Mach-O universal (x86_64 arm64) [libqquickwidget-5555494440f878c9f19b350c8576ff7e6126ba58]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/designer/libqwebengineview.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/designer/libqwebengineview.dylib: signed Mach-O universal (x86_64 arm64) [libqwebengineview-5555494419f4e400e4b03268bb12714d1e9dd31b]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/designer/libPySidePlugin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/designer/libPySidePlugin.dylib: signed Mach-O universal (x86_64 arm64) [libPySidePlugin-5555494435421d81bfe73f63993fdb5d117c3e92]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/texttospeech/libqtexttospeech_speechdarwin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/texttospeech/libqtexttospeech_speechdarwin.dylib: signed Mach-O universal (x86_64 arm64) [libqtexttospeech_speechdarwin-55554944e212578eb6403afdaa54655a75f93558]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/texttospeech/libqtexttospeech_mock.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/texttospeech/libqtexttospeech_mock.dylib: signed Mach-O universal (x86_64 arm64) [libqtexttospeech_mock-55554944d1f27a1682303e52aa4127548b6aad91]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/generic/libqtuiotouchplugin.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/generic/libqtuiotouchplugin.dylib: signed Mach-O universal (x86_64 arm64) [libqtuiotouchplugin-55554944387b8c90f5903b92974aa542b44b7b48]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/renderplugins/libscene2d.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/renderplugins/libscene2d.dylib: signed Mach-O universal (x86_64 arm64) [libscene2d-5555494409709d992b0838f69978a93f71415628]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/networkinformation/libqscnetworkreachability.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/plugins/networkinformation/libqscnetworkreachability.dylib: signed Mach-O universal (x86_64 arm64) [libqscnetworkreachability-55554944fd42eb3af4143ea3941a5485eae8a153]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/rcc: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/rcc: signed Mach-O universal (x86_64 arm64) [rcc-555549441162e17b46d63981abf932dbca1ec012]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/qmltyperegistrar: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/qmltyperegistrar: signed Mach-O universal (x86_64 arm64) [qmltyperegistrar-5555494499121b2c150b3c3396013a1efc3adcb6]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/uic: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/uic: signed Mach-O universal (x86_64 arm64) [uic-55554944e662854d62bc36e3a0d65fe7686b012f]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/qmlimportscanner: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/qmlimportscanner: signed Mach-O universal (x86_64 arm64) [qmlimportscanner-55554944e757612f058f317cb09905d1d617f435]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/qmlcachegen: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/libexec/qmlcachegen: signed Mach-O universal (x86_64 arm64) [qmlcachegen-555549446421eb0c053e3792b536fc6fcd002460]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswresample.5.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswresample.5.dylib: signed Mach-O universal (x86_64 arm64) [libswresample.5]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavcodec.61.19.101.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavcodec.61.19.101.dylib: signed Mach-O universal (x86_64 arm64) [libavcodec.61]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavformat.61.7.100.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavformat.61.7.100.dylib: signed Mach-O universal (x86_64 arm64) [libavformat.61]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswresample.5.3.100.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswresample.5.3.100.dylib: signed Mach-O universal (x86_64 arm64) [libswresample.5]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavformat.61.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavformat.61.dylib: signed Mach-O universal (x86_64 arm64) [libavformat.61]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswscale.8.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswscale.8.dylib: signed Mach-O universal (x86_64 arm64) [libswscale.8]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavutil.59.39.100.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavutil.59.39.100.dylib: signed Mach-O universal (x86_64 arm64) [libavutil.59]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavutil.59.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavutil.59.dylib: signed Mach-O universal (x86_64 arm64) [libavutil.59]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavcodec.61.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libavcodec.61.dylib: signed Mach-O universal (x86_64 arm64) [libavcodec.61]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswscale.8.3.100.dylib: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/libswscale.8.3.100.dylib: signed Mach-O universal (x86_64 arm64) [libswscale.8]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtMultimediaQuick.framework/Versions/A/QtMultimediaQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtMultimediaQuick.framework/Versions/A/QtMultimediaQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtMultimediaQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsPlatform.framework/Versions/A/QtLabsPlatform: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsPlatform.framework/Versions/A/QtLabsPlatform: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsPlatform]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtGraphs.framework/Versions/A/QtGraphs: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtGraphs.framework/Versions/A/QtGraphs: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtGraphs]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtVirtualKeyboardQml.framework/Versions/A/QtVirtualKeyboardQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtVirtualKeyboardQml.framework/Versions/A/QtVirtualKeyboardQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtVirtualKeyboardQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTimeline.framework/Versions/A/QtQuickTimeline: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTimeline.framework/Versions/A/QtQuickTimeline: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickTimeline]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DXr.framework/Versions/A/QtQuick3DXr: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DXr.framework/Versions/A/QtQuick3DXr: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DXr]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2.framework/Versions/A/QtQuickControls2: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2.framework/Versions/A/QtQuickControls2: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickParticles.framework/Versions/A/QtQuickParticles: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickParticles.framework/Versions/A/QtQuickParticles: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickParticles]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtRemoteObjects.framework/Versions/A/QtRemoteObjects: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtRemoteObjects.framework/Versions/A/QtRemoteObjects: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtRemoteObjects]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DInput.framework/Versions/A/Qt3DInput: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DInput.framework/Versions/A/Qt3DInput: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DInput]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPdfWidgets.framework/Versions/A/QtPdfWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPdfWidgets.framework/Versions/A/QtPdfWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtPdfWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtNetworkAuth.framework/Versions/A/QtNetworkAuth: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtNetworkAuth.framework/Versions/A/QtNetworkAuth: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtNetworkAuth]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2ImagineStyleImpl.framework/Versions/A/QtQuickControls2ImagineStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2ImagineStyleImpl.framework/Versions/A/QtQuickControls2ImagineStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2ImagineStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DAssetUtils.framework/Versions/A/QtQuick3DAssetUtils: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DAssetUtils.framework/Versions/A/QtQuick3DAssetUtils: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DAssetUtils]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDataVisualization.framework/Versions/A/QtDataVisualization: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDataVisualization.framework/Versions/A/QtDataVisualization: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtDataVisualization]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDataVisualizationQml.framework/Versions/A/QtDataVisualizationQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDataVisualizationQml.framework/Versions/A/QtDataVisualizationQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtDataVisualizationQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2BasicStyleImpl.framework/Versions/A/QtQuickControls2BasicStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2BasicStyleImpl.framework/Versions/A/QtQuickControls2BasicStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2BasicStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Versions/A/QtWebEngineCore: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Versions/A/QtWebEngineCore: code object is not signed at all
+In subcomponent: /Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess: signed app bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt.QtWebEngineProcess]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess: signed app bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt.QtWebEngineProcess]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsSharedImage.framework/Versions/A/QtLabsSharedImage: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsSharedImage.framework/Versions/A/QtLabsSharedImage: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsSharedImage]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickRender.framework/Versions/A/Qt3DQuickRender: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickRender.framework/Versions/A/Qt3DQuickRender: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DQuickRender]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickExtras.framework/Versions/A/Qt3DQuickExtras: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickExtras.framework/Versions/A/Qt3DQuickExtras: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DQuickExtras]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlMeta.framework/Versions/A/QtQmlMeta: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlMeta.framework/Versions/A/QtQmlMeta: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlMeta]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDesigner.framework/Versions/A/QtDesigner: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDesigner.framework/Versions/A/QtDesigner: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtDesigner]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtNfc.framework/Versions/A/QtNfc: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtNfc.framework/Versions/A/QtNfc: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtNfc]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineQuick.framework/Versions/A/QtWebEngineQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineQuick.framework/Versions/A/QtWebEngineQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebEngineQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2FusionStyleImpl.framework/Versions/A/QtQuickControls2FusionStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2FusionStyleImpl.framework/Versions/A/QtQuickControls2FusionStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2FusionStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DAssetImport.framework/Versions/A/QtQuick3DAssetImport: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DAssetImport.framework/Versions/A/QtQuick3DAssetImport: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DAssetImport]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtGraphsWidgets.framework/Versions/A/QtGraphsWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtGraphsWidgets.framework/Versions/A/QtGraphsWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtGraphsWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineWidgets.framework/Versions/A/QtWebEngineWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineWidgets.framework/Versions/A/QtWebEngineWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebEngineWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickWidgets.framework/Versions/A/QtQuickWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickWidgets.framework/Versions/A/QtQuickWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Material.framework/Versions/A/QtQuickControls2Material: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Material.framework/Versions/A/QtQuickControls2Material: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2Material]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlXmlListModel.framework/Versions/A/QtQmlXmlListModel: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlXmlListModel.framework/Versions/A/QtQmlXmlListModel: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlXmlListModel]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickInput.framework/Versions/A/Qt3DQuickInput: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickInput.framework/Versions/A/Qt3DQuickInput: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DQuickInput]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtShaderTools.framework/Versions/A/QtShaderTools: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtShaderTools.framework/Versions/A/QtShaderTools: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtShaderTools]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickScene2D.framework/Versions/A/Qt3DQuickScene2D: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickScene2D.framework/Versions/A/Qt3DQuickScene2D: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DQuickScene2D]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPdf.framework/Versions/A/QtPdf: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPdf.framework/Versions/A/QtPdf: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtPdf]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSpatialAudio.framework/Versions/A/QtSpatialAudio: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSpatialAudio.framework/Versions/A/QtSpatialAudio: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSpatialAudio]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickLayouts.framework/Versions/A/QtQuickLayouts: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickLayouts.framework/Versions/A/QtQuickLayouts: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickLayouts]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Basic.framework/Versions/A/QtQuickControls2Basic: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Basic.framework/Versions/A/QtQuickControls2Basic: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2Basic]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DRender.framework/Versions/A/Qt3DRender: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DRender.framework/Versions/A/Qt3DRender: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DRender]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DRuntimeRender.framework/Versions/A/QtQuick3DRuntimeRender: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DRuntimeRender.framework/Versions/A/QtQuick3DRuntimeRender: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DRuntimeRender]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtHelp.framework/Versions/A/QtHelp: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtHelp.framework/Versions/A/QtHelp: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtHelp]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickVectorImage.framework/Versions/A/QtQuickVectorImage: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickVectorImage.framework/Versions/A/QtQuickVectorImage: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickVectorImage]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPrintSupport.framework/Versions/A/QtPrintSupport: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPrintSupport.framework/Versions/A/QtPrintSupport: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtPrintSupport]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtGui.framework/Versions/A/QtGui: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtGui.framework/Versions/A/QtGui: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtGui]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDBus.framework/Versions/A/QtDBus: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDBus.framework/Versions/A/QtDBus: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtDBus]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtCharts.framework/Versions/A/QtCharts: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtCharts.framework/Versions/A/QtCharts: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtCharts]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebSockets.framework/Versions/A/QtWebSockets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebSockets.framework/Versions/A/QtWebSockets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebSockets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Fusion.framework/Versions/A/QtQuickControls2Fusion: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Fusion.framework/Versions/A/QtQuickControls2Fusion: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2Fusion]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DUtils.framework/Versions/A/QtQuick3DUtils: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DUtils.framework/Versions/A/QtQuick3DUtils: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DUtils]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTemplates2.framework/Versions/A/QtQuickTemplates2: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTemplates2.framework/Versions/A/QtQuickTemplates2: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickTemplates2]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPositioningQuick.framework/Versions/A/QtPositioningQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPositioningQuick.framework/Versions/A/QtPositioningQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtPositioningQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineQuickDelegatesQml.framework/Versions/A/QtWebEngineQuickDelegatesQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebEngineQuickDelegatesQml.framework/Versions/A/QtWebEngineQuickDelegatesQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebEngineQuickDelegatesQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DCore.framework/Versions/A/Qt3DCore: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DCore.framework/Versions/A/Qt3DCore: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DCore]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLocation.framework/Versions/A/QtLocation: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLocation.framework/Versions/A/QtLocation: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLocation]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickDialogs2Utils.framework/Versions/A/QtQuickDialogs2Utils: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickDialogs2Utils.framework/Versions/A/QtQuickDialogs2Utils: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickDialogs2Utils]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtXml.framework/Versions/A/QtXml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtXml.framework/Versions/A/QtXml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtXml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DParticles.framework/Versions/A/QtQuick3DParticles: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DParticles.framework/Versions/A/QtQuick3DParticles: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DParticles]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSerialPort.framework/Versions/A/QtSerialPort: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSerialPort.framework/Versions/A/QtSerialPort: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSerialPort]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebView.framework/Versions/A/QtWebView: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebView.framework/Versions/A/QtWebView: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebView]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick.framework/Versions/A/QtQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick.framework/Versions/A/QtQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickEffects.framework/Versions/A/QtQuickEffects: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickEffects.framework/Versions/A/QtQuickEffects: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickEffects]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtScxml.framework/Versions/A/QtScxml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtScxml.framework/Versions/A/QtScxml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtScxml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTimelineBlendTrees.framework/Versions/A/QtQuickTimelineBlendTrees: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTimelineBlendTrees.framework/Versions/A/QtQuickTimelineBlendTrees: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickTimelineBlendTrees]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtCore.framework/Versions/A/QtCore: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtCore.framework/Versions/A/QtCore: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtCore]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickDialogs2QuickImpl.framework/Versions/A/QtQuickDialogs2QuickImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickDialogs2QuickImpl.framework/Versions/A/QtQuickDialogs2QuickImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickDialogs2QuickImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DGlslParser.framework/Versions/A/QtQuick3DGlslParser: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DGlslParser.framework/Versions/A/QtQuick3DGlslParser: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DGlslParser]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSensorsQuick.framework/Versions/A/QtSensorsQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSensorsQuick.framework/Versions/A/QtSensorsQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSensorsQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlNetwork.framework/Versions/A/QtQmlNetwork: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlNetwork.framework/Versions/A/QtQmlNetwork: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlNetwork]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQml.framework/Versions/A/QtQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQml.framework/Versions/A/QtQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DExtras.framework/Versions/A/Qt3DExtras: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DExtras.framework/Versions/A/Qt3DExtras: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DExtras]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebChannel.framework/Versions/A/QtWebChannel: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebChannel.framework/Versions/A/QtWebChannel: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebChannel]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickVectorImageGenerator.framework/Versions/A/QtQuickVectorImageGenerator: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickVectorImageGenerator.framework/Versions/A/QtQuickVectorImageGenerator: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickVectorImageGenerator]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtMultimedia.framework/Versions/A/QtMultimedia: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtMultimedia.framework/Versions/A/QtMultimedia: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtMultimedia]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlCore.framework/Versions/A/QtQmlCore: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlCore.framework/Versions/A/QtQmlCore: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlCore]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlWorkerScript.framework/Versions/A/QtQmlWorkerScript: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlWorkerScript.framework/Versions/A/QtQmlWorkerScript: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlWorkerScript]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtStateMachine.framework/Versions/A/QtStateMachine: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtStateMachine.framework/Versions/A/QtStateMachine: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtStateMachine]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtHttpServer.framework/Versions/A/QtHttpServer: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtHttpServer.framework/Versions/A/QtHttpServer: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtHttpServer]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtVirtualKeyboard.framework/Versions/A/QtVirtualKeyboard: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtVirtualKeyboard.framework/Versions/A/QtVirtualKeyboard: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtVirtualKeyboard]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Impl.framework/Versions/A/QtQuickControls2Impl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Impl.framework/Versions/A/QtQuickControls2Impl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2Impl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtOpenGL.framework/Versions/A/QtOpenGL: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtOpenGL.framework/Versions/A/QtOpenGL: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtOpenGL]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsQmlModels.framework/Versions/A/QtLabsQmlModels: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsQmlModels.framework/Versions/A/QtLabsQmlModels: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsQmlModels]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Universal.framework/Versions/A/QtQuickControls2Universal: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Universal.framework/Versions/A/QtQuickControls2Universal: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2Universal]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlLocalStorage.framework/Versions/A/QtQmlLocalStorage: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlLocalStorage.framework/Versions/A/QtQmlLocalStorage: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlLocalStorage]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlCompiler.framework/Versions/A/QtQmlCompiler: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlCompiler.framework/Versions/A/QtQmlCompiler: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlCompiler]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtOpenGLWidgets.framework/Versions/A/QtOpenGLWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtOpenGLWidgets.framework/Versions/A/QtOpenGLWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtOpenGLWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtUiTools.framework/Versions/A/QtUiTools: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtUiTools.framework/Versions/A/QtUiTools: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtUiTools]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsSettings.framework/Versions/A/QtLabsSettings: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsSettings.framework/Versions/A/QtLabsSettings: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsSettings]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSvgWidgets.framework/Versions/A/QtSvgWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSvgWidgets.framework/Versions/A/QtSvgWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSvgWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuick.framework/Versions/A/Qt3DQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuick.framework/Versions/A/Qt3DQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2MacOSStyleImpl.framework/Versions/A/QtQuickControls2MacOSStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2MacOSStyleImpl.framework/Versions/A/QtQuickControls2MacOSStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2MacOSStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2MaterialStyleImpl.framework/Versions/A/QtQuickControls2MaterialStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2MaterialStyleImpl.framework/Versions/A/QtQuickControls2MaterialStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2MaterialStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtTest.framework/Versions/A/QtTest: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtTest.framework/Versions/A/QtTest: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtTest]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWidgets.framework/Versions/A/QtWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWidgets.framework/Versions/A/QtWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtVirtualKeyboardSettings.framework/Versions/A/QtVirtualKeyboardSettings: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtVirtualKeyboardSettings.framework/Versions/A/QtVirtualKeyboardSettings: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtVirtualKeyboardSettings]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPositioning.framework/Versions/A/QtPositioning: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPositioning.framework/Versions/A/QtPositioning: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtPositioning]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtBluetooth.framework/Versions/A/QtBluetooth: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtBluetooth.framework/Versions/A/QtBluetooth: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtBluetooth]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3D.framework/Versions/A/QtQuick3D: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3D.framework/Versions/A/QtQuick3D: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3D]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DHelpersImpl.framework/Versions/A/QtQuick3DHelpersImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DHelpersImpl.framework/Versions/A/QtQuick3DHelpersImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DHelpersImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DLogic.framework/Versions/A/Qt3DLogic: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DLogic.framework/Versions/A/Qt3DLogic: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DLogic]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickShapes.framework/Versions/A/QtQuickShapes: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickShapes.framework/Versions/A/QtQuickShapes: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickShapes]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTest.framework/Versions/A/QtQuickTest: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickTest.framework/Versions/A/QtQuickTest: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickTest]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtNetwork.framework/Versions/A/QtNetwork: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtNetwork.framework/Versions/A/QtNetwork: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtNetwork]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2UniversalStyleImpl.framework/Versions/A/QtQuickControls2UniversalStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2UniversalStyleImpl.framework/Versions/A/QtQuickControls2UniversalStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2UniversalStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtScxmlQml.framework/Versions/A/QtScxmlQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtScxmlQml.framework/Versions/A/QtScxmlQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtScxmlQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DSpatialAudio.framework/Versions/A/QtQuick3DSpatialAudio: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DSpatialAudio.framework/Versions/A/QtQuick3DSpatialAudio: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DSpatialAudio]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSvg.framework/Versions/A/QtSvg: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSvg.framework/Versions/A/QtSvg: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSvg]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2IOSStyleImpl.framework/Versions/A/QtQuickControls2IOSStyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2IOSStyleImpl.framework/Versions/A/QtQuickControls2IOSStyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2IOSStyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDesignerComponents.framework/Versions/A/QtDesignerComponents: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtDesignerComponents.framework/Versions/A/QtDesignerComponents: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtDesignerComponents]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DIblBaker.framework/Versions/A/QtQuick3DIblBaker: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DIblBaker.framework/Versions/A/QtQuick3DIblBaker: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DIblBaker]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Imagine.framework/Versions/A/QtQuickControls2Imagine: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2Imagine.framework/Versions/A/QtQuickControls2Imagine: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2Imagine]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DEffects.framework/Versions/A/QtQuick3DEffects: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DEffects.framework/Versions/A/QtQuick3DEffects: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DEffects]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtMultimediaWidgets.framework/Versions/A/QtMultimediaWidgets: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtMultimediaWidgets.framework/Versions/A/QtMultimediaWidgets: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtMultimediaWidgets]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebChannelQuick.framework/Versions/A/QtWebChannelQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebChannelQuick.framework/Versions/A/QtWebChannelQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebChannelQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlModels.framework/Versions/A/QtQmlModels: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQmlModels.framework/Versions/A/QtQmlModels: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQmlModels]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickAnimation.framework/Versions/A/Qt3DQuickAnimation: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DQuickAnimation.framework/Versions/A/Qt3DQuickAnimation: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DQuickAnimation]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsAnimation.framework/Versions/A/QtLabsAnimation: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsAnimation.framework/Versions/A/QtLabsAnimation: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsAnimation]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPdfQuick.framework/Versions/A/QtPdfQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtPdfQuick.framework/Versions/A/QtPdfQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtPdfQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsFolderListModel.framework/Versions/A/QtLabsFolderListModel: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsFolderListModel.framework/Versions/A/QtLabsFolderListModel: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsFolderListModel]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2FluentWinUI3StyleImpl.framework/Versions/A/QtQuickControls2FluentWinUI3StyleImpl: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickControls2FluentWinUI3StyleImpl.framework/Versions/A/QtQuickControls2FluentWinUI3StyleImpl: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickControls2FluentWinUI3StyleImpl]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtRemoteObjectsQml.framework/Versions/A/QtRemoteObjectsQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtRemoteObjectsQml.framework/Versions/A/QtRemoteObjectsQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtRemoteObjectsQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DParticleEffects.framework/Versions/A/QtQuick3DParticleEffects: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DParticleEffects.framework/Versions/A/QtQuick3DParticleEffects: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DParticleEffects]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSensors.framework/Versions/A/QtSensors: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSensors.framework/Versions/A/QtSensors: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSensors]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtChartsQml.framework/Versions/A/QtChartsQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtChartsQml.framework/Versions/A/QtChartsQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtChartsQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DAnimation.framework/Versions/A/Qt3DAnimation: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/Qt3DAnimation.framework/Versions/A/Qt3DAnimation: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Qt3DAnimation]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DHelpers.framework/Versions/A/QtQuick3DHelpers: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuick3DHelpers.framework/Versions/A/QtQuick3DHelpers: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuick3DHelpers]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickDialogs2.framework/Versions/A/QtQuickDialogs2: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtQuickDialogs2.framework/Versions/A/QtQuickDialogs2: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtQuickDialogs2]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsWavefrontMesh.framework/Versions/A/QtLabsWavefrontMesh: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtLabsWavefrontMesh.framework/Versions/A/QtLabsWavefrontMesh: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtLabsWavefrontMesh]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtTextToSpeech.framework/Versions/A/QtTextToSpeech: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtTextToSpeech.framework/Versions/A/QtTextToSpeech: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtTextToSpeech]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebViewQuick.framework/Versions/A/QtWebViewQuick: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtWebViewQuick.framework/Versions/A/QtWebViewQuick: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtWebViewQuick]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtStateMachineQml.framework/Versions/A/QtStateMachineQml: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtStateMachineQml.framework/Versions/A/QtStateMachineQml: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtStateMachineQml]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSerialBus.framework/Versions/A/QtSerialBus: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSerialBus.framework/Versions/A/QtSerialBus: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSerialBus]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSql.framework/Versions/A/QtSql: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtSql.framework/Versions/A/QtSql: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtSql]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtConcurrent.framework/Versions/A/QtConcurrent: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Qt/lib/QtConcurrent.framework/Versions/A/QtConcurrent: signed bundle with Mach-O universal (x86_64 arm64) [org.qt-project.QtConcurrent]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Linguist.app/Contents/MacOS/Linguist: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6/Linguist.app/Contents/MacOS/Linguist: signed app bundle with Mach-O universal (x86_64 arm64) [org.qt-project.Linguist]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Frameworks/Python3.framework/Versions/3.9/Python3: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Frameworks/Python3.framework/Versions/3.9/Python3: signed bundle with Mach-O universal (x86_64 arm64) [com.apple.python3]
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app: replacing existing signature
+/Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app: signed app bundle with Mach-O universal (x86_64 arm64) [com.severswoed.glowstatus]
+checking for any import problems
+Modules not found (unconditional imports):
+ * OpenSSL (OpenSSL, requests.help, urllib3.contrib.pyopenssl)
+ * OpenSSL.crypto (OpenSSL.crypto, requests.help)
+ * OpenSSL.crypto.X509 (OpenSSL, google.auth.identity_pool, google.auth.transport._mtls_helper, google.auth.transport.requests, google.auth.transport.urllib3)
+ * PySide6.support.signature (PySide6.support.signature.lib.enum_sig, PySide6.support.signature.lib.pyi_generator, PySide6.support.signature.lib.tool) [module alias]
+ * PySide6.support.signature.lib (PySide6.support.generate_pyi) [module alias]
+ * _gdbm (dbm.gnu)
+ * _overlapped (asyncio.windows_events)
+ * _typeshed.BytesPath (_typeshed.importlib)
+ * _typeshed.StrOrBytesPath (_typeshed.importlib)
+ * _typeshed.StrPath (_typeshed.importlib)
+ * aiohttp (google.auth.aio.transport.aiohttp, google.auth.transport._aiohttp_requests)
+ * blinker (oauthlib.signals)
+ * brotli (urllib3.response, urllib3.util.request)
+ * brotlicffi (urllib3.response, urllib3.util.request)
+ * ca_certs_locater (httplib2.certs)
+ * cffi (google.auth.transport._custom_tls_signer)
+ * chardet (requests, requests.help)
+ * chardet.__version__ (requests.help)
+ * click (google_auth_oauthlib.tool.__main__)
+ * compression (urllib3.response, urllib3.util.request)
+ * cryptography (cryptography, cryptography.hazmat.primitives, cryptography.x509.extensions, google.auth.crypt._cryptography_rsa, google.auth.crypt.es256, requests.help, urllib3.contrib.pyopenssl)
+ * cryptography.__version__ (cryptography.hazmat, cryptography.x509, google.auth.crypt._cryptography_rsa, google.auth.crypt.es256, requests.help, urllib3.contrib.pyopenssl)
+ * cryptography.exceptions (google.auth.crypt.es256)
+ * cryptography.hazmat (cryptography.hazmat.primitives.asymmetric, google.auth.crypt._cryptography_rsa, google.auth.crypt.es256, google.auth.transport._custom_tls_signer)
+ * cryptography.hazmat.backends (cryptography.hazmat.primitives)
+ * cryptography.hazmat.primitives (cryptography.hazmat.primitives.asymmetric.utils, google.auth.crypt._cryptography_rsa, google.auth.crypt.es256)
+ * cryptography.hazmat.primitives.asymmetric (google.auth.crypt._cryptography_rsa, google.auth.crypt.es256)
+ * cryptography.hazmat.primitives.asymmetric.ec (cryptography.hazmat.primitives.asymmetric.utils, google.auth.crypt._cryptography_rsa)
+ * cryptography.hazmat.primitives.asymmetric.padding (cryptography.hazmat.primitives.asymmetric.utils)
+ * cryptography.hazmat.primitives.asymmetric.utils (google.auth.crypt.es256)
+ * cryptography.hazmat.primitives.hashes (cryptography.hazmat.primitives.asymmetric)
+ * cryptography.hazmat.primitives.serialization (cryptography.hazmat.primitives.asymmetric, google.auth.transport._custom_tls_signer)
+ * cryptography.utils (cryptography.hazmat, cryptography.x509, google.auth.crypt._cryptography_rsa, requests, requests.help, urllib3.contrib.pyopenssl)
+ * cryptography.x509 (cryptography.hazmat, cryptography.x509, google.auth.crypt._cryptography_rsa, google.auth.crypt.es256, requests, requests.help, urllib3.contrib.pyopenssl)
+ * cryptography.x509.UnsupportedExtension (cryptography, cryptography.x509.extensions, google.auth.crypt._cryptography_rsa, google.auth.crypt.es256)
+ * dbus (dbus.mainloop.glib, keyring.backends.kwallet)
+ * dbus.mainloop (keyring.backends.kwallet)
+ * dbus.mainloop.glib (keyring.backends.kwallet)
+ * deploy_lib (PySide6.scripts.android_deploy, PySide6.scripts.deploy, deploy_lib.android.buildozer)
+ * deploy_lib.DesktopConfig (PySide6.scripts.android_deploy, deploy_lib.android)
+ * deploy_lib.HELP_EXTRA_IGNORE_DIRS (deploy_lib.android)
+ * deploy_lib.HELP_EXTRA_MODULES (deploy_lib.android)
+ * deploy_lib.MAJOR_VERSION (deploy_lib.android)
+ * deploy_lib.Nuitka (PySide6.scripts.android_deploy, deploy_lib.android)
+ * deploy_lib.PythonExecutable (deploy_lib.android)
+ * deploy_lib.android (PySide6.scripts.android_deploy)
+ * deploy_lib.android.AndroidConfig (deploy_lib.android.buildozer)
+ * deploy_lib.android.AndroidData (deploy_lib.android.buildozer)
+ * deploy_lib.android.buildozer (PySide6.scripts.android_deploy)
+ * deploy_lib.cleanup (deploy_lib.android)
+ * deploy_lib.config_option_exists (deploy_lib.android)
+ * deploy_lib.create_config_file (deploy_lib.android)
+ * deploy_lib.finalize (PySide6.scripts.android_deploy, deploy_lib.android)
+ * distutils.command.install_egg_info (pkg_resources.tests.test_pkg_resources) [module alias]
+ * distutils.dist (pkg_resources.tests.test_pkg_resources) [module alias]
+ * dummy_threading (requests.cookies)
+ * gi (keyring.backends.libsecret)
+ * gi.repository (keyring.backends.libsecret)
+ * google.appengine (google.auth.app_engine, googleapiclient.discovery_cache.appengine_memcache)
+ * google.appengine.api (google.auth.app_engine, googleapiclient.discovery_cache.appengine_memcache)
+ * google.appengine.api.app_identity (googleapiclient.discovery_cache.appengine_memcache)
+ * google.appengine.api.memcache (google.auth.app_engine)
+ * grpc (google.auth.transport.grpc)
+ * h2 (urllib3.http2.connection)
+ * h2.connection (urllib3.http2.connection)
+ * h2.events (urllib3.http2.connection)
+ * html.entities (dateutil.rrule, dateutil.tz._factories, dateutil.tz.tz, dateutil.tz.win, pyparsing.helpers) [module alias]
+ * html.parser (dateutil.rrule, dateutil.tz._factories, dateutil.tz.tz, dateutil.tz.win) [module alias]
+ * importlib_resources (jaraco.text)
+ * itertools.batched (reprlib)
+ * itertools.pairwise (reprlib)
+ * jaraco.path (pkg_resources.tests.test_integration_zope_interface)
+ * jinja2 (PySide6.scripts.deploy_lib.android.android_helper, pyparsing.diagram)
+ * jinja2.Environment (pyparsing.diagram)
+ * jinja2.FileSystemLoader (pyparsing.diagram)
+ * jinja2.Template (PySide6.scripts.deploy_lib.android.android_helper)
+ * js (urllib3.contrib.emscripten.fetch)
+ * multiprocessing.connection (concurrent.futures.process, rsa.parallel) [module alias]
+ * multiprocessing.queues (concurrent.futures.process) [module alias]
+ * oauth2client (google.auth._oauth2client, googleapiclient._auth, googleapiclient.discovery_cache.file_cache, oauth2client, oauth2client.contrib.locked_file)
+ * oauth2client.client (google.auth._oauth2client, googleapiclient._auth, oauth2client.client, oauth2client.contrib, oauth2client.locked_file)
+ * oauth2client.contrib (googleapiclient.discovery_cache.file_cache)
+ * oauth2client.contrib.appengine (google.auth._oauth2client)
+ * oauth2client.contrib.gce (google.auth._oauth2client)
+ * oauth2client.contrib.locked_file (googleapiclient.discovery_cache.file_cache)
+ * oauth2client.file (googleapiclient._auth, oauth2client.client, oauth2client.contrib, oauth2client.locked_file)
+ * oauth2client.locked_file (googleapiclient.discovery_cache.file_cache)
+ * oauth2client.service_account (google.auth._oauth2client)
+ * oauth2client.tools (googleapiclient._auth, oauth2client.client, oauth2client.contrib, oauth2client.locked_file)
+ * pkginfo (PySide6.scripts.deploy_lib.android.android_config)
+ * pluggy (keyring.devpi_client)
+ * project_lib (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper, PySide6.scripts.project)
+ * project_lib.ClOptions (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.METATYPES_JSON_SUFFIX (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.MOD_CMD (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.NewProjectTypes (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.ProjectData (PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.QMLDIR_FILE (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.QmlProjectData (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.SHADER_SUFFIXES (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.TRANSLATION_SUFFIX (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.check_qml_decorators (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.is_python_file (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.migrate_pyproject (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.new_project (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.remove_path (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.requires_rebuild (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.resolve_valid_project_file (PySide6.scripts.deploy_lib.nuitka_helper)
+ * project_lib.run_command (PySide6.scripts.deploy_lib.config, PySide6.scripts.deploy_lib.nuitka_helper)
+ * pyodide (urllib3.contrib.emscripten.fetch)
+ * pyodide.JsArray (pyodide.ffi)
+ * pyodide.JsException (pyodide.ffi)
+ * pyodide.JsProxy (pyodide.ffi)
+ * pyodide.ffi (urllib3.contrib.emscripten.fetch)
+ * pyodide.to_js (pyodide.ffi)
+ * qtpy2cpp_lib (PySide6.scripts.qtpy2cpp)
+ * railroad (pyparsing.diagram)
+ * requests.packages.urllib3 (requests.packages.urllib3.util.ssl_) [module alias]
+ * requests.packages.urllib3.util (google.auth.transport.requests) [module alias]
+ * requests.packages.urllib3.util.ssl_ (google.auth.transport.requests) [module alias]
+ * secretstorage (keyring.backends.SecretService)
+ * secretstorage.exceptions (keyring.backends.SecretService)
+ * shiboken6.support (shiboken6)
+ * shiboken6.support.signature (shiboken6)
+ * shiboken6.support.signature.lib (shiboken6)
+ * shtab (keyring.completion)
+ * six.moves (dateutil.rrule, dateutil.tz._factories, dateutil.tz.tz, dateutil.tz.win) [module alias]
+ * six.moves._thread (dateutil.tz.win) [module alias]
+ * six.moves.winreg (dateutil.rrule, dateutil.tz._factories, dateutil.tz.tz)
+ * socks (httplib2, urllib3.contrib.socks)
+ * tqdm (PySide6.scripts.deploy_lib.android.android_utilities)
+ * unittest.mock (httplib2.iri2uri) [module alias]
+ * win32cred (keyring.backends.Windows)
+ * win32ctypes (keyring.backends.Windows)
+ * win32ctypes.pywintypes (win32ctypes.pywin32)
+ * win32ctypes.win32cred (win32ctypes.pywin32)
+ * wsgiref.simple_server (google_auth_oauthlib.flow) [module alias]
+ * wsgiref.util (google_auth_oauthlib.flow) [module alias]
+ * xml.etree (PySide6.scripts.deploy_lib.android.android_config, PySide6.scripts.deploy_lib.android.buildozer, PySide6.scripts.project_lib.utils) [module alias]
+ * xml.etree.ElementTree (PySide6.scripts.deploy_lib.android.android_config, PySide6.scripts.deploy_lib.android.buildozer, PySide6.scripts.project_lib.utils) [module alias]
+ * xml.parsers (plistlib) [module alias]
+ * xml.parsers.expat (plistlib) [module alias]
+ * xmlrpc.client (dateutil.rrule, dateutil.tz._factories, dateutil.tz.tz, dateutil.tz.win) [module alias]
+ * xmlrpc.server (dateutil.rrule, dateutil.tz._factories, dateutil.tz.tz, dateutil.tz.win) [module alias]
+ * zstandard (urllib3.response, urllib3.util.request)
+
+Modules not found (conditional imports):
+ * OpenSSL (google.auth.identity_pool, google.auth.transport._mtls_helper, google.auth.transport.requests, google.auth.transport.urllib3)
+ * OpenSSL.crypto (urllib3.contrib.pyopenssl)
+ * PySide6.support.signature.lib.enum_sig () [module alias]
+ * PySide6.support.signature.lib.pyi_generator () [module alias]
+ * PySide6.support.signature.lib.tool () [module alias]
+ * StringIO (six)
+ * _manylinux (packaging._manylinux)
+ * _typeshed (pkg_resources)
+ * _typeshed.importlib (pkg_resources)
+ * android (platformdirs.android)
+ * cryptography (requests)
+ * cryptography.hazmat.primitives (google.auth.transport._custom_tls_signer)
+ * cryptography.x509.extensions (urllib3.contrib.pyopenssl)
+ * importlib_resources (keyring.compat.py38)
+ * jnius (platformdirs.android)
+ * jwt (google.oauth2.id_token, oauthlib.common, oauthlib.oauth2.rfc6749.clients.service_application)
+ * jwt.algorithms (oauthlib.oauth1.rfc5849.signature)
+ * mod (pkg_resources.tests.test_pkg_resources)
+ * mod2 (pkg_resources.tests.test_pkg_resources)
+ * nspkg (pkg_resources.tests.test_resources)
+ * nspkg.subpkg (pkg_resources.tests.test_resources)
+ * oauth2client (googleapiclient.sample_tools)
+ * pep517 (importlib.metadata)
+ * pkg1 (pkg_resources.tests.test_resources)
+ * pkg1.pkg2 (pkg_resources.tests.test_resources)
+ * pydoc_data.topics () [module alias]
+ * pyu2f (google.oauth2.challenges)
+ * pyu2f.errors (google.oauth2.challenges)
+ * pyu2f.model (google.oauth2.challenges)
+ * simplejson (requests.compat)
+ * tomllib (PySide6.scripts.project_lib.pyproject_toml)
+
+Done!
+🔄 Restoring original py2app PySide6 recipe...
+🔄 Restored original PySide6 recipe from backup
+🔄 Restored original recipes/__init__.py from backup
+
+🏁 Build completed!
+📊 Initial app bundle size: 1.3G
+🔍 Analyzing Qt frameworks in app bundle:
+✅ No large Qt frameworks found!
+🧹 Performing aggressive PySide6 plugin/bloat cleanup...
+🔍 Found PySide6 at: /Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app/Contents/Resources/lib/python3.9/PySide6
+🗑️  Removed Qt/plugins/qmltooling (3MB)
+🗑️  Removed Qt/plugins/webview (1MB)
+🗑️  Removed Qt/plugins/multimedia (2MB)
+🗑️  Removed Qt/plugins/position (1MB)
+🗑️  Removed Qt/plugins/canbus (1MB)
+🗑️  Removed Qt/plugins/scxmldatamodel (1MB)
+🗑️  Removed Qt/plugins/assetimporters (5MB)
+🗑️  Removed Qt/plugins/geometryloaders (1MB)
+🗑️  Removed Qt/plugins/renderplugins (1MB)
+🗑️  Removed Qt/plugins/designer (1MB)
+🗑️  Removed Qt/plugins/texttospeech (1MB)
+🗑️  Removed Qt/plugins/generic (1MB)
+🗑️  Removed Qt/plugins/networkinformation (1MB)
+🗑️  Removed Qt/plugins/sqldrivers (4MB)
+🗑️  Removed Qt/plugins/tls (2MB)
+🗑️  Removed Qt/qml (50MB)
+🗑️  Removed Qt/libexec (3MB)
+✅ Aggressive PySide6 cleanup: Removed 17 directories (~79MB)
+📊 Size after PySide6 cleanup: 1.2G
+🧹 Size still large - attempting manual Qt framework cleanup...
+📝 No unwanted frameworks found - recipe override may have worked!
+📊 Final app bundle size after cleanup: 1.2G
+⚠️  WARNING: App is still 1.2G - target is 50-100MB!
+🔍 May need deeper Qt library investigation or alternative approach
+📝 Build log saved to: /Users/christopher.inman/Documents/Source/GlowStatus/docs/build_log_20250629_171815.txt
+
+💡 Recipe removal + __init__.py fix should eliminate PySide6 bloat!
+(venv) Christophers-MacBook-Pro:GlowStatus christopher.inman$ 
