@@ -161,20 +161,18 @@ class ConfigWindow(QWidget):
         self.oauth_status_label = QLabel("Not configured")
         form_layout.addRow("OAuth Status:", self.oauth_status_label)
         
-        # Check if client_secret.json exists
-        client_secret_path = resource_path('resources/client_secret.json')
-        if os.path.exists(client_secret_path):
-            self.oauth_status_label.setText("✓ OAuth configured")
-            self.oauth_status_label.setStyleSheet("color: green;")
-        else:
-            self.oauth_status_label.setText("⚠ OAuth not configured")
-            self.oauth_status_label.setStyleSheet("color: orange;")
+        # Check OAuth status and update display
+        self.update_oauth_status()
         
         # Connect Button
         self.oauth_btn = QPushButton("Connect Google Account")
         self.oauth_btn.clicked.connect(self.run_oauth_flow)
-        self.oauth_btn.setEnabled(os.path.exists(client_secret_path))
         form_layout.addRow(self.oauth_btn)
+        
+        # Disconnect Button
+        self.disconnect_btn = QPushButton("Disconnect Google Account")
+        self.disconnect_btn.clicked.connect(self.disconnect_oauth)
+        form_layout.addRow(self.disconnect_btn)
         
         # Google Calendar ID (display only)
         self.google_calendar_id_label = QLabel(config.get("SELECTED_CALENDAR_ID", "Not authenticated"))
@@ -324,8 +322,94 @@ class ConfigWindow(QWidget):
                 self.google_calendar_id_label.setText("Not authenticated")
                 logger.info("OAuth failed: Service not initialized.")
             self.load_calendars()  # Refresh calendar list after OAuth
+            self.update_oauth_status()  # Update OAuth status display
         except Exception as e:
             logger.error(f"OAuth Error: Failed to connect Google account: {e}")
+
+    def update_oauth_status(self):
+        """Update the OAuth status display based on current authentication state."""
+        from constants import CLIENT_SECRET_PATH, TOKEN_PATH
+        import pickle
+        
+        client_secret_exists = os.path.exists(CLIENT_SECRET_PATH)
+        token_exists = os.path.exists(TOKEN_PATH)
+        
+        if not client_secret_exists:
+            self.oauth_status_label.setText("⚠ OAuth credentials not found")
+            self.oauth_status_label.setStyleSheet("color: red;")
+            self.oauth_btn.setEnabled(False)
+            self.disconnect_btn.setEnabled(False)
+            return
+        
+        if token_exists:
+            try:
+                # Try to load and check if tokens are valid
+                with open(TOKEN_PATH, "rb") as token:
+                    creds = pickle.load(token)
+                if creds and creds.valid:
+                    self.oauth_status_label.setText("✓ Connected and authenticated")
+                    self.oauth_status_label.setStyleSheet("color: green;")
+                    self.oauth_btn.setText("Reconnect Google Account")
+                    self.disconnect_btn.setEnabled(True)
+                elif creds and creds.expired and creds.refresh_token:
+                    self.oauth_status_label.setText("⚠ Token expired (will auto-refresh)")
+                    self.oauth_status_label.setStyleSheet("color: orange;")
+                    self.oauth_btn.setText("Reconnect Google Account")
+                    self.disconnect_btn.setEnabled(True)
+                else:
+                    self.oauth_status_label.setText("⚠ Authentication required")
+                    self.oauth_status_label.setStyleSheet("color: orange;")
+                    self.oauth_btn.setText("Connect Google Account")
+                    self.disconnect_btn.setEnabled(False)
+            except Exception:
+                self.oauth_status_label.setText("⚠ Authentication required")
+                self.oauth_status_label.setStyleSheet("color: orange;")
+                self.oauth_btn.setText("Connect Google Account")
+                self.disconnect_btn.setEnabled(False)
+        else:
+            self.oauth_status_label.setText("⚠ Not authenticated")
+            self.oauth_status_label.setStyleSheet("color: orange;")
+            self.oauth_btn.setText("Connect Google Account")
+            self.oauth_btn.setEnabled(True)
+            self.disconnect_btn.setEnabled(False)
+
+    def disconnect_oauth(self):
+        """Disconnect Google OAuth by removing stored tokens."""
+        from constants import TOKEN_PATH
+        from PySide6.QtWidgets import QMessageBox
+        
+        # Confirm disconnect
+        reply = QMessageBox.question(
+            self, 
+            "Disconnect Google Account", 
+            "Are you sure you want to disconnect your Google account?\n\nYou will need to re-authenticate to use calendar features.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                # Remove the token file
+                if os.path.exists(TOKEN_PATH):
+                    os.remove(TOKEN_PATH)
+                
+                # Update config
+                config = load_config()
+                config["SELECTED_CALENDAR_ID"] = ""
+                save_config(config)
+                
+                # Update UI
+                self.google_calendar_id_label.setText("Not authenticated")
+                self.selected_calendar_id_dropdown.clear()
+                self.selected_calendar_id_dropdown.addItem("Please authenticate first")
+                self.update_oauth_status()
+                
+                QMessageBox.information(self, "Disconnected", "Google account disconnected successfully.")
+                logger.info("Google OAuth disconnected by user")
+                
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to disconnect: {e}")
+                logger.error(f"Failed to disconnect OAuth: {e}")
     
     def save_config(self):
         config = load_config()
