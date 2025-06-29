@@ -124,8 +124,31 @@ class GlowStatusController:
                     return
         else:
             if manual_status == "meeting_ended_early":
-                govee.set_power("off")
-                return
+                # Check if calendar sync is enabled and there's an imminent meeting
+                client_secret_path = resource_path('resources/client_secret.json')
+                if SELECTED_CALENDAR_ID and os.path.exists(client_secret_path):
+                    calendar = CalendarSync(SELECTED_CALENDAR_ID)
+                    calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    
+                    # Check for imminent meeting (within 1 minute)
+                    imminent_meeting = (
+                        next_event_start is not None
+                        and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                    )
+                    
+                    if imminent_meeting:
+                        logger.info("Meeting ended early but imminent meeting detected - keeping lights on")
+                        status = "in_meeting"
+                        # Clear the manual override since we're transitioning to calendar control
+                        config["CURRENT_STATUS"] = None
+                        config["MANUAL_STATUS_TIMESTAMP"] = None
+                        save_config(config)
+                    else:
+                        govee.set_power("off")
+                        return
+                else:
+                    govee.set_power("off")
+                    return
             else:
                 # Guard: If calendar ID or client_secret.json is missing, skip calendar sync
                 client_secret_path = resource_path('resources/client_secret.json')
@@ -279,16 +302,34 @@ class GlowStatusController:
                         save_config(config)
                 
                 if manual_status == "meeting_ended_early":
-                    govee.set_power("off")
-                    self._sleep_until_next_interval(REFRESH_INTERVAL)
-                    continue
-                else:
+                    # Even when meeting ended early, check for imminent meetings
+                    calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    
+                    # Check for imminent meeting (within 1 minute)
+                    imminent_meeting = (
+                        next_event_start is not None
+                        and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                    )
+                    
+                    if imminent_meeting:
+                        logger.info("Meeting ended early but imminent meeting detected - transitioning to calendar control")
+                        # Clear manual override and let calendar take control
+                        config["CURRENT_STATUS"] = None
+                        config["MANUAL_STATUS_TIMESTAMP"] = None
+                        save_config(config)
+                        manual_status = None
+                        # Continue with normal calendar processing below
+                    else:
+                        govee.set_power("off")
+                        self._sleep_until_next_interval(REFRESH_INTERVAL)
+                        continue
+                
+                if not manual_status:  # Only check calendar if no manual status is active
                     calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
                     
                     # Check for imminent meeting (within 1 minute) - this overrides manual status
                     imminent_meeting = (
-                        calendar_status == "available"
-                        and next_event_start is not None
+                        next_event_start is not None
                         and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
                     )
                     

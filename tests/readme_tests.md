@@ -19,6 +19,7 @@ tests/
 ├── test_google_oauth_token_path_bug.py # Google OAuth token path bug fix
 ├── test_oauth_threading.py            # OAuth threading and UI responsiveness fix
 ├── test_light_toggle_tray_menu.py     # Light control toggle in tray menu
+├── test_meeting_transitions.py       # Meeting transition scenarios and status handling
 ├── test_immediate_actions.py          # Immediate menu response actions
 ├── test_status_detection.py           # Status detection demonstration
 ├── test_status_fix.py                 # Status handling examples
@@ -61,6 +62,9 @@ python tests/test_light_control_bug_fix.py
 
 # Light control toggle in tray menu
 python tests/test_light_toggle_tray_menu.py
+
+# Meeting transition scenarios
+python tests/test_meeting_transitions.py
 
 # Immediate menu response actions  
 python tests/test_immediate_actions.py
@@ -254,6 +258,40 @@ Previously, when users clicked "Disable Lights" in the tray menu while lights we
 **Test Verification:**
 ```bash
 python tests/test_immediate_actions.py
+```
+
+### 9. Meeting Transition Scenarios (`test_meeting_transitions.py`) ✅
+- **Meeting End Behavior**: Proper handling when meetings end early
+- **Overlapping Meetings**: Seamless transition between consecutive meetings  
+- **Imminent Meeting Detection**: 1-minute advance light activation
+- **Manual Override Clearing**: Automatic transition from manual status to calendar control
+- **Status Persistence**: Maintaining appropriate status during meeting gaps
+
+**Key Features Tested:**
+- `meeting_ended_early` status transitions to `in_meeting` when next meeting is imminent (< 1 minute)
+- Manual override clearing when calendar events take priority
+- Light control during overlapping meeting scenarios
+- Proper gap handling between meetings (> 1 minute gap maintains manual status)
+- Status transition logic for consecutive and overlapping meetings
+
+**Problem Addressed:**
+Previously, when users ended a meeting early (setting status to `meeting_ended_early`), the system would turn off lights and maintain manual override even when the next meeting was about to start. This caused lights to remain off during overlapping meetings or when the next meeting was imminent.
+
+**Solution Implemented:**
+- Enhanced `update_status()` logic to check for imminent meetings when processing `meeting_ended_early` status
+- Removed calendar status dependency from imminent meeting detection
+- Added proper manual override clearing for calendar-controlled transitions
+- Improved handling of overlapping and consecutive meeting scenarios
+
+**Test Scenarios:**
+1. **Meeting ended early + imminent meeting (< 1 min)**: Lights turn on, manual override cleared
+2. **Meeting ended early + no imminent meeting**: Lights stay off, maintain status
+3. **Overlapping meetings**: Smooth transition from manual override to calendar control
+4. **Consecutive meetings with gap (> 1 min)**: Lights off during gap, on before next meeting
+
+**Test Verification:**
+```bash
+python tests/test_meeting_transitions.py
 ```
 
 ## 🛠 Test Infrastructure
