@@ -14,6 +14,7 @@ tests/
 ├── test_govee_controller.py           # Govee smart light control
 ├── test_glowstatus.py                 # Main application logic
 ├── test_light_control_bug_fix.py      # Specific bug fix verification
+├── test_google_oauth_token_path_bug.py # Google OAuth token path bug fix
 ├── test_status_detection.py           # Status detection demonstration
 ├── test_status_fix.py                 # Status handling examples
 ├── test_timing_sync.py                # Timing and synchronization tests
@@ -143,6 +144,35 @@ python tests/verify_tests.py
 - Auto-enabling only for new installations
 - Configuration save behavior
 
+### 7. Google OAuth Token Path Bug Fix (`test_google_oauth_token_path_bug.py`) ✅
+- **Path consistency**: Unified token storage location
+- **UI/App integration**: Settings UI and main app coordination  
+- **Configuration standards**: Centralized path management
+- **Cross-module validation**: Import and usage verification
+
+**Key Features Tested:**
+- Token path consistency between UI and main application
+- Proper use of `TOKEN_PATH` from `constants.py`
+- OAuth token detection and validation
+- File path resolution and storage
+
+**Bug Description:**
+This test was created to identify and verify the fix for a critical bug where:
+- The configuration UI saved Google OAuth tokens to `config/google_token.pickle` (via `TOKEN_PATH` from `constants.py`)
+- The tray application was checking for tokens at `google_token.pickle` (root level, hardcoded path)
+- This inconsistency caused OAuth tokens saved via the UI to not be found by the main application
+
+**Fix Applied:**
+- Updated `tray_app.py` to import `TOKEN_PATH` from `constants.py`
+- Replaced hardcoded `resource_path('google_token.pickle')` with `TOKEN_PATH` usage
+- Ensured all modules now use the same path: `config/google_token.pickle`
+- Added test verification to prevent regression
+
+**Test Verification:**
+```bash
+python tests/test_google_oauth_token_path_bug.py
+```
+
 ## 🛠 Test Infrastructure
 
 ### Mocking and Dependencies
@@ -194,7 +224,7 @@ finally:
 ### Current Test Status
 
 ```
-📊 Test Categories: 6/6 Implemented ✅
+📊 Test Categories: 7/7 Implemented ✅
 📊 Core Functionality: 100% Covered ✅
 📊 Bug Fixes: Verified and Protected ✅
 📊 Integration Tests: Complete ✅

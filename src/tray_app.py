@@ -11,6 +11,7 @@ from utils import resource_path
 from config_ui import ConfigWindow, load_config, save_config
 from glowstatus import GlowStatusController
 from logger import get_logger
+from constants import TOKEN_PATH
 
 # Initialize logger
 logger = get_logger("TrayApp")
@@ -188,8 +189,7 @@ def main():
         
         # Auto-disable calendar sync if no OAuth token exists (not if client_secret is missing)
         # This prepares for future Apple/Microsoft calendar support
-        token_path = resource_path('google_token.pickle')
-        if not os.path.exists(token_path) and "DISABLE_CALENDAR_SYNC" not in config:
+        if not os.path.exists(TOKEN_PATH) and "DISABLE_CALENDAR_SYNC" not in config:
             config["DISABLE_CALENDAR_SYNC"] = True
             save_config(config)
             logger.info("Auto-disabled calendar sync: no OAuth token found")
@@ -205,6 +205,7 @@ def main():
 
         glowstatus = GlowStatusController()
         sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
+        sync_toggle_action = [None]  # Store reference to sync toggle action
         if sync_enabled[0]:
             glowstatus.start()
 
@@ -319,13 +320,13 @@ def main():
                 config["DISABLE_CALENDAR_SYNC"] = False
                 save_config(config)
                 glowstatus.start()
-                sync_toggle.setText("Disable Sync")
+                sync_toggle_action[0].setText("Disable Sync")
                 sync_enabled[0] = True
             else:
                 config["DISABLE_CALENDAR_SYNC"] = True
                 save_config(config)
                 glowstatus.stop()
-                sync_toggle.setText("Enable Sync")
+                sync_toggle_action[0].setText("Enable Sync")
                 sync_enabled[0] = False
 
         def quit_app():
@@ -352,6 +353,7 @@ def main():
             manual_end_meeting = QAction("End Meeting Early", menu)
             reset_override = QAction(f"Reset status: {current_status}", menu)
             sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync", menu)
+            sync_toggle_action[0] = sync_toggle  # Store reference for toggle_sync function
             quit_action = QAction("Quit", menu)
 
             config_action.triggered.connect(show_config)
