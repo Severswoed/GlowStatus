@@ -637,9 +637,11 @@ class ConfigWindow(QWidget):
         if os.path.exists(google_logo_path):
             # Use Google logo if available
             from PySide6.QtGui import QPixmap
+            from PySide6.QtCore import QSize
             icon = QIcon(google_logo_path)
             button.setIcon(icon)
-            button.setIconSize(button.fontMetrics().height(), button.fontMetrics().height())
+            size = button.fontMetrics().height()
+            button.setIconSize(QSize(size, size))
         else:
             # Create a simple "G" logo as fallback
             self.create_google_g_icon(button)
@@ -706,25 +708,6 @@ class ConfigWindow(QWidget):
         icon = QIcon(pixmap)
         button.setIcon(icon)
         button.setIconSize(QSize(size, size))
-
-        # Add OAuth validation button for verification readiness
-        self.validation_btn = QPushButton("🔍 Check OAuth Verification Readiness")
-        self.validation_btn.clicked.connect(self.show_oauth_validation)
-        self.validation_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #e8f0fe;
-                border: 1px solid #dadce0;
-                border-radius: 4px;
-                color: #1a73e8;
-                font-size: 12px;
-                padding: 6px 12px;
-                margin: 4px 0;
-            }
-            QPushButton:hover {
-                background-color: #d2e3fc;
-            }
-        """)
-        form_layout.addRow(self.validation_btn)
 
     def show_oauth_validation(self):
         """Show detailed OAuth verification readiness status."""
