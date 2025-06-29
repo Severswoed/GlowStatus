@@ -16,6 +16,7 @@ tests/
 ├── test_light_control_bug_fix.py      # Specific bug fix verification
 ├── test_google_oauth_token_path_bug.py # Google OAuth token path bug fix
 ├── test_light_toggle_tray_menu.py     # Light control toggle in tray menu
+├── test_immediate_actions.py          # Immediate menu response actions
 ├── test_status_detection.py           # Status detection demonstration
 ├── test_status_fix.py                 # Status handling examples
 ├── test_timing_sync.py                # Timing and synchronization tests
@@ -51,6 +52,9 @@ python tests/test_light_control_bug_fix.py
 
 # Light control toggle in tray menu
 python tests/test_light_toggle_tray_menu.py
+
+# Immediate menu response actions  
+python tests/test_immediate_actions.py
 ```
 
 ### Running All Tests
@@ -173,6 +177,33 @@ This test was created to identify and verify the fix for a critical bug where:
 **Test Verification:**
 ```bash
 python tests/test_google_oauth_token_path_bug.py
+```
+
+### 8. Immediate Menu Actions (`test_immediate_actions.py`) ✅
+- **Immediate Light Turn-Off**: Instant response when disabling light control
+- **Sync Toggle Updates**: Immediate status refresh when enabling sync
+- **Tray Menu Integration**: Proper method calls for instant feedback
+- **Tooltip Status Updates**: Real-time status indicator updates
+
+**Key Features Tested:**
+- `turn_off_lights_immediately()` method exists and works correctly
+- Tray menu `toggle_light()` calls immediate turn-off when disabling
+- Tray menu `toggle_sync()` calls `update_now()` when enabling  
+- Tooltip shows light/sync status indicators
+- No waiting for polling cycles for menu actions
+
+**Problem Addressed:**
+Previously, when users clicked "Disable Lights" in the tray menu while lights were on (e.g., red during a meeting), the lights would remain on until the next polling cycle. This created confusion as users expected immediate feedback from menu actions.
+
+**Solution Implemented:**
+- Added `turn_off_lights_immediately()` method to `GlowStatusController`
+- Modified tray menu toggles to trigger immediate actions
+- Enhanced tooltip to show disabled feature status
+- Menu actions now provide instant visual feedback
+
+**Test Verification:**
+```bash
+python tests/test_immediate_actions.py
 ```
 
 ## 🛠 Test Infrastructure
