@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from utils import resource_path
 from config_ui import ConfigWindow, load_config, save_config
 from glowstatus import GlowStatusController
@@ -306,6 +306,7 @@ def main():
         # --- Menu Setup (Dynamic) ---
         def create_context_menu():
             """Create context menu with current status displayed"""
+            print("DEBUG: Creating context menu...")
             config = load_config()
             current_status = config.get("CURRENT_STATUS", "unknown")
             
@@ -340,15 +341,46 @@ def main():
             menu.addAction(sync_toggle)
             menu.addSeparator()
             menu.addAction(quit_action)
+            
+            print(f"DEBUG: Context menu created with {len(menu.actions())} actions")
             return menu
         
         # Update context menu dynamically when right-clicked
         def on_tray_activated(reason):
+            print(f"DEBUG: Tray activated with reason: {reason}")
             if reason == QSystemTrayIcon.Context:
+                print("DEBUG: Right-click detected, refreshing context menu")
+                # Refresh the context menu with current status before showing
                 tray.setContextMenu(create_context_menu())
+            elif reason == QSystemTrayIcon.DoubleClick:
+                print("DEBUG: Double-click detected, opening settings")
+                # Double-click opens settings
+                show_config()
+            elif reason == QSystemTrayIcon.Trigger:
+                print("DEBUG: Left-click detected")
+            elif reason == QSystemTrayIcon.MiddleClick:
+                print("DEBUG: Middle-click detected")
         
+        # Set up tray icon event handling
         tray.activated.connect(on_tray_activated)
+        
+        # Always ensure a context menu is set initially
         tray.setContextMenu(create_context_menu())
+        
+        # Additional Windows-specific fix for context menu
+        if os.name == 'nt':
+            # On Windows, we need to ensure the context menu is properly set
+            def ensure_context_menu():
+                if not tray.contextMenu():
+                    print("DEBUG: Setting context menu for Windows")
+                    tray.setContextMenu(create_context_menu())
+            
+            # Set a timer to ensure context menu is available
+            from PySide6.QtCore import QTimer
+            context_timer = QTimer()
+            context_timer.timeout.connect(ensure_context_menu)
+            context_timer.setSingleShot(True)
+            context_timer.start(100)  # 100ms delay
 
         print("Tray icon setup complete, showing tray...")
         tray.show()
