@@ -51,13 +51,13 @@ Only includes what we explicitly specify in the build script.
 
 def check(cmd, mf):
     """Check if PySide6 is used - we handle this manually"""
-    # Return False to prevent this recipe from running automatically
+    # Always return False to prevent this recipe from running automatically
     return False
 
 def recipe(cmd, mf):
-    """Minimal recipe that does nothing - we handle PySide6 includes manually"""
-    # Do nothing - let our explicit includes/excludes handle everything
-    pass
+    """Minimal recipe that returns empty dict - we handle PySide6 includes manually"""
+    # Return empty dict instead of None to prevent py2app errors
+    return {}
 '''
     
     try:
