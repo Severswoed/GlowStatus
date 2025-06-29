@@ -337,12 +337,16 @@ def main():
                 glowstatus.start()
                 sync_toggle_action[0].setText("Disable Sync")
                 sync_enabled[0] = True
+                # Update immediately to refresh status from calendar
+                glowstatus.update_now()
+                update_tray_tooltip()
             else:
                 config["DISABLE_CALENDAR_SYNC"] = True
                 save_config(config)
                 glowstatus.stop()
                 sync_toggle_action[0].setText("Enable Sync")
                 sync_enabled[0] = False
+                update_tray_tooltip()
 
         def toggle_light():
             config = load_config()
@@ -356,6 +360,8 @@ def main():
                 glowstatus.update_now()
                 update_tray_tooltip()
             else:
+                # Turn off lights immediately before disabling light control
+                glowstatus.turn_off_lights_immediately()
                 config["DISABLE_LIGHT_CONTROL"] = True
                 save_config(config)
                 light_toggle_action[0].setText("Enable Lights")

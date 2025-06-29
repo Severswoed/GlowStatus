@@ -57,6 +57,7 @@ def main():
         ],
         'Feature Tests': [
             'test_light_toggle_tray_menu.py',
+            'test_immediate_actions.py',
             'test_status_detection.py',
             'test_timing_sync.py',
             'test_status_fix.py'
@@ -160,6 +161,7 @@ def main():
     print(f"   python tests/test_govee_controller.py        # Govee smart lights")
     print(f"   python tests/test_glowstatus.py              # Main app logic")
     print(f"   python tests/test_light_toggle_tray_menu.py  # Tray menu features")
+    print(f"   python tests/test_immediate_actions.py       # Immediate menu responses")
     print(f"   python tests/final_test_verification.py      # This comprehensive test")
     
     print(f"\n🏃‍♀️ QUICK TEST COMMANDS:")

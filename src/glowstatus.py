@@ -331,3 +331,23 @@ class GlowStatusController:
             
         if sleep_time > 0:
             time.sleep(sleep_time)
+
+    def turn_off_lights_immediately(self):
+        """Turn off lights immediately, bypassing the DISABLE_LIGHT_CONTROL check.
+        Used when disabling light control to ensure lights turn off right away."""
+        config = load_config()
+        GOVEE_API_KEY = load_secret("GOVEE_API_KEY")
+        GOVEE_DEVICE_ID = config.get("GOVEE_DEVICE_ID")
+        GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
+        
+        # Guard: If Govee credentials are missing, skip light control
+        if not GOVEE_API_KEY or not GOVEE_DEVICE_ID or not GOVEE_DEVICE_MODEL:
+            logger.warning("Cannot turn off lights: Govee credentials not configured")
+            return
+        
+        try:
+            govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
+            govee.set_power("off")
+            logger.info("Lights turned off immediately due to light control being disabled")
+        except Exception as e:
+            logger.error(f"Failed to turn off lights immediately: {e}")
