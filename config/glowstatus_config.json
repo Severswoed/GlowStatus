@@ -3,7 +3,7 @@
   "GOVEE_DEVICE_MODEL": "",
   "TRAY_ICON": "GlowStatus_tray_tp_tight.png",
   "SELECTED_CALENDAR_ID": "",
-  "REFRESH_INTERVAL": 60,
+  "REFRESH_INTERVAL": 15,
   "DISABLE_CALENDAR_SYNC": true,
   "DISABLE_LIGHT_CONTROL": true,
   "POWER_OFF_WHEN_AVAILABLE": true,
