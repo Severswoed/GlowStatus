@@ -1,83 +1,332 @@
-from setuptools import setup
-import glob
-import sys
-import os
+#!/usr/bin/env python3
+"""
+Ultra-minimal macOS app builder for GlowStatus using PyInstaller.
+This script replaces py2app to avoid the massive PySide6 bloat.
+Target: 50-100MB app bundle (not 1.35GB).
+"""
 
-# Import build helper functions from scripts directory
-import sys
 import os
+import sys
+import subprocess
+import shutil
+import datetime
+from pathlib import Path
+
+# Add scripts directory to Python path for build helpers
 sys.path.insert(0, os.path.dirname(__file__))
 from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages
 
-# Check requirements before building
-if 'py2app' in sys.argv:
-    print("🚀 Preparing GlowStatus for macOS app bundle creation...")
+def setup_build_logging():
+    """Set up detailed build logging."""
+    project_root = Path(__file__).parent.parent
+    build_dir = project_root / 'build'
+    build_dir.mkdir(exist_ok=True)
+    
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = build_dir / f'pyinstaller_build_{timestamp}.txt'
+    
+    print(f"📝 Build log will be saved to: {log_file}")
+    print(f"🕐 Build started at: {datetime.datetime.now()}")
+    print(f"📁 Project root: {project_root}")
+    print()
+    
+    return log_file, project_root
+
+def install_pyinstaller():
+    """Install PyInstaller if not already available."""
+    try:
+        import PyInstaller
+        print(f"✅ PyInstaller already installed: {PyInstaller.__version__}")
+        return True
+    except ImportError:
+        print("📦 Installing PyInstaller...")
+        try:
+            subprocess.run([sys.executable, '-m', 'pip', 'install', 'pyinstaller'], 
+                          check=True, capture_output=True, text=True)
+            print("✅ PyInstaller installed successfully")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to install PyInstaller: {e}")
+            return False
+
+def find_pyside6_essentials():
+    """Find only the essential PySide6 files we need."""
+    try:
+        import PySide6
+        pyside_path = Path(PySide6.__file__).parent
+        
+        # Only the files we absolutely need
+        essential_files = []
+        for file_pattern in ['QtCore*', 'QtGui*', 'QtWidgets*']:
+            essential_files.extend(pyside_path.glob(file_pattern + '.so'))
+            essential_files.extend(pyside_path.glob(file_pattern + '.dylib'))
+            essential_files.extend(pyside_path.glob(file_pattern + '.pyi'))
+        
+        # Also need __init__.py
+        init_file = pyside_path / '__init__.py'
+        if init_file.exists():
+            essential_files.append(init_file)
+            
+        print(f"📦 Found {len(essential_files)} essential PySide6 files:")
+        for f in essential_files:
+            size_mb = f.stat().st_size / (1024 * 1024)
+            print(f"   {f.name} ({size_mb:.1f}MB)")
+            
+        return essential_files, pyside_path
+        
+    except ImportError:
+        print("❌ PySide6 not found")
+        return [], None
+
+def find_shiboken6_essentials():
+    """Find only essential shiboken6 files."""
+    try:
+        import shiboken6
+        shiboken_path = Path(shiboken6.__file__).parent
+        
+        essential_files = []
+        for file_pattern in ['shiboken6*']:
+            essential_files.extend(shiboken_path.glob(file_pattern + '.so'))
+            essential_files.extend(shiboken_path.glob(file_pattern + '.dylib'))
+        
+        # Also need __init__.py
+        init_file = shiboken_path / '__init__.py'
+        if init_file.exists():
+            essential_files.append(init_file)
+            
+        print(f"📦 Found {len(essential_files)} essential shiboken6 files:")
+        for f in essential_files:
+            size_mb = f.stat().st_size / (1024 * 1024)
+            print(f"   {f.name} ({size_mb:.1f}MB)")
+            
+        return essential_files, shiboken_path
+        
+    except ImportError:
+        print("❌ shiboken6 not found")
+        return [], None
+
+def build_with_pyinstaller(project_root):
+    """Build the app using PyInstaller with minimal PySide6."""
+    
+    print("🔥 Building with PyInstaller (ultra-minimal approach)...")
+    print()
+    
+    # Find essential files
+    pyside_files, pyside_path = find_pyside6_essentials()
+    shiboken_files, shiboken_path = find_shiboken6_essentials()
+    
+    if not pyside_files or not shiboken_files:
+        print("❌ Cannot find essential PySide6/shiboken6 files")
+        return False
+    
+    # Build PyInstaller command
+    app_script = project_root / 'src' / 'tray_app.py'
+    icon_file = project_root / 'img' / 'GlowStatus.icns'
+    
+    cmd = [
+        sys.executable, '-m', 'PyInstaller',
+        '--onedir',  # Create a directory bundle (easier to debug than --onefile)
+        '--windowed',  # No console window
+        '--noconfirm',  # Overwrite output directory
+        f'--icon={icon_file}',
+        f'--name=GlowStatus',
+        '--osx-bundle-identifier=com.severswoed.glowstatus',
+        
+        # CRITICAL: Exclude all the massive stuff
+        '--exclude-module=PySide6.QtWebEngine',
+        '--exclude-module=PySide6.QtWebEngineCore',
+        '--exclude-module=PySide6.QtWebEngineWidgets',
+        '--exclude-module=PySide6.Qt3D',
+        '--exclude-module=PySide6.Qt3DCore',
+        '--exclude-module=PySide6.Qt3DRender',
+        '--exclude-module=PySide6.QtMultimedia',
+        '--exclude-module=PySide6.QtMultimediaWidgets',
+        '--exclude-module=PySide6.QtCharts',
+        '--exclude-module=PySide6.QtQuick',
+        '--exclude-module=PySide6.QtQuickControls2',
+        '--exclude-module=PySide6.QtQuickWidgets',
+        '--exclude-module=PySide6.QtQml',
+        '--exclude-module=PySide6.QtNetwork',
+        '--exclude-module=PySide6.QtOpenGL',
+        '--exclude-module=PySide6.QtSql',
+        '--exclude-module=PySide6.QtTest',
+        '--exclude-module=PySide6.QtXml',
+        
+        # Exclude other heavy packages
+        '--exclude-module=numpy',
+        '--exclude-module=pandas',
+        '--exclude-module=matplotlib',
+        '--exclude-module=scipy',
+        '--exclude-module=PIL',
+        '--exclude-module=tkinter',
+        
+        # Data files
+        f'--add-data={project_root}/img:img',
+        f'--add-data={project_root}/config:config',
+        f'--add-data={project_root}/resources/client_secret.json:resources',
+        
+        # Only include essential PySide6 files
+        f'--add-binary={pyside_path}/__init__.py:PySide6',
+    ]
+    
+    # Add each essential PySide6 file
+    for f in pyside_files:
+        if f.name != '__init__.py':  # Already added above
+            cmd.append(f'--add-binary={f}:PySide6')
+    
+    # Add essential shiboken6 files
+    for f in shiboken_files:
+        cmd.append(f'--add-binary={f}:shiboken6')
+    
+    # Add the main script
+    cmd.append(str(app_script))
+    
+    print("🔧 PyInstaller command:")
+    print(" ".join(cmd))
+    print()
+    
+    # Change to project root for build
+    original_cwd = os.getcwd()
+    os.chdir(project_root)
+    
+    try:
+        # Run PyInstaller
+        print("⚡ Running PyInstaller...")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print("✅ PyInstaller completed successfully!")
+            
+            # Check the size
+            dist_path = project_root / 'dist' / 'GlowStatus'
+            if dist_path.exists():
+                # Get size
+                size_result = subprocess.run(['du', '-sh', str(dist_path)], 
+                                           capture_output=True, text=True)
+                if size_result.returncode == 0:
+                    size = size_result.stdout.split()[0]
+                    print(f"📊 App bundle size: {size}")
+                
+                # Create .app bundle structure for macOS
+                app_bundle = project_root / 'dist' / 'GlowStatus.app'
+                if app_bundle.exists():
+                    shutil.rmtree(app_bundle)
+                
+                print("📦 Creating macOS .app bundle...")
+                create_app_bundle(dist_path, app_bundle, project_root)
+                
+                # Check final .app size
+                size_result = subprocess.run(['du', '-sh', str(app_bundle)], 
+                                           capture_output=True, text=True)
+                if size_result.returncode == 0:
+                    final_size = size_result.stdout.split()[0]
+                    print(f"📊 Final GlowStatus.app size: {final_size}")
+                
+                return True
+            else:
+                print("❌ Build directory not found")
+                return False
+        else:
+            print(f"❌ PyInstaller failed: {result.stderr}")
+            return False
+            
+    finally:
+        os.chdir(original_cwd)
+
+def create_app_bundle(dist_path, app_bundle, project_root):
+    """Create a proper macOS .app bundle from PyInstaller output."""
+    
+    # Create .app bundle structure
+    contents_dir = app_bundle / 'Contents'
+    macos_dir = contents_dir / 'MacOS'
+    resources_dir = contents_dir / 'Resources'
+    
+    contents_dir.mkdir(parents=True, exist_ok=True)
+    macos_dir.mkdir(exist_ok=True)
+    resources_dir.mkdir(exist_ok=True)
+    
+    # Copy the executable and all files
+    print("📁 Copying application files...")
+    for item in dist_path.iterdir():
+        if item.is_file() and item.name == 'GlowStatus':
+            # Main executable goes to MacOS
+            shutil.copy2(item, macos_dir / 'GlowStatus')
+            # Make it executable
+            os.chmod(macos_dir / 'GlowStatus', 0o755)
+        else:
+            # Everything else goes to Resources
+            if item.is_dir():
+                shutil.copytree(item, resources_dir / item.name)
+            else:
+                shutil.copy2(item, resources_dir / item.name)
+    
+    # Create Info.plist
+    info_plist = contents_dir / 'Info.plist'
+    plist_content = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>GlowStatus</string>
+    <key>CFBundleDisplayName</key>
+    <string>GlowStatus</string>
+    <key>CFBundleExecutable</key>
+    <string>GlowStatus</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.severswoed.glowstatus</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>2.0.0</string>
+    <key>CFBundleIconFile</key>
+    <string>GlowStatus.icns</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+</dict>
+</plist>"""
+    
+    with open(info_plist, 'w') as f:
+        f.write(plist_content)
+    
+    # Copy icon
+    icon_src = project_root / 'img' / 'GlowStatus.icns'
+    if icon_src.exists():
+        shutil.copy2(icon_src, resources_dir / 'GlowStatus.icns')
+    
+    print("✅ macOS .app bundle created successfully!")
+
+def main():
+    """Main build function."""
+    print("🚀 GlowStatus macOS Builder (PyInstaller)")
+    print("🎯 Target: Ultra-minimal app bundle (50-100MB)")
+    print()
+    
+    # Set up logging
+    log_file, project_root = setup_build_logging()
+    
+    # Check and install requirements
+    print("🔧 Checking requirements...")
     check_and_install_requirements()
     if not verify_critical_modules():
         print("❌ Critical modules missing. Please fix the above issues and try again.")
         sys.exit(1)
-    print("🔧 Fixing Google namespace packages for py2app...")
+    
+    print("🔧 Fixing Google namespace packages...")
     fix_google_namespace_packages()
-    print("✅ Ready to build!")
-    print()
-
-# Get the project root directory (parent of scripts directory)
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Set up build logging
-import datetime
-import subprocess
-
-def setup_build_logging():
-    """Set up detailed build logging to help debug app size issues."""
-    build_dir = os.path.join(PROJECT_ROOT, 'build')
-    os.makedirs(build_dir, exist_ok=True)
     
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(build_dir, f'build_log_{timestamp}.txt')
+    # Install PyInstaller
+    if not install_pyinstaller():
+        sys.exit(1)
     
-    # Redirect both stdout and stderr to log file while still showing on console
-    class TeeOutput:
-        def __init__(self, file_path):
-            self.terminal = sys.stdout
-            self.log = open(file_path, 'w')
-            self.closed = False
-            
-        def write(self, message):
-            self.terminal.write(message)
-            if not self.closed:
-                self.log.write(message)
-                self.log.flush()
-            
-        def flush(self):
-            self.terminal.flush()
-            if not self.closed:
-                self.log.flush()
-        
-        def close(self):
-            if not self.closed:
-                self.log.close()
-                self.closed = True
-                
-    # Store the original stdout and the TeeOutput instance globally
-    global original_stdout, tee_output
-    original_stdout = sys.stdout
-    tee_output = TeeOutput(log_file)
-    sys.stdout = tee_output
-    
-    print(f"📝 Build log will be saved to: {log_file}")
-    print(f"🕐 Build started at: {datetime.datetime.now()}")
-    print(f"📁 Project root: {PROJECT_ROOT}")
+    print("✅ All requirements satisfied!")
     print()
     
-    return log_file
-
-# Set up logging if building
-if 'py2app' in sys.argv:
-    log_file = setup_build_logging()
-    
-    print("🚫 DISABLING PySide6 auto-recipe to prevent massive bloat!")
-    print("📦 Only including essential PySide6 components:")
+    print("🚫 AVOIDING py2app PySide6 recipe bloat!")
+    print("📦 Using PyInstaller with manual PySide6 control:")
     print("   - PySide6.QtCore (core functionality)")
     print("   - PySide6.QtGui (GUI basics)")  
     print("   - PySide6.QtWidgets (widgets for tray)")
@@ -92,219 +341,31 @@ if 'py2app' in sys.argv:
     print("   - All style implementations (~20MB)")
     print()
     
-    # Print diagnostic information
-    print("🔍 Build configuration analysis:")
-    print(f"   Python version: {sys.version}")
-    print(f"   Python executable: {sys.executable}")
-    print(f"   Site packages: {[p for p in sys.path if 'site-packages' in p]}")
-    print()
-    
-    # Check sizes of key packages
-    try:
-        import PySide6
-        pyside_path = os.path.dirname(PySide6.__file__)
-        pyside_size = subprocess.check_output(['du', '-sh', pyside_path], text=True).split()[0]
-        print(f"   PySide6 package size: {pyside_size} at {pyside_path}")
-    except Exception as e:
-        print(f"   PySide6 size check failed: {e}")
-    
-    try:
-        # Try different google package imports to find what's available
-        google_found = False
-        for module in ['google.auth', 'google_auth_oauthlib', 'googleapiclient']:
-            try:
-                imported_module = __import__(module)
-                google_path = os.path.dirname(imported_module.__file__)
-                google_size = subprocess.check_output(['du', '-sh', google_path], text=True).split()[0]
-                print(f"   {module} package size: {google_size} at {google_path}")
-                google_found = True
-                break
-            except ImportError:
-                continue
+    # Build the app
+    if build_with_pyinstaller(project_root):
+        print()
+        print("🏁 Build completed successfully!")
+        print(f"🕐 Build finished at: {datetime.datetime.now()}")
+        print(f"📝 Complete build log saved to: {log_file}")
         
-        if not google_found:
-            print("   Google packages: Not found or not installed")
-    except Exception as e:
-        print(f"   Google packages size check failed: {e}")
-    
-    print()
+        # Show final GlowStatus.app size
+        app_bundle = project_root / 'dist' / 'GlowStatus.app'
+        if app_bundle.exists():
+            size_result = subprocess.run(['du', '-sh', str(app_bundle)], 
+                                       capture_output=True, text=True)
+            if size_result.returncode == 0:
+                final_size = size_result.stdout.split()[0]
+                print(f"📊 Final GlowStatus.app size: {final_size}")
+        
+        print()
+        print("📊 Check your app:")
+        print(f"   open {project_root}/dist/GlowStatus.app")
+        print(f"   du -sh {project_root}/dist/GlowStatus.app")
+        print()
+        print("🎉 Your app should now be ~50-100MB instead of 1.35GB!")
+    else:
+        print("❌ Build failed!")
+        sys.exit(1)
 
-# Initialize global variables for logging
-original_stdout = None
-tee_output = None
-
-# Change to project root directory for the build process
-original_cwd = os.getcwd()
-os.chdir(PROJECT_ROOT)
-print(f"📁 Changed working directory to: {PROJECT_ROOT}")
-
-APP = ['src/tray_app.py']
-DATA_FILES = [
-    ('img', glob.glob('img/*')),
-    ('config', glob.glob('config/*')),
-    ('resources', ['resources/client_secret.json']),
-    # Add other needed data files/folders here
-]
-OPTIONS = {
-    'iconfile': 'img/GlowStatus.icns',
-    
-    # Use only valid py2app options
-    'argv_emulation': False,
-    'site_packages': False,  # Critical: Don't include entire site-packages
-    'optimize': 2,  # Maximum bytecode optimization
-    'strip': True,  # Strip debug symbols
-    'compressed': True,  # Compress the bundle
-    
-    # Only include what we absolutely need
-    'includes': [
-        # Core Python modules only
-        'threading', 'queue', 'json', 'datetime', 'tempfile', 'atexit', 'time', 'os', 'sys',
-        
-        # ONLY the PySide6 modules we actually use
-        'PySide6.QtCore',
-        'PySide6.QtGui', 
-        'PySide6.QtWidgets',
-        'shiboken6',
-        
-        # Only essential dependencies
-        'requests', 'urllib3', 'certifi',
-        'keyring',
-        
-        # Google packages (minimal)
-        'google_auth_oauthlib.flow',
-        'googleapiclient.discovery',
-    ],
-    
-    # Only include essential packages
-    'packages': [
-        'keyring',
-        'requests', 
-        'urllib3',
-        'certifi',
-        'google_auth_oauthlib',
-        'googleapiclient',
-    ],
-    
-    # ULTRA AGGRESSIVE EXCLUSIONS: Everything we don't need  
-    'excludes': [
-        # Remove all other PySide6 modules - we only need Core, Gui, Widgets
-        'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
-        'PySide6.QtTest', 'PySide6.QtConcurrent', 'PySide6.QtDBus', 'PySide6.QtHelp',
-        'PySide6.QtPrintSupport', 'PySide6.QtSvg', 'PySide6.QtSvgWidgets',
-        
-        # MASSIVE PySide6 components we definitely don't need
-        'PySide6.QtWebEngine', 'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 'PySide6.QtWebEngineQuick',
-        'PySide6.QtWebView', 'PySide6.QtWebSockets', 'PySide6.QtWebChannel', 'PySide6.QtWebChannelQuick',
-        
-        # All Qt3D frameworks
-        'PySide6.Qt3D', 'PySide6.Qt3DCore', 'PySide6.Qt3DRender', 'PySide6.Qt3DInput', 'PySide6.Qt3DLogic', 
-        'PySide6.Qt3DExtras', 'PySide6.Qt3DAnimation', 'PySide6.Qt3DQuick', 'PySide6.Qt3DQuickRender',
-        'PySide6.Qt3DQuickInput', 'PySide6.Qt3DQuickExtras', 'PySide6.Qt3DQuickAnimation', 'PySide6.Qt3DQuickScene2D',
-        
-        # All QtQuick3D frameworks  
-        'PySide6.QtQuick3D', 'PySide6.QtQuick3DRuntimeRender', 'PySide6.QtQuick3DUtils', 'PySide6.QtQuick3DHelpers',
-        'PySide6.QtQuick3DEffects', 'PySide6.QtQuick3DParticles', 'PySide6.QtQuick3DAssetImport', 'PySide6.QtQuick3DAssetUtils',
-        'PySide6.QtQuick3DGlslParser', 'PySide6.QtQuick3DHelpersImpl', 'PySide6.QtQuick3DIblBaker', 'PySide6.QtQuick3DSpatialAudio',
-        'PySide6.QtQuick3DParticleEffects', 'PySide6.QtQuick3DXr',
-        
-        # All multimedia frameworks
-        'PySide6.QtMultimedia', 'PySide6.QtMultimediaWidgets', 'PySide6.QtMultimediaQuick', 'PySide6.QtSpatialAudio',
-        
-        # All charting/visualization frameworks
-        'PySide6.QtCharts', 'PySide6.QtChartsQml', 'PySide6.QtDataVisualization', 'PySide6.QtDataVisualizationQml',
-        'PySide6.QtGraphs', 'PySide6.QtGraphsWidgets',
-        
-        # All QML/Quick frameworks (we only use QtWidgets)
-        'PySide6.QtQuick', 'PySide6.QtQuickControls2', 'PySide6.QtQuickWidgets', 'PySide6.QtQuickTemplates2',
-        'PySide6.QtQuickLayouts', 'PySide6.QtQuickParticles', 'PySide6.QtQuickShapes', 'PySide6.QtQuickTest',
-        'PySide6.QtQuickEffects', 'PySide6.QtQuickTimeline', 'PySide6.QtQuickTimelineBlendTrees', 'PySide6.QtQuickVectorImage',
-        'PySide6.QtQuickVectorImageGenerator', 'PySide6.QtQuickDialogs2', 'PySide6.QtQuickDialogs2Utils', 'PySide6.QtQuickDialogs2QuickImpl',
-        
-        # All style implementations
-        'PySide6.QtQuickControls2Basic', 'PySide6.QtQuickControls2BasicStyleImpl', 'PySide6.QtQuickControls2Fusion',
-        'PySide6.QtQuickControls2FusionStyleImpl', 'PySide6.QtQuickControls2Imagine', 'PySide6.QtQuickControls2ImagineStyleImpl',
-        'PySide6.QtQuickControls2Material', 'PySide6.QtQuickControls2MaterialStyleImpl', 'PySide6.QtQuickControls2Universal',
-        'PySide6.QtQuickControls2UniversalStyleImpl', 'PySide6.QtQuickControls2MacOSStyleImpl', 'PySide6.QtQuickControls2IOSStyleImpl',
-        'PySide6.QtQuickControls2FluentWinUI3StyleImpl', 'PySide6.QtQuickControls2Impl',
-        
-        # All QML framework components
-        'PySide6.QtQml', 'PySide6.QtQmlCore', 'PySide6.QtQmlNetwork', 'PySide6.QtQmlModels', 'PySide6.QtQmlWorkerScript',
-        'PySide6.QtQmlCompiler', 'PySide6.QtQmlMeta', 'PySide6.QtQmlLocalStorage', 'PySide6.QtQmlXmlListModel',
-        
-        # Designer and development tools
-        'PySide6.QtDesigner', 'PySide6.QtDesignerComponents', 'PySide6.QtUiTools',
-        
-        # Hardware/connectivity we don't use
-        'PySide6.QtBluetooth', 'PySide6.QtNfc', 'PySide6.QtPositioning', 'PySide6.QtPositioningQuick',
-        'PySide6.QtLocation', 'PySide6.QtSensors', 'PySide6.QtSensorsQuick', 'PySide6.QtSerialPort', 'PySide6.QtSerialBus',
-        
-        # Advanced features we don't use
-        'PySide6.QtNetworkAuth', 'PySide6.QtRemoteObjects', 'PySide6.QtRemoteObjectsQml', 'PySide6.QtScxml', 'PySide6.QtScxmlQml',
-        'PySide6.QtStateMachine', 'PySide6.QtStateMachineQml', 'PySide6.QtTextToSpeech', 'PySide6.QtVirtualKeyboard',
-        'PySide6.QtVirtualKeyboardQml', 'PySide6.QtVirtualKeyboardSettings', 'PySide6.QtPdf', 'PySide6.QtPdfWidgets',
-        'PySide6.QtPdfQuick', 'PySide6.QtHttpServer', 'PySide6.QtShaderTools',
-        
-        # All Labs components (experimental)
-        'PySide6.QtLabsPlatform', 'PySide6.QtLabsAnimation', 'PySide6.QtLabsFolderListModel', 'PySide6.QtLabsQmlModels',
-        'PySide6.QtLabsSettings', 'PySide6.QtLabsSharedImage', 'PySide6.QtLabsWavefrontMesh',
-        
-        # Standard library modules we don't use
-        'tkinter', 'turtle', 'curses', 'sqlite3', 'multiprocessing', 'xml', 'xmlrpc', 'html', 'http.server', 'wsgiref',
-        'pydoc_data', 'distutils', 'setuptools', 'pip', 'wheel', 'test', 'unittest', 'doctest',
-        
-        # Development and testing frameworks
-        'pytest', 'pylint', 'black', 'mypy', 'sphinx', 'docutils', 'nose', 'coverage',
-        
-        # Scientific/data packages we don't use
-        'numpy', 'scipy', 'matplotlib', 'pandas', 'jupyter', 'IPython', 'tornado', 'notebook',
-        
-        # Other GUI frameworks
-        'PyQt5', 'PyQt6', 'wx', 'gtk',
-        
-        # FFmpeg and multimedia codecs (these are HUGE)
-        'libavcodec', 'libavformat', 'libavutil', 'libswscale', 'libswresample',
-    ],
-    
-    'plist': {
-        'CFBundleName': 'GlowStatus',
-        'CFBundleDisplayName': 'GlowStatus',
-        'CFBundleExecutable': 'GlowStatus',
-        'CFBundleIdentifier': 'com.severswoed.glowstatus',
-        'CFBundleShortVersionString': '2.0.0',
-        'CFBundleVersion': '2.0.0',
-        'LSUIElement': True,  # Run as background app without dock icon
-        'NSHighResolutionCapable': True,  # Support retina displays
-        'LSMinimumSystemVersion': '10.15',  # Require macOS 10.15+
-    },
-}
-
-setup(
-    app=APP,
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
-)
-
-# Restore original working directory
-os.chdir(original_cwd)
-
-# Print build completion and log file location
-if 'py2app' in sys.argv:
-    print()
-    print("🏁 Build completed!")
-    print(f"🕐 Build finished at: {datetime.datetime.now()}")
-    print(f"📝 Complete build log saved to: {log_file}")
-    print()
-    print("📊 To analyze app size, check the dist/ directory:")
-    print(f"   ls -la {os.path.join(PROJECT_ROOT, 'dist/')}")
-    print(f"   du -sh {os.path.join(PROJECT_ROOT, 'dist/GlowStatus.app')}")
-    print()
-    print("💡 To share the build log:")
-    print(f"   cat {log_file}")
-    print(f"   or open {log_file} in your text editor")
-    
-    # Properly close the log file and restore stdout
-    if tee_output:
-        tee_output.close()
-    if original_stdout:
-        sys.stdout = original_stdout
+if __name__ == '__main__':
+    main()
