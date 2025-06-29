@@ -305,10 +305,8 @@ DATA_FILES = [
 
 OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
-    
-    # CRITICAL SIZE OPTIMIZATIONS
     'optimize': 2,  # Maximum bytecode optimization (-O2)
-    
+    'qt-plugins': 'platforms,imageformats',
     # Only include what we absolutely need
     'includes': [
         # Core Python modules only
