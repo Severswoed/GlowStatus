@@ -105,15 +105,42 @@
 - [x] ✅ User consent and control implemented
 - [x] ✅ Secure credential handling
 - [x] ✅ Error handling implemented
-- [ ] 🔄 Real OAuth credentials configured
-- [ ] 🔄 End-to-end testing completed
-- [ ] 🔄 Multi-platform testing completed
+- [x] ✅ Real OAuth credentials configured
+- [ ] 🔄 End-to-end testing completed (Windows)
+- [ ] 🔄 End-to-end testing completed (macOS)
+- [ ] 🔄 Multi-platform compatibility verified
 
 ## Notes
-- Calendar.readonly scope typically doesn't require verification for personal use
-- Verification may be required if distributing publicly or using sensitive scopes
-- Keep credentials secure and never commit real client_secret.json to version control
-- Monitor Google's OAuth policies for any changes
+- ✅ Calendar.readonly scope typically doesn't require verification for personal use
+- ✅ Real OAuth credentials now configured and ready for testing
+- ⚠️ Keep credentials secure and never commit real client_secret.json to version control
+- ⚠️ Monitor Google's OAuth policies for any changes
+- 🔄 **TESTING PHASE:** Ready for Windows and macOS testing
+
+## Testing Checklist for Cross-Platform Validation
+### Windows Testing
+- [ ] OAuth button displays correctly with Google branding
+- [ ] "Sign in with Google" flow completes successfully
+- [ ] Calendar access and data retrieval works
+- [ ] Disconnect functionality works properly
+- [ ] Error handling graceful (network issues, auth failures)
+- [ ] Privacy links open correctly in browser
+
+### macOS Testing  
+- [ ] OAuth button displays correctly with Google branding
+- [ ] "Sign in with Google" flow completes successfully
+- [ ] Calendar access and data retrieval works
+- [ ] Disconnect functionality works properly
+- [ ] Error handling graceful (network issues, auth failures)
+- [ ] Privacy links open correctly in browser
+
+### Cross-Platform Issues to Watch For
+- Font rendering differences (Google Sans fallback)
+- Icon/logo display issues
+- Browser opening behavior
+- Local server port binding (OAuth redirect)
+- Keyring/credential storage differences
+- Network connectivity edge cases
 
 ## Support Resources
 - Google OAuth 2.0 Documentation: https://developers.google.com/identity/protocols/oauth2
