@@ -17,8 +17,16 @@ logger = get_logger()
 def load_config():
     if os.path.exists(CONFIG_PATH):
         with open(CONFIG_PATH, "r") as f:
-            return json.load(f)
-    return {}
+            config = json.load(f)
+    else:
+        config = {}
+    
+    # Set sensible defaults for new configurations
+    if "DISABLE_CALENDAR_SYNC" not in config:
+        # Default to disabled since we'll support multiple calendar providers
+        config["DISABLE_CALENDAR_SYNC"] = True
+    
+    return config
 
 def save_config(config):
     with open(CONFIG_PATH, "w") as f:
