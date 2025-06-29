@@ -24,7 +24,7 @@ class CalendarSync:
         self.calendar_id = calendar_id
         # Check for client_secret.json before proceeding
         if not os.path.exists(CLIENT_SECRET_PATH):
-            logger.warning("Google client_secret.json not found. Please connect your Google account in Settings.")
+            logger.warning("Google OAuth credentials not found. Please set up OAuth in Settings.")
             self.service = None
             return
         self.service = self._get_service()
@@ -46,7 +46,7 @@ class CalendarSync:
         creds = None
         # Check for client_secret.json before proceeding
         if not os.path.exists(CLIENT_SECRET_PATH):
-            logger.warning("Google client_secret.json not found. Please connect your Google account in Settings.")
+            logger.warning("Google OAuth credentials not found. Please set up OAuth in Settings.")
             return None
         # Load token if it exists
         if os.path.exists(TOKEN_PATH):

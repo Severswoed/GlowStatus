@@ -181,16 +181,17 @@ def main():
         # Check for calendar configuration
         if not config.get("SELECTED_CALENDAR_ID"):
             missing.append("Google Calendar")
+        
+        # Note: client_secret.json is now bundled with the app
         client_secret_path = resource_path('resources/client_secret.json')
-        if not os.path.exists(client_secret_path):
-            missing.append("Google client_secret.json")
-
-        # Auto-disable calendar sync if no OAuth is configured
+        
+        # Auto-disable calendar sync if no OAuth token exists (not if client_secret is missing)
         # This prepares for future Apple/Microsoft calendar support
-        if not os.path.exists(client_secret_path) and "DISABLE_CALENDAR_SYNC" not in config:
+        token_path = resource_path('google_token.pickle')
+        if not os.path.exists(token_path) and "DISABLE_CALENDAR_SYNC" not in config:
             config["DISABLE_CALENDAR_SYNC"] = True
             save_config(config)
-            logger.info("Auto-disabled calendar sync: no OAuth configuration found")
+            logger.info("Auto-disabled calendar sync: no OAuth token found")
 
         if missing:
             tray.show()
@@ -216,6 +217,10 @@ def main():
         def show_config():
             config_window = ConfigWindow()
             config_window.setAttribute(Qt.WA_DeleteOnClose)
+            
+            # Ensure tray icon stays visible when config window opens
+            tray.show()
+            
             config_window.show()
             config_window.raise_()           # Bring window to front
             config_window.activateWindow()   # Give it focus
@@ -227,6 +232,8 @@ def main():
                 tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
                 tray.setIcon(QIcon(f"img/{tray_icon}"))
                 update_tray_tooltip()
+                # Ensure tray icon is still visible after config closes
+                tray.show()
 
             config_window.destroyed.connect(on_config_closed)
 
