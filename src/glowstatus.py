@@ -98,6 +98,19 @@ class GlowStatusController:
         govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 
         manual_status = config.get("CURRENT_STATUS")
+        manual_timestamp = config.get("MANUAL_STATUS_TIMESTAMP")
+        manual_expiry = config.get("MANUAL_STATUS_EXPIRY", 2 * 60 * 60)  # Default 2 hours
+        
+        # Check if manual override has expired
+        if manual_status and manual_timestamp:
+            import time
+            if time.time() - manual_timestamp > manual_expiry:
+                logger.info(f"Manual status '{manual_status}' expired after {manual_expiry/3600:.1f} hours")
+                manual_status = None
+                config["CURRENT_STATUS"] = None
+                config["MANUAL_STATUS_TIMESTAMP"] = None
+                save_config(config)
+        
         if DISABLE_CALENDAR_SYNC:
             if manual_status:
                 status = manual_status
@@ -108,8 +121,6 @@ class GlowStatusController:
             if manual_status == "meeting_ended_early":
                 govee.set_power("off")
                 return
-            elif manual_status:
-                status = manual_status
             else:
                 # Guard: If calendar ID or client_secret.json is missing, skip calendar sync
                 client_secret_path = resource_path('resources/client_secret.json')
@@ -117,14 +128,32 @@ class GlowStatusController:
                     logger.warning("Google Calendar ID or client_secret.json not set. Please configure in Settings.")
                     govee.set_power("off")
                     return
+                
                 calendar = CalendarSync(SELECTED_CALENDAR_ID)
-                status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
-                if (
-                    status == "available"
+                calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                
+                # Check for imminent meeting (within 1 minute) - this overrides manual status
+                imminent_meeting = (
+                    calendar_status == "available"
                     and next_event_start is not None
                     and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
-                ):
+                )
+                
+                # Check for active meeting - this also overrides manual status
+                active_meeting = calendar_status == "in_meeting"
+                
+                if active_meeting or imminent_meeting:
+                    # Calendar events take priority over manual overrides
                     status = "in_meeting"
+                    if manual_status and manual_status != "in_meeting":
+                        logger.info(f"Meeting starting - clearing manual override '{manual_status}'")
+                        config["CURRENT_STATUS"] = None
+                        config["MANUAL_STATUS_TIMESTAMP"] = None
+                        save_config(config)
+                elif manual_status:
+                    status = manual_status
+                else:
+                    status = calendar_status
 
         color_map = STATUS_COLOR_MAP or {
             "in_meeting": {"color": "255,0,0", "power_off": False},
@@ -201,20 +230,48 @@ class GlowStatusController:
             calendar = CalendarSync(SELECTED_CALENDAR_ID)
             try:
                 manual_status = config.get("CURRENT_STATUS")
+                manual_timestamp = config.get("MANUAL_STATUS_TIMESTAMP")
+                manual_expiry = config.get("MANUAL_STATUS_EXPIRY", 2 * 60 * 60)  # Default 2 hours
+                
+                # Check if manual override has expired
+                if manual_status and manual_timestamp:
+                    import time
+                    if time.time() - manual_timestamp > manual_expiry:
+                        logger.info(f"Manual status '{manual_status}' expired after {manual_expiry/3600:.1f} hours")
+                        manual_status = None
+                        config["CURRENT_STATUS"] = None
+                        config["MANUAL_STATUS_TIMESTAMP"] = None
+                        save_config(config)
+                
                 if manual_status == "meeting_ended_early":
                     govee.set_power("off")
                     self._sleep_until_next_interval(REFRESH_INTERVAL)
                     continue
-                elif manual_status:
-                    status = manual_status
                 else:
-                    status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
-                    if (
-                        status == "available"
+                    calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    
+                    # Check for imminent meeting (within 1 minute) - this overrides manual status
+                    imminent_meeting = (
+                        calendar_status == "available"
                         and next_event_start is not None
                         and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
-                    ):
+                    )
+                    
+                    # Check for active meeting - this also overrides manual status
+                    active_meeting = calendar_status == "in_meeting"
+                    
+                    if active_meeting or imminent_meeting:
+                        # Calendar events take priority over manual overrides
                         status = "in_meeting"
+                        if manual_status and manual_status != "in_meeting":
+                            logger.info(f"Meeting starting - clearing manual override '{manual_status}'")
+                            config["CURRENT_STATUS"] = None
+                            config["MANUAL_STATUS_TIMESTAMP"] = None
+                            save_config(config)
+                    elif manual_status:
+                        status = manual_status
+                    else:
+                        status = calendar_status
 
                 color_map = STATUS_COLOR_MAP or {
                     "in_meeting": {"color": "255,0,0", "power_off": False},

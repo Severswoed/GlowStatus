@@ -176,7 +176,15 @@ def main():
 
     def set_manual_status(status):
         config = load_config()
+        import time
+        
+        # Store manual status with timestamp for expiration logic
         config["CURRENT_STATUS"] = status
+        config["MANUAL_STATUS_TIMESTAMP"] = time.time()
+        
+        # Manual overrides expire after 2 hours to prevent missing meetings
+        config["MANUAL_STATUS_EXPIRY"] = 2 * 60 * 60  # 2 hours in seconds
+        
         save_config(config)
         update_tray_tooltip()
         glowstatus.update_now()
@@ -192,12 +200,23 @@ def main():
 
     def reset_state():
         config = load_config()
+        # Clear all manual override data
+        manual_cleared = False
         if "CURRENT_STATUS" in config:
             del config["CURRENT_STATUS"]
+            manual_cleared = True
+        if "MANUAL_STATUS_TIMESTAMP" in config:
+            del config["MANUAL_STATUS_TIMESTAMP"]
+            manual_cleared = True
+        if "MANUAL_STATUS_EXPIRY" in config:
+            del config["MANUAL_STATUS_EXPIRY"]
+        
+        if manual_cleared:
             save_config(config)
             update_tray_tooltip()
             glowstatus.update_now()
             update_tray_tooltip()
+            logger.info("Manual status override cleared by user")
 
     def toggle_sync():
         config = load_config()
@@ -222,39 +241,52 @@ def main():
     update_tray_tooltip()
     glowstatus.update_now()
 
-    # --- Menu Setup ---
-    menu = QMenu()
-    config_action = QAction("Open Settings")
-    manual_meeting = QAction("Set Status: In Meeting")
-    manual_focus = QAction("Set Status: Focus")
-    manual_available = QAction("Set Status: Available")
-    manual_end_meeting = QAction("End Meeting Early")
-    reset_override = QAction("Reset State")
-    sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync")
-    quit_action = QAction("Quit")
+    # --- Menu Setup (Dynamic) ---
+    def create_context_menu():
+        """Create context menu with current status displayed"""
+        config = load_config()
+        current_status = config.get("CURRENT_STATUS", "unknown")
+        
+        menu = QMenu()
+        config_action = QAction("Open Settings")
+        manual_meeting = QAction("Set Status: In Meeting")
+        manual_focus = QAction("Set Status: Focus")
+        manual_available = QAction("Set Status: Available")
+        manual_end_meeting = QAction("End Meeting Early")
+        reset_override = QAction(f"Clear Manual Override (Current: {current_status})")
+        sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync")
+        quit_action = QAction("Quit")
 
-    config_action.triggered.connect(show_config)
-    manual_meeting.triggered.connect(lambda: set_manual_status("in_meeting"))
-    manual_focus.triggered.connect(lambda: set_manual_status("focus"))
-    manual_available.triggered.connect(lambda: set_manual_status("available"))
-    manual_end_meeting.triggered.connect(set_end_meeting)
-    reset_override.triggered.connect(reset_state)
-    sync_toggle.triggered.connect(toggle_sync)
-    quit_action.triggered.connect(quit_app)
+        config_action.triggered.connect(show_config)
+        manual_meeting.triggered.connect(lambda: set_manual_status("in_meeting"))
+        manual_focus.triggered.connect(lambda: set_manual_status("focus"))
+        manual_available.triggered.connect(lambda: set_manual_status("available"))
+        manual_end_meeting.triggered.connect(set_end_meeting)
+        reset_override.triggered.connect(reset_state)
+        sync_toggle.triggered.connect(toggle_sync)
+        quit_action.triggered.connect(quit_app)
 
-    menu.addAction(config_action)
-    menu.addSeparator()
-    menu.addAction(manual_meeting)
-    menu.addAction(manual_focus)
-    menu.addAction(manual_available)
-    menu.addSeparator()
-    menu.addAction(manual_end_meeting)
-    menu.addAction(reset_override)
-    menu.addSeparator()
-    menu.addAction(sync_toggle)
-    menu.addSeparator()
-    menu.addAction(quit_action)
-    tray.setContextMenu(menu)
+        menu.addAction(config_action)
+        menu.addSeparator()
+        menu.addAction(manual_meeting)
+        menu.addAction(manual_focus)
+        menu.addAction(manual_available)
+        menu.addSeparator()
+        menu.addAction(manual_end_meeting)
+        menu.addAction(reset_override)
+        menu.addSeparator()
+        menu.addAction(sync_toggle)
+        menu.addSeparator()
+        menu.addAction(quit_action)
+        return menu
+    
+    # Update context menu dynamically when right-clicked
+    def on_tray_activated(reason):
+        if reason == QSystemTrayIcon.Context:
+            tray.setContextMenu(create_context_menu())
+    
+    tray.activated.connect(on_tray_activated)
+    tray.setContextMenu(create_context_menu())
 
     tray.show()
     sys.exit(app.exec())
