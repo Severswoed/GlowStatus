@@ -255,6 +255,24 @@ This is ideal for headless, remote, or minimal environments.
 
 ---
 
+## 🧪 Testing
+
+GlowStatus includes a comprehensive test suite that covers all major functionality including configuration management, Google Calendar integration, Govee smart light control, and application logic.
+
+```bash
+# Run all tests
+python tests/run_all_tests.py
+
+# Run comprehensive verification
+python tests/final_test_verification.py
+```
+
+✅ **Comprehensive Coverage** • ✅ **Headless Compatible** • ✅ **Mocked Dependencies** • ✅ **Bug Protection**
+
+For detailed testing documentation, test categories, and individual test instructions, see **[tests/README.md](tests/README.md)**.
+
+---
+
 ## 🎯 Future Roadmap
 
 - Slack/Teams status sync
