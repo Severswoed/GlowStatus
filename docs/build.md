@@ -38,17 +38,77 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 2. **Build the Executable:**
     ```bash
-    pyinstaller --noconfirm --windowed --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
+    pyinstaller --noconfirm --windowed --name GlowStatus --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
     ```
-    - The output will be in the `dist/` folder as a standalone `.exe`.
+    - The output will be in the `dist/GlowStatus/` folder as `GlowStatus.exe`.
+    - The `--name GlowStatus` parameter sets the executable name and output directory.
     - The icon will be used for the taskbar and window.
 
-3. **Test the Executable:**
-    - Run the `.exe` on a clean Windows machine (no Python installed).
-    - Ensure all features work and resources load correctly.
+    **Alternative - Single File Executable:**
+    ```bash
+    pyinstaller --noconfirm --windowed --onefile --name GlowStatus --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
+    ```
+    - Creates a single `GlowStatus.exe` file in `dist/` (slower startup but easier distribution).
 
-4. **(Optional) Code Signing:**
+3. **Test the Executable:**
+    - Navigate to `dist/GlowStatus/` and run `GlowStatus.exe`.
+    - Test on a clean Windows machine (no Python installed).
+    - Ensure all features work and resources load correctly.
+    - The entire `dist/GlowStatus/` folder contains all necessary files for distribution.
+
+4. **Create a Standalone Distribution:**
+    - Zip the entire `dist/GlowStatus/` folder for distribution.
+    - Or create an installer using tools like Inno Setup or NSIS.
+
+5. **(Optional) Code Signing:**
     - Sign your `.exe` with a code-signing certificate to avoid SmartScreen warnings.
+    
+    **Step 1: Obtain a Code Signing Certificate**
+    - Purchase from a Certificate Authority (CA) like Sectigo, DigiCert, or GlobalSign
+    - Or use a free certificate from Microsoft's Partner Program (if eligible)
+    - Cost: ~$100-400/year for commercial certificates
+    
+    **Step 2: Install the Certificate**
+    - Install the certificate (.p12 or .pfx file) on your Windows build machine
+    - Import it to the Windows Certificate Store (Personal > Certificates)
+    
+    **Step 3: Sign the Executable**
+    ```bash
+    # Using SignTool (comes with Windows SDK)
+    signtool sign /a /t http://timestamp.sectigo.com /d "GlowStatus" /du "https://github.com/Severswoed/GlowStatus" dist/GlowStatus/GlowStatus.exe
+    ```
+    
+    **Alternative - Using PowerShell:**
+    ```powershell
+    # If you have the certificate thumbprint
+    Set-AuthenticodeSignature -FilePath "dist/GlowStatus/GlowStatus.exe" -Certificate (Get-ChildItem Cert:\CurrentUser\My\{THUMBPRINT}) -TimestampServer "http://timestamp.sectigo.com"
+    ```
+    
+    **Step 4: Verify the Signature**
+    ```bash
+    signtool verify /pa /v dist/GlowStatus/GlowStatus.exe
+    ```
+    
+    **Alternative - Using osslsigncode (cross-platform):**
+    ```bash
+    # Install osslsigncode first: apt-get install osslsigncode
+    osslsigncode sign -certs mycert.crt -key mykey.key -t http://timestamp.sectigo.com -in dist/GlowStatus/GlowStatus.exe -out dist/GlowStatus/GlowStatus_signed.exe
+    ```
+    
+    **Automated Build Script (build_and_sign.bat):**
+    ```batch
+    @echo off
+    echo Building GlowStatus...
+    pyinstaller --noconfirm --windowed --name GlowStatus --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
+    
+    echo Signing executable...
+    signtool sign /a /t http://timestamp.sectigo.com /d "GlowStatus" /du "https://github.com/Severswoed/GlowStatus" dist/GlowStatus/GlowStatus.exe
+    
+    echo Verifying signature...
+    signtool verify /pa /v dist/GlowStatus/GlowStatus.exe
+    
+    echo Build and signing complete!
+    ```
 
 ---
 
@@ -74,9 +134,128 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
     - Open `dist/GlowStatus.app` by double-clicking.
     - Ensure all features work and resources load correctly.
 
-5. **(Optional) Notarization & Code Signing:**
-    - Sign and notarize your `.app` with Apple to avoid Gatekeeper warnings.
-    - [Apple Notarization Guide](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution)
+5. **Code Signing & Notarization:**
+    
+    **Prerequisites:**
+    - Apple Developer Account ($99/year)
+    - Xcode Command Line Tools: `xcode-select --install`
+    - Valid Developer ID Application certificate in Keychain
+    
+    **Step 1: Sign the Application**
+    ```bash
+    # Find your signing identity
+    security find-identity -v -p codesigning
+    
+    # Sign the app bundle (replace with your actual Developer ID)
+    codesign --force --verify --verbose --sign "Developer ID Application: Your Name (TEAMID)" dist/GlowStatus.app
+    
+    # Verify the signature
+    codesign --verify --verbose dist/GlowStatus.app
+    spctl --assess --verbose dist/GlowStatus.app
+    ```
+    
+    **Step 2: Create a DMG for Distribution**
+    ```bash
+    # Install create-dmg tool
+    brew install create-dmg
+    
+    # Create a DMG
+    create-dmg \
+      --volname "GlowStatus" \
+      --volicon "img/GlowStatus.icns" \
+      --window-pos 200 120 \
+      --window-size 600 300 \
+      --icon-size 100 \
+      --icon "GlowStatus.app" 175 120 \
+      --hide-extension "GlowStatus.app" \
+      --app-drop-link 425 120 \
+      "GlowStatus.dmg" \
+      "dist/"
+    ```
+    
+    **Step 3: Sign the DMG**
+    ```bash
+    codesign --force --verify --verbose --sign "Developer ID Application: Your Name (TEAMID)" GlowStatus.dmg
+    ```
+    
+    **Step 4: Notarize with Apple**
+    ```bash
+    # Create an app-specific password in Apple ID settings first
+    # Store credentials in keychain
+    xcrun notarytool store-credentials "notarytool-profile" \
+      --apple-id "your-apple-id@example.com" \
+      --team-id "TEAMID" \
+      --password "app-specific-password"
+    
+    # Submit for notarization
+    xcrun notarytool submit GlowStatus.dmg \
+      --keychain-profile "notarytool-profile" \
+      --wait
+    
+    # Staple the notarization ticket
+    xcrun stapler staple GlowStatus.dmg
+    
+    # Verify notarization
+    xcrun stapler validate GlowStatus.dmg
+    spctl --assess --type open --context context:primary-signature --verbose GlowStatus.dmg
+    ```
+    
+    **Alternative - Legacy Notarization (if needed):**
+    ```bash
+    # Upload for notarization (legacy method)
+    xcrun altool --notarize-app \
+      --primary-bundle-id "com.severswoed.glowstatus" \
+      --username "your-apple-id@example.com" \
+      --password "app-specific-password" \
+      --file GlowStatus.dmg
+    
+    # Check status (replace REQUEST-UUID with actual UUID from upload)
+    xcrun altool --notarization-info REQUEST-UUID \
+      --username "your-apple-id@example.com" \
+      --password "app-specific-password"
+    ```
+    
+    **Automated Build Script (build_and_sign_mac.sh):**
+    ```bash
+    #!/bin/bash
+    set -e
+    
+    echo "Building GlowStatus for macOS..."
+    python setup.py py2app
+    
+    echo "Signing the application..."
+    codesign --force --verify --verbose --sign "Developer ID Application: Your Name (TEAMID)" dist/GlowStatus.app
+    
+    echo "Creating DMG..."
+    create-dmg \
+      --volname "GlowStatus" \
+      --volicon "img/GlowStatus.icns" \
+      --window-pos 200 120 \
+      --window-size 600 300 \
+      --icon-size 100 \
+      --icon "GlowStatus.app" 175 120 \
+      --hide-extension "GlowStatus.app" \
+      --app-drop-link 425 120 \
+      "GlowStatus.dmg" \
+      "dist/"
+    
+    echo "Signing DMG..."
+    codesign --force --verify --verbose --sign "Developer ID Application: Your Name (TEAMID)" GlowStatus.dmg
+    
+    echo "Submitting for notarization..."
+    xcrun notarytool submit GlowStatus.dmg \
+      --keychain-profile "notarytool-profile" \
+      --wait
+    
+    echo "Stapling notarization..."
+    xcrun stapler staple GlowStatus.dmg
+    
+    echo "Verifying final DMG..."
+    spctl --assess --type open --context context:primary-signature --verbose GlowStatus.dmg
+    
+    echo "Build, signing, and notarization complete!"
+    echo "Distribution-ready DMG: GlowStatus.dmg"
+    ```
 
 ---
 
@@ -138,8 +317,45 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 - **Security warnings:**  
   Sign your executables and apps.
 
+- **Code signing errors:**
+  - Ensure certificate is properly installed in Windows Certificate Store
+  - Use `certlm.msc` to view machine certificates or `certmgr.msc` for user certificates
+  - Check certificate validity: `signtool verify /pa /v yourfile.exe`
+  - Use timestamping to prevent signature expiration issues
+  
+- **SmartScreen still shows warnings after signing:**
+  - Newly signed executables may still trigger warnings initially
+  - Microsoft builds reputation over time based on download/execution patterns
+  - Consider Extended Validation (EV) certificates for immediate reputation
+
 - **Google OAuth errors:**  
   Double-check your consent screen, scopes, and credentials.
+
+- **Missing SignTool:**
+  - Install Windows SDK or Visual Studio with Windows development tools
+  - SignTool is typically located in: `C:\Program Files (x86)\Windows Kits\10\bin\{version}\x64\signtool.exe`
+
+- **macOS Code Signing Issues:**
+  - Ensure you have a valid Developer ID Application certificate in Keychain Access
+  - Check certificate expiration: `security find-identity -v -p codesigning`
+  - If "no identity found", download certificates from Apple Developer portal
+  - Use `codesign --verify --verbose --deep YourApp.app` to debug signing issues
+
+- **macOS Notarization Failures:**
+  - Check notarization log: `xcrun notarytool log <submission-id> --keychain-profile "notarytool-profile"`
+  - Common issues: unsigned frameworks, invalid bundle IDs, missing entitlements
+  - Ensure all nested frameworks are signed: `codesign --verify --deep --verbose YourApp.app`
+  - Use `--options runtime` for hardened runtime if required
+
+- **macOS Gatekeeper Issues:**
+  - Users can temporarily bypass: Right-click app → "Open" → "Open anyway"
+  - For permanent fix: proper code signing + notarization required
+  - Test with: `spctl --assess --verbose YourApp.app`
+
+- **DMG Creation Issues:**
+  - Install create-dmg: `brew install create-dmg`
+  - Ensure proper icon formats (.icns for macOS)
+  - Check DMG signature: `codesign --verify --verbose YourFile.dmg`
 
 ---
 
