@@ -93,10 +93,21 @@ if 'py2app' in sys.argv:
         print(f"   PySide6 size check failed: {e}")
     
     try:
-        import google
-        google_path = os.path.dirname(google.__file__)
-        google_size = subprocess.check_output(['du', '-sh', google_path], text=True).split()[0]
-        print(f"   Google packages size: {google_size} at {google_path}")
+        # Try different google package imports to find what's available
+        google_found = False
+        for module in ['google.auth', 'google_auth_oauthlib', 'googleapiclient']:
+            try:
+                imported_module = __import__(module)
+                google_path = os.path.dirname(imported_module.__file__)
+                google_size = subprocess.check_output(['du', '-sh', google_path], text=True).split()[0]
+                print(f"   {module} package size: {google_size} at {google_path}")
+                google_found = True
+                break
+            except ImportError:
+                continue
+        
+        if not google_found:
+            print("   Google packages: Not found or not installed")
     except Exception as e:
         print(f"   Google packages size check failed: {e}")
     
@@ -131,11 +142,9 @@ OPTIONS = {
         'keyrings.alt', 
         'requests',
         'dateutil',
-        # Google packages (minimal)
-        'google.auth',
-        'google.oauth2',
-        'google_auth_oauthlib.flow',
-        'googleapiclient.discovery',
+        # Google packages (only if available)
+        'google_auth_oauthlib',
+        'googleapiclient',
     ],
     'includes': [
         # Core Python modules
@@ -150,9 +159,7 @@ OPTIONS = {
         'PySide6.QtGui',
         'PySide6.QtWidgets',
         'shiboken6',
-        # Google auth essentials only
-        'google.auth.credentials',
-        'google.oauth2.credentials',
+        # Google auth essentials only (if available)
         'google_auth_oauthlib.flow',
         'googleapiclient.discovery',
         # Essential dependencies
