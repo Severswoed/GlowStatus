@@ -148,22 +148,14 @@ DATA_FILES = [
 OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     
-    # Try different approaches to disable PySide6 recipe  
-    'recipe_excludes': ['pyside6'],
-    'recipe_settings': {'pyside6': False},
+    # Use only valid py2app options
+    'argv_emulation': False,
+    'site_packages': False,  # Critical: Don't include entire site-packages
+    'optimize': 2,  # Maximum bytecode optimization
+    'strip': True,  # Strip debug symbols
+    'compressed': True,  # Compress the bundle
     
-    # MANUAL CONFIGURATION - avoid automatic recipe detection
-    'packages': [],  # Empty packages to avoid auto-detection
-    'py2app': {
-        'no_chdir': True,
-    },
-    
-    # Try framework-level exclusions
-    'frameworks': [],  # Empty frameworks list
-    'strip': True,  # Aggressive stripping
-    'optimize': 2,   # Maximum optimization
-    
-    # ULTRA MINIMAL APPROACH: Only explicit includes
+    # Only include what we absolutely need
     'includes': [
         # Core Python modules only
         'threading', 'queue', 'json', 'datetime', 'tempfile', 'atexit', 'time', 'os', 'sys',
@@ -172,8 +164,6 @@ OPTIONS = {
         'PySide6.QtCore',
         'PySide6.QtGui', 
         'PySide6.QtWidgets',
-        
-        # Essential shiboken6 for PySide6
         'shiboken6',
         
         # Only essential dependencies
@@ -183,6 +173,16 @@ OPTIONS = {
         # Google packages (minimal)
         'google_auth_oauthlib.flow',
         'googleapiclient.discovery',
+    ],
+    
+    # Only include essential packages
+    'packages': [
+        'keyring',
+        'requests', 
+        'urllib3',
+        'certifi',
+        'google_auth_oauthlib',
+        'googleapiclient',
     ],
     
     # ULTRA AGGRESSIVE EXCLUSIONS: Everything we don't need  
@@ -264,24 +264,6 @@ OPTIONS = {
         # FFmpeg and multimedia codecs (these are HUGE)
         'libavcodec', 'libavformat', 'libavutil', 'libswscale', 'libswresample',
     ],
-    
-    # Don't include packages that aren't explicitly needed
-    'packages': [
-        # Only the exact modules we import
-        'keyring',
-        'requests', 
-        'urllib3',
-        'certifi',
-        'google_auth_oauthlib',
-        'googleapiclient',
-    ],
-    
-    'resources': DATA_FILES,
-    'argv_emulation': False,
-    'site_packages': False,  # Critical: Don't include entire site-packages
-    'optimize': 2,  # Maximum bytecode optimization
-    'strip': True,  # Strip debug symbols
-    'compressed': True,  # Compress the bundle
     
     'plist': {
         'CFBundleName': 'GlowStatus',
