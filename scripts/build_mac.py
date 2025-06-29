@@ -52,9 +52,6 @@ OPTIONS = {
     'compressed': True,  # Compress the bundle
     'no_chdir': True,  # Don't change working directory
     
-    # DISABLE AUTOMATIC RECIPES - This is the key to avoiding bloat!
-    'recipe': {},  # Empty dict disables automatic recipes including PySide6
-    
     # Only include what we absolutely need
     'includes': [
         # Core Python modules only
@@ -199,7 +196,7 @@ if 'py2app' in sys.argv:
     print("   - QtQuick/QML (~50MB modern UI)")
     print("   - All style implementations (~20MB)")
     print()
-    print("🔧 Key optimization: 'recipe': {} disables automatic PySide6 recipe!")
+    print("🔧 Key optimization: Aggressive excludes + minimal includes to override PySide6 recipe!")
     print()
 
 setup(
