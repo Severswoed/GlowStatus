@@ -21,15 +21,23 @@ if 'py2app' in sys.argv:
     print("✅ Ready to build!")
     print()
 
-APP = ['../src/tray_app.py']
+# Get the project root directory (parent of scripts directory)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Change to project root directory for the build process
+original_cwd = os.getcwd()
+os.chdir(PROJECT_ROOT)
+print(f"📁 Changed working directory to: {PROJECT_ROOT}")
+
+APP = ['src/tray_app.py']
 DATA_FILES = [
-    ('img', glob.glob('../img/*')),  # Bundle all files in img/
-    ('config', glob.glob('../config/*')),
-    ('resources', ['../resources/client_secret.json']),
+    ('img', glob.glob('img/*')),
+    ('config', glob.glob('config/*')),
+    ('resources', ['resources/client_secret.json']),
     # Add other needed data files/folders here
 ]
 OPTIONS = {
-    'iconfile': '../img/GlowStatus.icns',
+    'iconfile': 'img/GlowStatus.icns',
     'packages': [
         'PySide6',
         'keyring',
@@ -105,3 +113,6 @@ setup(
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
 )
+
+# Restore original working directory
+os.chdir(original_cwd)
