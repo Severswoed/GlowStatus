@@ -13,6 +13,8 @@ OPTIONS = {
     'packages': [
         'PySide6',
         'PySide6.QtCore',
+        'PySide6.QtGui', 
+        'PySide6.QtWidgets',
         'google_auth_oauthlib',
         'googleapiclient',
         'keyring',
@@ -21,7 +23,16 @@ OPTIONS = {
     'includes': [
         'threading',
         'queue',
+        'PySide6.QtCore',
+        'PySide6.QtGui',
+        'PySide6.QtWidgets',
     ],
+    'excludes': [
+        'tkinter',
+        'PyQt5',
+        'PyQt6',
+    ],
+    'strip_debug_info': False,
     'resources': DATA_FILES,
     'plist': {
         'CFBundleName': 'GlowStatus',
