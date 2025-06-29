@@ -131,10 +131,8 @@ class GlowStatusController:
         seconds_into_minute = now.second + now.microsecond / 1_000_000
         seconds_until_next_minute = 60 - seconds_into_minute
         
-        if seconds_until_next_minute < 1:
-            # If we're very close to the boundary, wait until the next one
-            seconds_until_next_minute += 60
-            
+        # Always sync to the next minute boundary, even if it's very soon
+        # This ensures we start polling at exactly :00 seconds
         logger.info(f"Syncing to minute boundary: waiting {seconds_until_next_minute:.2f} seconds")
         time.sleep(seconds_until_next_minute)
 

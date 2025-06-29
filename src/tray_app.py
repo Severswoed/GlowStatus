@@ -89,11 +89,12 @@ def main():
     app.setQuitOnLastWindowClosed(False)
 
     # Set the application icon for the taskbar/dock
-    icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../img/GlowStatus_tray_tp_tight.png"))
+    icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
     app.setWindowIcon(QIcon(icon_path))
 
     tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-    tray = QSystemTrayIcon(QIcon(f"img/{tray_icon}"), parent=app)
+    tray_icon_path = resource_path(f"img/{tray_icon}")
+    tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)
 
     # --- Show tooltip if setup is incomplete ---
     missing = []
