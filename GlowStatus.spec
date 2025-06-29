@@ -4,7 +4,7 @@ a = Analysis(
     ['src/tray_app.py'],
     pathex=[],
     binaries=[],
-    datas=[('img', 'img'), ('config', 'config')],
+    datas=[('img', 'img'), ('config', 'config'), ('resources', 'resources')],
     hiddenimports=[
         'PySide6.QtCore',
         'PySide6.QtGui', 

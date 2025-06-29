@@ -67,7 +67,9 @@ govee_temp.json
 auth_token.txt
 google_service_account.json
 *.pickle
-client_secret.json
+# Ignore user-specific OAuth files but not the bundled template
+# resources/client_secret.json  # This line commented out to include bundled version
+google_token.pickle
 
 # Optional
 *.bak
