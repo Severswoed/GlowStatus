@@ -68,7 +68,6 @@ auth_token.txt
 google_service_account.json
 *.pickle
 client_secret.json
-*.spec
 
 # Optional
 *.bak
