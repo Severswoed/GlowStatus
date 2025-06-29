@@ -108,6 +108,13 @@ def main():
     if not os.path.exists(client_secret_path):
         missing.append("Google client_secret.json")
 
+    # Auto-disable calendar sync if no OAuth is configured
+    # This prepares for future Apple/Microsoft calendar support
+    if not os.path.exists(client_secret_path) and "DISABLE_CALENDAR_SYNC" not in config:
+        config["DISABLE_CALENDAR_SYNC"] = True
+        save_config(config)
+        logger.info("Auto-disabled calendar sync: no OAuth configuration found")
+
     if missing:
         tray.show()
         tray.showMessage(

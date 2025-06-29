@@ -4,7 +4,7 @@
   "TRAY_ICON": "GlowStatus_tray_tp_tight.png",
   "SELECTED_CALENDAR_ID": "severswoed@gmail.com",
   "REFRESH_INTERVAL": 60,
-  "DISABLE_CALENDAR_SYNC": false,
+  "DISABLE_CALENDAR_SYNC": true,
   "POWER_OFF_WHEN_AVAILABLE": true,
   "OFF_FOR_UNKNOWN_STATUS": true,
   "STATUS_COLOR_MAP": {
