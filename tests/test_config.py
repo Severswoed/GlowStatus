@@ -6,7 +6,7 @@ import json
 import sys
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, 'src')
 
 # Import only what we need from config_ui
 def load_config_simple():
@@ -23,12 +23,12 @@ def load_config_simple():
         USER_CONFIG_DIR = os.path.expanduser('~/GlowStatus')
     else:
         # Development mode - use project directory
-        USER_CONFIG_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        USER_CONFIG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     CONFIG_PATH = os.path.join(USER_CONFIG_DIR, 'glowstatus_config.json')
     
     # For development, also check the actual file in the project root
-    project_config = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'glowstatus_config.json')
+    project_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'glowstatus_config.json')
     if os.path.exists(project_config):
         CONFIG_PATH = project_config
     

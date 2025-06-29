@@ -4,8 +4,8 @@
 import sys
 import os
 
-# Add the scripts directory to Python path to access build_helpers.py
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'scripts'))
+# Add the current directory to Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import the functions from build_helpers.py
 from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages
