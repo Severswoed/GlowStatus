@@ -118,10 +118,26 @@ def aggressive_pyside6_cleanup(app_path):
     Ultra-aggressive cleanup of PySide6 bloat that py2app insists on including.
     Remove entire plugin directories and unused Qt components.
     """
-    pyside6_path = os.path.join(app_path, 'Contents', 'Resources', 'lib', 'python3.9', 'PySide6')
-    if not os.path.exists(pyside6_path):
-        print("📁 No PySide6 directory found in app bundle")
+    # Find the actual Python version directory
+    resources_lib_path = os.path.join(app_path, 'Contents', 'Resources', 'lib')
+    if not os.path.exists(resources_lib_path):
+        print("📁 No Resources/lib directory found in app bundle")
         return False
+    
+    # Find Python version directory (python3.9, python3.12, etc.)
+    python_dirs = [d for d in os.listdir(resources_lib_path) if d.startswith('python3.')]
+    if not python_dirs:
+        print("📁 No python3.x directory found in Resources/lib")
+        return False
+    
+    python_version_dir = python_dirs[0]  # Use the first (and likely only) Python directory
+    pyside6_path = os.path.join(resources_lib_path, python_version_dir, 'PySide6')
+    
+    if not os.path.exists(pyside6_path):
+        print(f"📁 No PySide6 directory found in {python_version_dir}")
+        return False
+    
+    print(f"🔍 Found PySide6 at: {pyside6_path}")
     
     # Directories to completely remove
     bloat_directories = [
@@ -484,9 +500,17 @@ if 'py2app' in sys.argv:
             # Analyze what's included before cleanup
             analyze_qt_frameworks(app_path)
             
-            # FIRST: Aggressive PySide6 directory cleanup
+            # ALWAYS run aggressive PySide6 directory cleanup first
             print("🧹 Performing aggressive PySide6 plugin/bloat cleanup...")
             pyside6_cleanup_success = aggressive_pyside6_cleanup(app_path)
+            
+            # Recalculate size after PySide6 cleanup
+            if pyside6_cleanup_success:
+                result = subprocess.run(['du', '-sh', app_path], capture_output=True, text=True, check=True)
+                new_size_output = result.stdout.strip()
+                new_size_value = new_size_output.split('\t')[0]
+                print(f"📊 Size after PySide6 cleanup: {new_size_value}")
+                size_value = new_size_value
             
             # Check if we need manual framework cleanup
             cleanup_success = False
