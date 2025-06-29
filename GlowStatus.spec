@@ -38,11 +38,11 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name='GlowStatus',
-    debug=True,
+    debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowing_subsystem=False,
     icon='img/GlowStatus.ico',
 )
