@@ -40,9 +40,78 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
     ```bash
     pyinstaller --noconfirm --windowed --name GlowStatus --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
     ```
-    - The output will be in the `dist/GlowStatus/` folder as `GlowStatus.exe`.
+    - The output should be in the `dist/GlowStatus/` folder as `GlowStatus.exe`.
     - The `--name GlowStatus` parameter sets the executable name and output directory.
     - The icon will be used for the taskbar and window.
+
+    **If the above doesn't work (still creates `dist/tray_app/`), try these alternatives:**
+
+    **Method 1 - Clean build with explicit spec file:**
+    ```bash
+    # Clean any previous builds
+    rm -rf build/ dist/ *.spec
+    
+    # Generate a spec file first
+    pyi-makespec --windowed --name GlowStatus --icon=img/GlowStatus.ico src/tray_app.py
+    
+    # Edit GlowStatus.spec to add data files, then build
+    pyinstaller GlowStatus.spec
+    ```
+
+    **Method 2 - Manual rename after build:**
+    ```bash
+    pyinstaller --noconfirm --windowed --icon=img/GlowStatus.ico --add-data "img;img" --add-data "resources;resources" src/tray_app.py
+    
+    # Rename the output directory and executable
+    mv dist/tray_app dist/GlowStatus
+    mv dist/GlowStatus/tray_app.exe dist/GlowStatus/GlowStatus.exe
+    ```
+
+    **Method 3 - Use a custom spec file:**
+    Create `GlowStatus.spec`:
+    ```python
+    # -*- mode: python ; coding: utf-8 -*-
+
+    a = Analysis(
+        ['src/tray_app.py'],
+        pathex=[],
+        binaries=[],
+        datas=[('img', 'img'), ('resources', 'resources')],
+        hiddenimports=[],
+        hookspath=[],
+        hooksconfig={},
+        runtime_hooks=[],
+        excludes=[],
+        noarchive=False,
+    )
+    pyz = PYZ(a.pure)
+
+    exe = EXE(
+        pyz,
+        a.scripts,
+        [],
+        exclude_binaries=True,
+        name='GlowStatus',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=False,
+        upx=True,
+        console=False,
+        disable_windowing_subsystem=False,
+        icon='img/GlowStatus.ico',
+    )
+    coll = COLLECT(
+        exe,
+        a.binaries,
+        a.zipfiles,
+        a.datas,
+        strip=False,
+        upx=True,
+        upx_exclude=[],
+        name='GlowStatus',
+    )
+    ```
+    Then run: `pyinstaller GlowStatus.spec`
 
     **Alternative - Single File Executable:**
     ```bash
@@ -330,6 +399,13 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 - **Google OAuth errors:**  
   Double-check your consent screen, scopes, and credentials.
+
+- **PyInstaller --name parameter not working:**
+  - Try cleaning build cache: `rm -rf build/ dist/ __pycache__/ *.spec`
+  - Use `pyi-makespec` to generate spec file first, then edit and build
+  - Check PyInstaller version: `pyinstaller --version` (should be 5.0+)
+  - Try using forward slashes in paths even on Windows
+  - As workaround: build normally then rename `dist/tray_app` to `dist/GlowStatus`
 
 - **Missing SignTool:**
   - Install Windows SDK or Visual Studio with Windows development tools
