@@ -11,13 +11,48 @@ from PySide6.QtGui import QIcon
 from logger import get_logger
 from utils import resource_path
 
-CONFIG_PATH = resource_path('config/glowstatus_config.json')
+# Separate paths for template config (read-only) and user config (writable)
+TEMPLATE_CONFIG_PATH = resource_path('config/glowstatus_config.json')
+
+# User config goes to a writable location
+import os
+import sys
+if hasattr(sys, '_MEIPASS'):
+    # PyInstaller bundle - use user's app data directory
+    if os.name == 'nt':  # Windows
+        USER_CONFIG_DIR = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'GlowStatus')
+    else:  # macOS/Linux
+        USER_CONFIG_DIR = os.path.expanduser('~/.config/GlowStatus')
+elif getattr(sys, 'frozen', False):
+    # Other bundle formats
+    USER_CONFIG_DIR = os.path.expanduser('~/GlowStatus')
+else:
+    # Development mode - use project directory
+    USER_CONFIG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Ensure config directory exists
+os.makedirs(USER_CONFIG_DIR, exist_ok=True)
+CONFIG_PATH = os.path.join(USER_CONFIG_DIR, 'glowstatus_config.json')
+
 logger = get_logger()
 
 def load_config():
+    # If user config doesn't exist, copy from template
+    if not os.path.exists(CONFIG_PATH) and os.path.exists(TEMPLATE_CONFIG_PATH):
+        try:
+            import shutil
+            shutil.copy2(TEMPLATE_CONFIG_PATH, CONFIG_PATH)
+            logger.info(f"Created user config from template: {CONFIG_PATH}")
+        except Exception as e:
+            logger.warning(f"Could not copy template config: {e}")
+    
     if os.path.exists(CONFIG_PATH):
-        with open(CONFIG_PATH, "r") as f:
-            config = json.load(f)
+        try:
+            with open(CONFIG_PATH, "r") as f:
+                config = json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading config file: {e}")
+            config = {}
     else:
         config = {}
     
@@ -33,8 +68,23 @@ def load_config():
     return config
 
 def save_config(config):
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(config, f, indent=2)
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        with open(CONFIG_PATH, "w") as f:
+            json.dump(config, f, indent=2)
+        logger.info(f"Config saved to: {CONFIG_PATH}")
+    except Exception as e:
+        logger.error(f"Error saving config to {CONFIG_PATH}: {e}")
+        # Try fallback location
+        fallback_path = os.path.join(os.path.expanduser('~'), 'glowstatus_config.json')
+        try:
+            with open(fallback_path, "w") as f:
+                json.dump(config, f, indent=2)
+            logger.info(f"Config saved to fallback location: {fallback_path}")
+        except Exception as fallback_error:
+            logger.error(f"Failed to save config to fallback location: {fallback_error}")
+            raise
 
 class ConfigWindow(QWidget):
     def __init__(self):
