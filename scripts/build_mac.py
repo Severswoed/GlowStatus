@@ -76,6 +76,22 @@ def setup_build_logging():
 if 'py2app' in sys.argv:
     log_file = setup_build_logging()
     
+    print("🚫 DISABLING PySide6 auto-recipe to prevent massive bloat!")
+    print("📦 Only including essential PySide6 components:")
+    print("   - PySide6.QtCore (core functionality)")
+    print("   - PySide6.QtGui (GUI basics)")  
+    print("   - PySide6.QtWidgets (widgets for tray)")
+    print("   - shiboken6 (Python-Qt bridge)")
+    print()
+    print("🔥 EXCLUDING massive components:")
+    print("   - QtWebEngine (~200MB web browser)")
+    print("   - Qt3D (~50MB 3D graphics)")
+    print("   - QtMultimedia + FFmpeg (~100MB codecs)")
+    print("   - QtCharts/Graphs (~30MB charting)")
+    print("   - QtQuick/QML (~50MB modern UI)")
+    print("   - All style implementations (~20MB)")
+    print()
+    
     # Print diagnostic information
     print("🔍 Build configuration analysis:")
     print(f"   Python version: {sys.version}")
@@ -132,7 +148,22 @@ DATA_FILES = [
 OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     
-    # MINIMAL APPROACH: Only include what we absolutely need
+    # Try different approaches to disable PySide6 recipe  
+    'recipe_excludes': ['pyside6'],
+    'recipe_settings': {'pyside6': False},
+    
+    # MANUAL CONFIGURATION - avoid automatic recipe detection
+    'packages': [],  # Empty packages to avoid auto-detection
+    'py2app': {
+        'no_chdir': True,
+    },
+    
+    # Try framework-level exclusions
+    'frameworks': [],  # Empty frameworks list
+    'strip': True,  # Aggressive stripping
+    'optimize': 2,   # Maximum optimization
+    
+    # ULTRA MINIMAL APPROACH: Only explicit includes
     'includes': [
         # Core Python modules only
         'threading', 'queue', 'json', 'datetime', 'tempfile', 'atexit', 'time', 'os', 'sys',
@@ -141,6 +172,9 @@ OPTIONS = {
         'PySide6.QtCore',
         'PySide6.QtGui', 
         'PySide6.QtWidgets',
+        
+        # Essential shiboken6 for PySide6
+        'shiboken6',
         
         # Only essential dependencies
         'requests', 'urllib3', 'certifi',
@@ -151,7 +185,7 @@ OPTIONS = {
         'googleapiclient.discovery',
     ],
     
-    # AGGRESSIVE EXCLUSIONS: Everything we don't need
+    # ULTRA AGGRESSIVE EXCLUSIONS: Everything we don't need  
     'excludes': [
         # Remove all other PySide6 modules - we only need Core, Gui, Widgets
         'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
@@ -232,7 +266,15 @@ OPTIONS = {
     ],
     
     # Don't include packages that aren't explicitly needed
-    'packages': [],
+    'packages': [
+        # Only the exact modules we import
+        'keyring',
+        'requests', 
+        'urllib3',
+        'certifi',
+        'google_auth_oauthlib',
+        'googleapiclient',
+    ],
     
     'resources': DATA_FILES,
     'argv_emulation': False,
