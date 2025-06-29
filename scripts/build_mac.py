@@ -21,8 +21,7 @@ from build_helpers import check_and_install_requirements, verify_critical_module
 
 def create_minimal_pyside6_recipe():
     """
-    Remove py2app's PySide6 recipe entirely to prevent auto-inclusion of all Qt modules.
-    This is more reliable than trying to override it.
+    Remove py2app's PySide6 recipe entirely and fix __init__.py import to prevent auto-inclusion of all Qt modules.
     """
     # Find py2app's recipe directory
     import py2app
@@ -34,24 +33,53 @@ def create_minimal_pyside6_recipe():
         return False
     
     pyside6_recipe_path = os.path.join(recipes_dir, 'pyside6.py')
+    init_py_path = os.path.join(recipes_dir, '__init__.py')
     
-    # Backup original recipe if it exists
+    # Backup and remove original recipe if it exists
     if os.path.exists(pyside6_recipe_path):
         backup_path = pyside6_recipe_path + '.original_backup'
         if not os.path.exists(backup_path):
             shutil.copy2(pyside6_recipe_path, backup_path)
             print(f"📋 Backed up original PySide6 recipe to: {backup_path}")
         
-        # Remove the recipe entirely - this prevents py2app from auto-including Qt modules
+        # Remove the recipe entirely
         try:
             os.remove(pyside6_recipe_path)
             print(f"🗑️  Removed PySide6 recipe entirely to prevent auto-bloat")
-            return True
         except Exception as e:
             print(f"❌ Failed to remove PySide6 recipe: {e}")
             return False
+    
+    # Fix __init__.py to not import pyside6
+    if os.path.exists(init_py_path):
+        init_backup_path = init_py_path + '.original_backup'
+        try:
+            # Backup original __init__.py if not already backed up
+            if not os.path.exists(init_backup_path):
+                shutil.copy2(init_py_path, init_backup_path)
+                print(f"📋 Backed up original recipes/__init__.py")
+            
+            # Read and modify __init__.py to comment out pyside6 import
+            with open(init_py_path, 'r') as f:
+                content = f.read()
+            
+            # Comment out the pyside6 import line
+            modified_content = content.replace(
+                'from . import pyside6  # noqa: F401',
+                '# from . import pyside6  # noqa: F401  # DISABLED by build_mac.py'
+            )
+            
+            with open(init_py_path, 'w') as f:
+                f.write(modified_content)
+            
+            print(f"🔧 Modified recipes/__init__.py to disable pyside6 import")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to modify recipes/__init__.py: {e}")
+            return False
     else:
-        print("📝 No PySide6 recipe found - nothing to remove")
+        print("📝 No recipes/__init__.py found")
         return True
 
 def analyze_qt_frameworks(app_path):
@@ -136,11 +164,12 @@ def manual_qt_cleanup(app_path):
         return False
 
 def restore_original_pyside6_recipe():
-    """Restore the original PySide6 recipe after build"""
+    """Restore the original PySide6 recipe and __init__.py after build"""
     import py2app
     py2app_path = os.path.dirname(py2app.__file__)
     recipes_dir = os.path.join(py2app_path, 'recipes')
     
+    # Restore pyside6.py
     pyside6_recipe_path = os.path.join(recipes_dir, 'pyside6.py')
     backup_path = pyside6_recipe_path + '.original_backup'
     
@@ -150,8 +179,20 @@ def restore_original_pyside6_recipe():
             print(f"🔄 Restored original PySide6 recipe from backup")
         except Exception as e:
             print(f"⚠️  Could not restore original recipe: {e}")
-    else:
-        print("� No backup found - PySide6 recipe will remain removed")
+    
+    # Restore __init__.py
+    init_py_path = os.path.join(recipes_dir, '__init__.py')
+    init_backup_path = init_py_path + '.original_backup'
+    
+    if os.path.exists(init_backup_path):
+        try:
+            shutil.copy2(init_backup_path, init_py_path)
+            print(f"🔄 Restored original recipes/__init__.py from backup")
+        except Exception as e:
+            print(f"⚠️  Could not restore original __init__.py: {e}")
+    
+    if not os.path.exists(backup_path) and not os.path.exists(init_backup_path):
+        print("📝 No backups found - files will remain modified")
 
 # Check requirements before building
 if 'py2app' in sys.argv:
@@ -344,7 +385,7 @@ if 'py2app' in sys.argv:
     print("   - QtQuick/QML (~50MB modern UI)")
     print("   - All style implementations (~20MB)")
     print()
-    print("🔧 Key optimization: Recipe removal + aggressive excludes!")
+    print("🔧 Key optimization: Recipe removal + __init__.py fix + aggressive excludes!")
     print()
 
 setup(
@@ -380,6 +421,7 @@ if 'py2app' in sys.argv:
             analyze_qt_frameworks(app_path)
             
             # Check if we need manual cleanup
+            cleanup_success = False
             needs_cleanup = False
             if 'G' in size_value:
                 size_gb = float(size_value.replace('G', ''))
@@ -422,8 +464,10 @@ if 'py2app' in sys.argv:
                 
         except subprocess.CalledProcessError as e:
             print(f"❌ Could not calculate app size: {e}")
+            size_value = "unknown"
     else:
         print(f"❌ App bundle not found at: {app_path}")
+        size_value = "unknown"
     
     # Save build log for analysis
     try:
@@ -438,7 +482,7 @@ if 'py2app' in sys.argv:
             f.write(f"Final app bundle size: {size_value}\n")
             f.write(f"App path: {app_path}\n")
             f.write(f"Recipe override used: {recipe_success}\n")
-            f.write(f"Manual cleanup performed: {cleanup_success if 'cleanup_success' in locals() else False}\n")
+            f.write(f"Manual cleanup performed: {cleanup_success}\n")
             f.write("\nBuild completed successfully.\n")
         
         print(f"📝 Build log saved to: {log_file}")
@@ -446,3 +490,4 @@ if 'py2app' in sys.argv:
         print(f"⚠️  Could not save build log: {e}")
     
     print()
+    print("💡 Recipe removal + __init__.py fix should eliminate PySide6 bloat!")
