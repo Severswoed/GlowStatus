@@ -224,18 +224,15 @@ def main():
                 app.config_window.activateWindow()
                 return
             
+            # Force tray icon to be visible before opening config
+            tray.show()
+            logger.debug("Ensured tray icon visible before opening config")
+            
             config_window = ConfigWindow()
             config_window.setAttribute(Qt.WA_DeleteOnClose)
             
             # Store reference to prevent garbage collection
             app.config_window = config_window
-            
-            # Ensure tray icon stays visible when config window opens
-            if tray.isVisible():
-                logger.debug("Tray icon is visible before opening config")
-            else:
-                logger.warning("Tray icon not visible before opening config, showing it")
-                tray.show()
             
             config_window.show()
             config_window.raise_()           # Bring window to front
@@ -246,15 +243,20 @@ def main():
                 # Reload config and update tray icon
                 config = load_config()
                 tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-                tray.setIcon(QIcon(f"img/{tray_icon}"))
+                tray_icon_path = resource_path(f"img/{tray_icon}")
+                
+                # Ensure the icon path exists before setting
+                if os.path.exists(tray_icon_path):
+                    tray.setIcon(QIcon(tray_icon_path))
+                    logger.debug(f"Updated tray icon to: {tray_icon_path}")
+                else:
+                    logger.warning(f"Icon not found after config close: {tray_icon_path}")
+                
                 update_tray_tooltip()
                 
-                # Ensure tray icon is still visible after config closes
-                if not tray.isVisible():
-                    logger.warning("Tray icon disappeared after config close, restoring")
-                    tray.show()
-                else:
-                    logger.debug("Tray icon still visible after config close")
+                # Force tray icon to be visible after config closes
+                tray.show()
+                logger.debug("Forced tray icon to show after config close")
                 
                 # Clear the reference
                 app.config_window = None
@@ -348,7 +350,7 @@ def main():
             manual_focus = QAction("Set Status: Focus", menu)
             manual_available = QAction("Set Status: Available", menu)
             manual_end_meeting = QAction("End Meeting Early", menu)
-            reset_override = QAction(f"Clear Manual Override (Current: {current_status})", menu)
+            reset_override = QAction(f"Reset status: {current_status}", menu)
             sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync", menu)
             quit_action = QAction("Quit", menu)
 
