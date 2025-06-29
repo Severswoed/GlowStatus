@@ -57,8 +57,20 @@ class CalendarSync:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
-                creds = flow.run_local_server(port=0)
+                try:
+                    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
+                    # Configure for better macOS app bundle compatibility
+                    creds = flow.run_local_server(port=0, open_browser=True, host='localhost')
+                except Exception as oauth_error:
+                    logger.error(f"OAuth local server failed: {oauth_error}")
+                    # Fallback: try without opening browser (user must manually visit URL)
+                    try:
+                        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
+                        creds = flow.run_console()
+                        logger.info("OAuth fallback: Using console-based authentication")
+                    except Exception as console_error:
+                        logger.error(f"OAuth console fallback failed: {console_error}")
+                        return None
             # Save the credentials for next run
             with open(TOKEN_PATH, "wb") as token:
                 pickle.dump(creds, token)
