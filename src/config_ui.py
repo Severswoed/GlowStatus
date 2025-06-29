@@ -337,8 +337,10 @@ class ConfigWindow(QWidget):
         if not client_secret_exists:
             self.oauth_status_label.setText("⚠ OAuth credentials not found")
             self.oauth_status_label.setStyleSheet("color: red;")
-            self.oauth_btn.setEnabled(False)
-            self.disconnect_btn.setEnabled(False)
+            if hasattr(self, 'oauth_btn'):
+                self.oauth_btn.setEnabled(False)
+            if hasattr(self, 'disconnect_btn'):
+                self.disconnect_btn.setEnabled(False)
             return
         
         if token_exists:
@@ -349,29 +351,39 @@ class ConfigWindow(QWidget):
                 if creds and creds.valid:
                     self.oauth_status_label.setText("✓ Connected and authenticated")
                     self.oauth_status_label.setStyleSheet("color: green;")
-                    self.oauth_btn.setText("Reconnect Google Account")
-                    self.disconnect_btn.setEnabled(True)
+                    if hasattr(self, 'oauth_btn'):
+                        self.oauth_btn.setText("Reconnect Google Account")
+                    if hasattr(self, 'disconnect_btn'):
+                        self.disconnect_btn.setEnabled(True)
                 elif creds and creds.expired and creds.refresh_token:
                     self.oauth_status_label.setText("⚠ Token expired (will auto-refresh)")
                     self.oauth_status_label.setStyleSheet("color: orange;")
-                    self.oauth_btn.setText("Reconnect Google Account")
-                    self.disconnect_btn.setEnabled(True)
+                    if hasattr(self, 'oauth_btn'):
+                        self.oauth_btn.setText("Reconnect Google Account")
+                    if hasattr(self, 'disconnect_btn'):
+                        self.disconnect_btn.setEnabled(True)
                 else:
                     self.oauth_status_label.setText("⚠ Authentication required")
                     self.oauth_status_label.setStyleSheet("color: orange;")
-                    self.oauth_btn.setText("Connect Google Account")
-                    self.disconnect_btn.setEnabled(False)
+                    if hasattr(self, 'oauth_btn'):
+                        self.oauth_btn.setText("Connect Google Account")
+                    if hasattr(self, 'disconnect_btn'):
+                        self.disconnect_btn.setEnabled(False)
             except Exception:
                 self.oauth_status_label.setText("⚠ Authentication required")
                 self.oauth_status_label.setStyleSheet("color: orange;")
-                self.oauth_btn.setText("Connect Google Account")
-                self.disconnect_btn.setEnabled(False)
+                if hasattr(self, 'oauth_btn'):
+                    self.oauth_btn.setText("Connect Google Account")
+                if hasattr(self, 'disconnect_btn'):
+                    self.disconnect_btn.setEnabled(False)
         else:
             self.oauth_status_label.setText("⚠ Not authenticated")
             self.oauth_status_label.setStyleSheet("color: orange;")
-            self.oauth_btn.setText("Connect Google Account")
-            self.oauth_btn.setEnabled(True)
-            self.disconnect_btn.setEnabled(False)
+            if hasattr(self, 'oauth_btn'):
+                self.oauth_btn.setText("Connect Google Account")
+                self.oauth_btn.setEnabled(True)
+            if hasattr(self, 'disconnect_btn'):
+                self.disconnect_btn.setEnabled(False)
 
     def disconnect_oauth(self):
         """Disconnect Google OAuth by removing stored tokens."""
