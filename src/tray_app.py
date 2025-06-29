@@ -3,7 +3,38 @@ import os
 import tempfile
 import atexit
 from PySide6.QtWidgets import (
-    QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
+    QApplication, QSystemTrayIcon, QMenu, QMessageBox,    # Create the tray icon
+    print(f"ICON DEBUG: Creating QSystemTrayIcon...")
+    if isinstance(tray_icon_path, str):
+        qicon = QIcon(tray_icon_path)
+        print(f"ICON DEBUG: QIcon created from path: {tray_icon_path}")
+        print(f"ICON DEBUG: QIcon valid: {not qicon.isNull()}")
+        if not qicon.isNull():
+            sizes = qicon.availableSizes()
+            print(f"ICON DEBUG: Available icon sizes: {sizes}")
+        tray = QSystemTrayIcon(qicon, parent=app)
+    else:
+        print(f"ICON DEBUG: Using QPixmap fallback")
+        tray = QSystemTrayIcon(QIcon(tray_icon_path), parent=app)  # pixmap fallback
+    
+    print(f"ICON DEBUG: QSystemTrayIcon created")
+    logger.info(f"System tray icon initialized with: {tray_icon_path}")
+    
+    # Check if system tray is available
+    if not QSystemTrayIcon.isSystemTrayAvailable():
+        print("ERROR: System tray is not available!")
+        QMessageBox.critical(None, "System Tray", "System tray is not available on this system.")
+        sys.exit(1)
+    else:
+        print("ICON DEBUG: System tray is available")
+    
+    # Ensure the tray icon is visible
+    if not tray.icon().isNull():
+        print("ICON DEBUG: Tray icon successfully loaded")
+        logger.info("Tray icon successfully loaded")
+    else:
+        print("ERROR: Tray icon failed to load - icon is null")
+        logger.error("Tray icon failed to load - icon is null")out, QLabel, QComboBox, QPushButton
 )
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt
@@ -66,27 +97,33 @@ def cleanup_lock_file():
         lock_file_handle = None
 
 def main():
-    # --- Single Instance Check ---
-    if not check_single_instance():
-        # Another instance is already running
-        print("GlowStatus is already running. Only one instance is allowed.")
-        # Try to show a message box if possible
-        try:
-            temp_app = QApplication(sys.argv)
-            QMessageBox.warning(
-                None, 
-                "GlowStatus Already Running", 
-                "GlowStatus is already running.\nOnly one instance is allowed at a time."
-            )
-            temp_app.quit()
-        except:
-            pass  # If GUI can't be created, just exit silently
-        sys.exit(1)
-    
-    # --- App Setup ---
-    config = load_config()
-    app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
+    try:
+        # --- Single Instance Check ---
+        if not check_single_instance():
+            # Another instance is already running
+            print("GlowStatus is already running. Only one instance is allowed.")
+            # Try to show a message box if possible
+            try:
+                temp_app = QApplication(sys.argv)
+                QMessageBox.warning(
+                    None, 
+                    "GlowStatus Already Running", 
+                    "GlowStatus is already running.\nOnly one instance is allowed at a time."
+                )
+                temp_app.quit()
+            except:
+                pass  # If GUI can't be created, just exit silently
+            sys.exit(1)
+        
+        print("Starting GlowStatus...")
+        
+        # --- App Setup ---
+        config = load_config()
+        print("Config loaded successfully")
+        
+        app = QApplication(sys.argv)
+        app.setQuitOnLastWindowClosed(False)
+        print("Qt Application created")
 
     # Set the application icon for the taskbar/dock
     icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
@@ -96,8 +133,13 @@ def main():
     tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
     tray_icon_path = resource_path(f"img/{tray_icon}")
     
+    print(f"ICON DEBUG: Tray icon config: {tray_icon}")
+    print(f"ICON DEBUG: Trying icon path: {tray_icon_path}")
+    print(f"ICON DEBUG: Icon file exists: {os.path.exists(tray_icon_path)}")
+    
     # Check if the icon file exists, fallback to default if not
     if not os.path.exists(tray_icon_path):
+        print(f"ICON DEBUG: Primary icon not found: {tray_icon_path}")
         logger.warning(f"Tray icon not found: {tray_icon_path}")
         # Try a few fallback icons
         fallback_icons = [
@@ -109,8 +151,10 @@ def main():
         tray_icon_path = None
         for fallback in fallback_icons:
             fallback_path = resource_path(f"img/{fallback}")
+            print(f"ICON DEBUG: Trying fallback: {fallback_path}")
             if os.path.exists(fallback_path):
                 tray_icon_path = fallback_path
+                print(f"ICON DEBUG: Using fallback tray icon: {fallback}")
                 logger.info(f"Using fallback tray icon: {fallback}")
                 break
         
@@ -333,8 +377,30 @@ def main():
     tray.activated.connect(on_tray_activated)
     tray.setContextMenu(create_context_menu())
 
+    print("Tray icon setup complete, showing tray...")
     tray.show()
+    print("Starting Qt event loop...")
     sys.exit(app.exec())
+
+    except Exception as e:
+        error_msg = f"GlowStatus startup error: {str(e)}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        
+        # Try to show error dialog
+        try:
+            if 'app' not in locals():
+                app = QApplication(sys.argv)
+            QMessageBox.critical(
+                None,
+                "GlowStatus Startup Error", 
+                f"Failed to start GlowStatus:\n\n{error_msg}\n\nCheck console for details."
+            )
+        except:
+            pass  # If we can't show the dialog, at least we printed the error
+        
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
