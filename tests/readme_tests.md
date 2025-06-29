@@ -16,6 +16,7 @@ tests/
 ├── test_glowstatus.py                 # Main application logic
 ├── test_light_control_bug_fix.py      # Specific bug fix verification
 ├── test_google_oauth_token_path_bug.py # Google OAuth token path bug fix
+├── test_oauth_threading.py            # OAuth threading and UI responsiveness fix
 ├── test_light_toggle_tray_menu.py     # Light control toggle in tray menu
 ├── test_immediate_actions.py          # Immediate menu response actions
 ├── test_status_detection.py           # Status detection demonstration
@@ -162,7 +163,25 @@ python tests/verify_tests.py
 - Auto-enabling only for new installations
 - Configuration save behavior
 
-### 7. Google OAuth Token Path Bug Fix (`test_google_oauth_token_path_bug.py`) ✅
+### 7. OAuth Threading Fix (`test_oauth_threading.py`) ✅
+- **Threading implementation**: OAuth flow runs on separate thread
+- **UI responsiveness**: Dialog remains responsive during OAuth
+- **Error handling**: Proper cleanup and UI reset on errors
+- **Signal/slot communication**: Thread-safe UI updates
+
+**Key Features Tested:**
+- OAuthWorker thread implementation
+- Progress indicator functionality
+- Success/error callback handling
+- UI state management during async operations
+
+**Bug Description:**
+This test verifies the fix for OAuth dialog unresponsiveness where:
+- The consent dialog would freeze during OAuth callback
+- Users couldn't interact with Cancel/OK buttons
+- Spinning wheel would appear on macOS without response
+
+### 8. Google OAuth Token Path Bug Fix (`test_google_oauth_token_path_bug.py`) ✅
 - **Path consistency**: Unified token storage location
 - **UI/App integration**: Settings UI and main app coordination  
 - **Configuration standards**: Centralized path management
