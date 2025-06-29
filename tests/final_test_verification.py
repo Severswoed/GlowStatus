@@ -49,6 +49,9 @@ def main():
             'test_config_ui.py',
             'test_config.py'
         ],
+        'Build & Setup Tests': [
+            'test_setup_functions.py'
+        ],
         'Bug Fix Verification': [
             'test_google_oauth_token_path_bug.py',
             'test_govee_keyring_fix.py',

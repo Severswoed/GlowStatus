@@ -29,15 +29,15 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 - Ensure all required icons are present:
     - `img/GlowStatus.ico` (Windows)
     - `img/GlowStatus.icns` (macOS)
-- Ensure your `setup.py` is in the project root and configured as shown in this repo.
+- Ensure your `scripts/build_mac.py` is configured as shown in this repo.
 
-**Important:** The updated `setup.py` now includes automatic dependency checking and will verify that all required packages are installed before building. It also includes explicit PySide6 module inclusion for better macOS compatibility.
+**Important:** The updated `scripts/build_mac.py` now includes automatic dependency checking and will verify that all required packages are installed before building. It also includes explicit PySide6 module inclusion for better macOS compatibility.
 
 ---
 
-## Updated Setup.py Features
+## Updated Build Script Features
 
-The `setup.py` file has been enhanced with several improvements for better build reliability:
+The `scripts/build_mac.py` file has been enhanced with several improvements for better build reliability:
 
 **Automatic Dependency Checking:**
 - Verifies all packages from `requirements.txt` are installed before building
@@ -221,32 +221,54 @@ The `setup.py` file has been enhanced with several improvements for better build
 
 ## macOS Build (py2app)
 
+**Important:** py2app only works on macOS. You cannot build macOS apps from Windows or Linux.
+
+### Quick Build
+
+GlowStatus now includes an improved `scripts/build_mac.py` that automatically:
+- Checks and installs required dependencies
+- Verifies critical modules are available
+- Fixes Google namespace package issues for py2app
+- Handles all necessary PySide6 and Google API includes
+
+```bash
+# Clean previous builds
+rm -rf build/ dist/
+
+# Build the app (this will auto-check dependencies and fix namespace issues)
+python scripts/build_mac.py py2app
+```
+
+### What the build_mac.py Does Automatically
+
+1. **Dependency Check**: Verifies all requirements.txt packages are installed
+2. **Module Verification**: Tests that critical modules (PySide6, Google APIs, etc.) can be imported
+3. **Namespace Package Fix**: Resolves Google namespace package issues that can cause "No module named 'google'" errors
+4. **Comprehensive Includes**: Explicitly includes all necessary PySide6 and Google API submodules
+
+### Manual Build Steps (if needed)
+
+If the automatic build fails, you can manually install and verify:
+
 1. **Install dependencies and py2app:**
     ```bash
     pip install -r requirements.txt
     pip install py2app
     ```
 
-2. **Ensure `setup.py` is configured:**
-    - The `APP` entry should point to your entry script (e.g., `src/tray_app.py`).
-    - The `plist` section should set `CFBundleName` and other metadata to `GlowStatus`.
-    - The updated setup.py includes explicit PySide6 module inclusion and dependency verification.
-
-3. **Build the App:**
+2. **Build the App:**
     ```bash
-    python setup.py py2app
+    python scripts/build_mac.py py2app
     ```
-    - The setup.py will automatically check that all required dependencies are installed.
-    - It will verify critical modules (PySide6, keyring, etc.) are available before building.
     - The `.app` bundle will be in the `dist/` folder.
-    - The Dock icon and app name will match your branding.
+    - The build_mac.py will show status messages for each step.
 
-4. **If build fails with missing modules:**
+3. **If build fails with missing modules:**
     ```bash
     # Clean previous build and rebuild
     rm -rf build/ dist/
     pip install -r requirements.txt
-    python setup.py py2app
+    python scripts/build_mac.py py2app
     ```
 
 5. **Test the App:**
@@ -342,7 +364,7 @@ The `setup.py` file has been enhanced with several improvements for better build
     set -e
     
     echo "Building GlowStatus for macOS..."
-    python setup.py py2app
+    python scripts/build_mac.py py2app
     
     echo "Signing the application..."
     codesign --force --verify --verbose --sign "Developer ID Application: Your Name (TEAMID)" dist/GlowStatus.app
@@ -457,16 +479,16 @@ After completing either the Windows or macOS build process, you should verify:
 ## Troubleshooting
 
 - **Missing resources:**  
-  Add them to `DATA_FILES` in `setup.py` (macOS) or use `--add-data` with PyInstaller (Windows).
+  Add them to `DATA_FILES` in `scripts/build_mac.py` (macOS) or use `--add-data` with PyInstaller (Windows).
 
 - **Missing dependencies during build:**  
-  Run `pip install -r requirements.txt` first. The updated setup.py will check dependencies automatically.
+  Run `pip install -r requirements.txt` first. The updated build_mac.py will check dependencies automatically.
 
 - **PySide6 import errors on macOS:**  
-  The updated setup.py explicitly includes PySide6 modules. Clean build and retry: `rm -rf build/ dist/` then rebuild.
+  The updated build_mac.py explicitly includes PySide6 modules. Clean build and retry: `rm -rf build/ dist/` then rebuild.
 
 - **App name is wrong:**  
-  Set `CFBundleName` in the `plist` section of `setup.py` (macOS).
+  Set `CFBundleName` in the `plist` section of `scripts/build_mac.py` (macOS).
 
 - **Security warnings:**  
   Sign your executables and apps.
@@ -518,6 +540,24 @@ After completing either the Windows or macOS build process, you should verify:
   - Ensure proper icon formats (.icns for macOS)
   - Check DMG signature: `codesign --verify --verbose YourFile.dmg`
 
----
+- **"No module named 'google'" error with py2app:**  
+  This is a namespace package issue. The updated build_mac.py automatically fixes this by:
+  - Creating necessary `__init__.py` files for Google namespace packages
+  - Explicitly including all Google submodules in the 'includes' list
+  - Using `site_packages: True` to ensure proper package discovery
+  
+  If the issue persists:
+  ```bash
+  # Verify Google packages are installed correctly
+  python -c "import google.auth; print('Google auth works')"
+  python -c "import googleapiclient; print('Google API client works')"
+  
+  # Clean build and retry
+  rm -rf build/ dist/
+  python scripts/build_mac.py py2app
+  ```
 
-🎵 You'll never shine if you don't glow! 💙
+- **py2app build hanging or taking very long:**
+  - The build_mac.py now shows progress messages - if it stops at "Verifying critical modules", there may be import issues
+  - Check the terminal output for specific module import errors
+  - Try building with verbose output: `python scripts/build_mac.py py2app --verbose`
