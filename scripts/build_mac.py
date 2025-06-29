@@ -307,10 +307,7 @@ OPTIONS = {
     'iconfile': 'img/GlowStatus.icns',
     
     # CRITICAL SIZE OPTIMIZATIONS
-    'site-packages': False,  # Don't include entire site-packages
-    'optimize': 2,  # Maximum bytecode optimization
-    'strip': True,  # Strip debug symbols
-    'no-chdir': True,  # Don't change working directory
+    'optimize': 2,  # Maximum bytecode optimization (-O2)
     
     # Only include what we absolutely need
     'includes': [
