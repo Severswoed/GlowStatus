@@ -354,7 +354,6 @@ def main():
                 # Create and show context menu manually at cursor position
                 menu = create_context_menu()
                 # Get cursor position and show menu there
-                from PySide6.QtGui import QCursor
                 cursor_pos = QCursor.pos()
                 print(f"DEBUG: Showing menu at cursor position: {cursor_pos}")
                 menu.exec(cursor_pos)
