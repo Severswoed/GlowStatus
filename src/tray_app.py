@@ -5,7 +5,7 @@ import atexit
 from PySide6.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QCursor
 from PySide6.QtCore import Qt, QTimer
 from utils import resource_path
 from config_ui import ConfigWindow, load_config, save_config
@@ -310,15 +310,16 @@ def main():
             config = load_config()
             current_status = config.get("CURRENT_STATUS", "unknown")
             
-            menu = QMenu()
-            config_action = QAction("Open Settings")
-            manual_meeting = QAction("Set Status: In Meeting")
-            manual_focus = QAction("Set Status: Focus")
-            manual_available = QAction("Set Status: Available")
-            manual_end_meeting = QAction("End Meeting Early")
-            reset_override = QAction(f"Clear Manual Override (Current: {current_status})")
-            sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync")
-            quit_action = QAction("Quit")
+            # Create menu with tray as parent for proper Windows behavior
+            menu = QMenu(tray)
+            config_action = QAction("Open Settings", menu)
+            manual_meeting = QAction("Set Status: In Meeting", menu)
+            manual_focus = QAction("Set Status: Focus", menu)
+            manual_available = QAction("Set Status: Available", menu)
+            manual_end_meeting = QAction("End Meeting Early", menu)
+            reset_override = QAction(f"Clear Manual Override (Current: {current_status})", menu)
+            sync_toggle = QAction("Disable Sync" if sync_enabled[0] else "Enable Sync", menu)
+            quit_action = QAction("Quit", menu)
 
             config_action.triggered.connect(show_config)
             manual_meeting.triggered.connect(lambda: set_manual_status("in_meeting"))
@@ -349,38 +350,30 @@ def main():
         def on_tray_activated(reason):
             print(f"DEBUG: Tray activated with reason: {reason}")
             if reason == QSystemTrayIcon.Context:
-                print("DEBUG: Right-click detected, refreshing context menu")
-                # Refresh the context menu with current status before showing
-                tray.setContextMenu(create_context_menu())
+                print("DEBUG: Right-click detected, showing context menu manually")
+                # Create and show context menu manually at cursor position
+                menu = create_context_menu()
+                # Get cursor position and show menu there
+                from PySide6.QtGui import QCursor
+                cursor_pos = QCursor.pos()
+                print(f"DEBUG: Showing menu at cursor position: {cursor_pos}")
+                menu.exec(cursor_pos)
             elif reason == QSystemTrayIcon.DoubleClick:
                 print("DEBUG: Double-click detected, opening settings")
                 # Double-click opens settings
                 show_config()
             elif reason == QSystemTrayIcon.Trigger:
-                print("DEBUG: Left-click detected")
+                print("DEBUG: Left-click detected, opening settings")
+                # Left-click also opens settings as fallback
+                show_config()
             elif reason == QSystemTrayIcon.MiddleClick:
                 print("DEBUG: Middle-click detected")
         
         # Set up tray icon event handling
         tray.activated.connect(on_tray_activated)
         
-        # Always ensure a context menu is set initially
-        tray.setContextMenu(create_context_menu())
-        
-        # Additional Windows-specific fix for context menu
-        if os.name == 'nt':
-            # On Windows, we need to ensure the context menu is properly set
-            def ensure_context_menu():
-                if not tray.contextMenu():
-                    print("DEBUG: Setting context menu for Windows")
-                    tray.setContextMenu(create_context_menu())
-            
-            # Set a timer to ensure context menu is available
-            from PySide6.QtCore import QTimer
-            context_timer = QTimer()
-            context_timer.timeout.connect(ensure_context_menu)
-            context_timer.setSingleShot(True)
-            context_timer.start(100)  # 100ms delay
+        # Note: We don't set a context menu via setContextMenu() because
+        # we handle it manually in on_tray_activated() for better Windows compatibility
 
         print("Tray icon setup complete, showing tray...")
         tray.show()
