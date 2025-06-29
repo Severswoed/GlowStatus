@@ -269,7 +269,7 @@ python tests/final_test_verification.py
 
 ✅ **Comprehensive Coverage** • ✅ **Headless Compatible** • ✅ **Mocked Dependencies** • ✅ **Bug Protection**
 
-For detailed testing documentation, test categories, and individual test instructions, see **[tests/README.md](tests/README.md)**.
+For detailed testing documentation, test categories, and individual test instructions, see **[tests/readme_tests.md](tests/readme_tests.md)**.
 
 ---
 
