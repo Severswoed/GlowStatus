@@ -1,0 +1,9 @@
+GlowStatus macOS Build Log - 20250629_170326
+==================================================
+
+Final app bundle size: 1.3G
+App path: /Users/christopher.inman/Documents/Source/GlowStatus/dist/GlowStatus.app
+Recipe override used: True
+Manual cleanup performed: False
+
+Build completed successfully.
