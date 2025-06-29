@@ -20,6 +20,10 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 ## Preparation
 
 - Ensure your codebase is clean and up to date.
+- **Install all dependencies first:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 - Remove all personal information from `config/glowstatus_config.json`:
     - Set `"GOVEE_DEVICE_ID": ""`, `"GOVEE_DEVICE_MODEL": ""`, `"SELECTED_CALENDAR_ID": ""`.
 - Ensure all required icons are present:
@@ -27,12 +31,46 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
     - `img/GlowStatus.icns` (macOS)
 - Ensure your `setup.py` is in the project root and configured as shown in this repo.
 
+**Important:** The updated `setup.py` now includes automatic dependency checking and will verify that all required packages are installed before building. It also includes explicit PySide6 module inclusion for better macOS compatibility.
+
+---
+
+## Updated Setup.py Features
+
+The `setup.py` file has been enhanced with several improvements for better build reliability:
+
+**Automatic Dependency Checking:**
+- Verifies all packages from `requirements.txt` are installed before building
+- Provides clear error messages if dependencies are missing
+- Ensures consistent builds across different environments
+
+**Critical Module Verification:**
+- Checks that essential modules (PySide6, keyring, google-auth, etc.) can be imported
+- Prevents build failures due to missing or broken installations
+- Lists any problematic modules with helpful error messages
+
+**Explicit PySide6 Module Inclusion:**
+- Explicitly includes all necessary PySide6 modules for py2app
+- Ensures GUI components work correctly in the built macOS app
+- Reduces "module not found" errors in distributed builds
+
+**Enhanced User Feedback:**
+- Clear progress messages during dependency checking
+- Informative error messages with actionable suggestions
+- Success confirmation when all checks pass
+
+**Cross-Platform Compatibility:**
+- Works consistently on both macOS and Windows
+- Handles platform-specific dependency requirements
+- Maintains compatibility with both py2app and PyInstaller workflows
+
 ---
 
 ## Windows Build (PyInstaller)
 
-1. **Install PyInstaller:**
+1. **Install dependencies and PyInstaller:**
     ```bash
+    pip install -r requirements.txt
     pip install pyinstaller
     ```
 
@@ -183,25 +221,39 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 ## macOS Build (py2app)
 
-1. **Install py2app:**
+1. **Install dependencies and py2app:**
     ```bash
+    pip install -r requirements.txt
     pip install py2app
     ```
 
 2. **Ensure `setup.py` is configured:**
     - The `APP` entry should point to your entry script (e.g., `src/tray_app.py`).
     - The `plist` section should set `CFBundleName` and other metadata to `GlowStatus`.
+    - The updated setup.py includes explicit PySide6 module inclusion and dependency verification.
 
 3. **Build the App:**
     ```bash
     python setup.py py2app
     ```
+    - The setup.py will automatically check that all required dependencies are installed.
+    - It will verify critical modules (PySide6, keyring, etc.) are available before building.
     - The `.app` bundle will be in the `dist/` folder.
     - The Dock icon and app name will match your branding.
 
-4. **Test the App:**
+4. **If build fails with missing modules:**
+    ```bash
+    # Clean previous build and rebuild
+    rm -rf build/ dist/
+    pip install -r requirements.txt
+    python setup.py py2app
+    ```
+
+5. **Test the App:**
     - Open `dist/GlowStatus.app` by double-clicking.
     - Ensure all features work and resources load correctly.
+    - Test on a clean macOS machine without development tools installed.
+    - Verify that all PySide6 GUI components function properly.
 
 5. **Code Signing & Notarization:**
     
@@ -328,6 +380,33 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 ---
 
+## Build Process Validation
+
+After completing either the Windows or macOS build process, you should verify:
+
+**Dependency Verification:**
+- All required packages are bundled correctly
+- No import errors when running the built application
+- PySide6 GUI components function properly
+
+**Functionality Testing:**
+- Test on a clean machine without Python or development tools
+- Verify OAuth flow works correctly
+- Check that light control and calendar sync features function
+- Ensure tray menu and settings window work properly
+
+**Resource Loading:**
+- Icons display correctly in system tray and application windows
+- Config files are accessible and writable
+- Error logging works and creates log files in appropriate locations
+
+**Cross-Platform Consistency:**
+- UI appearance matches expected design
+- All features work consistently across platforms
+- Configuration and data files use correct paths
+
+---
+
 ## Testing Your Builds
 
 - Test on a clean user account or virtual machine.
@@ -379,6 +458,12 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 - **Missing resources:**  
   Add them to `DATA_FILES` in `setup.py` (macOS) or use `--add-data` with PyInstaller (Windows).
+
+- **Missing dependencies during build:**  
+  Run `pip install -r requirements.txt` first. The updated setup.py will check dependencies automatically.
+
+- **PySide6 import errors on macOS:**  
+  The updated setup.py explicitly includes PySide6 modules. Clean build and retry: `rm -rf build/ dist/` then rebuild.
 
 - **App name is wrong:**  
   Set `CFBundleName` in the `plist` section of `setup.py` (macOS).
@@ -435,4 +520,4 @@ This guide covers how to build, package, and prepare GlowStatus for distribution
 
 ---
 
-🎵 You'll never shine if you don't glow! 💙 
+🎵 You'll never shine if you don't glow! 💙
