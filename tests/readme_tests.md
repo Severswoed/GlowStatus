@@ -10,6 +10,7 @@ tests/
 ├── __init__.py                        # Python package initialization
 ├── test_main.py                       # Core utilities and validation functions
 ├── test_config_ui.py                  # Configuration UI and management
+├── test_config.py                     # Configuration loading and path resolution
 ├── test_calendar_sync.py              # Google Calendar integration
 ├── test_govee_controller.py           # Govee smart light control
 ├── test_glowstatus.py                 # Main application logic
@@ -92,6 +93,17 @@ python tests/verify_tests.py
 **Key Features Tested:**
 - `load_config()` / `save_config()` functions
 - Light control auto-enabling for new installations
+
+### 3. Configuration Path Resolution (`test_config.py`) ✅
+- **Path resolution**: Config file location across different environments
+- **Development vs production**: Bundle vs development mode detection
+- **Cross-platform compatibility**: Windows/macOS/Linux path handling
+- **File existence checking**: Graceful handling of missing config files
+
+**Key Features Tested:**
+- Configuration directory determination
+- Config file loading without Qt dependencies
+- Current configuration state verification
 - User choice preservation (critical bug fix)
 - Invalid JSON handling and fallback mechanisms
 - Configuration validation and defaults

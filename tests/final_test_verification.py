@@ -41,13 +41,13 @@ def main():
     tests_dir = os.path.dirname(__file__)
     
     # Define test categories for better organization
-    test_categories = {
-        'Core Unit Tests': [
+    test_categories = {        'Core Unit Tests': [
             'test_main.py',
-            'test_calendar_sync.py', 
+            'test_calendar_sync.py',
             'test_govee_controller.py',
             'test_glowstatus.py',
-            'test_config_ui.py'
+            'test_config_ui.py',
+            'test_config.py'
         ],
         'Bug Fix Verification': [
             'test_google_oauth_token_path_bug.py',
