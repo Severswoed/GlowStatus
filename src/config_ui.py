@@ -164,14 +164,43 @@ class ConfigWindow(QWidget):
         # Check OAuth status and update display
         self.update_oauth_status()
         
-        # Connect Button
-        self.oauth_btn = QPushButton("Connect Google Account")
+        # Google Sign-in Button (following Google branding guidelines)
+        self.oauth_btn = QPushButton("Sign in with Google")
         self.oauth_btn.clicked.connect(self.run_oauth_flow)
+        
+        # Apply Google branding styles
+        self.apply_google_button_style(self.oauth_btn)
         form_layout.addRow(self.oauth_btn)
         
         # Disconnect Button
         self.disconnect_btn = QPushButton("Disconnect Google Account")
         self.disconnect_btn.clicked.connect(self.disconnect_oauth)
+        # Style disconnect button to be less prominent
+        self.disconnect_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 4px;
+                color: #3c4043;
+                font-family: 'Google Sans', Roboto, Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 8px 16px;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #f1f3f4;
+                border-color: #dadce0;
+            }
+            QPushButton:pressed {
+                background-color: #e8eaed;
+            }
+            QPushButton:disabled {
+                background-color: #f8f9fa;
+                color: #9aa0a6;
+                border-color: #f8f9fa;
+            }
+        """)
         form_layout.addRow(self.disconnect_btn)
         
         # Google Calendar ID (display only)
@@ -352,35 +381,35 @@ class ConfigWindow(QWidget):
                     self.oauth_status_label.setText("✓ Connected and authenticated")
                     self.oauth_status_label.setStyleSheet("color: green;")
                     if hasattr(self, 'oauth_btn'):
-                        self.oauth_btn.setText("Reconnect Google Account")
+                        self.oauth_btn.setText("Sign in with Google")
                     if hasattr(self, 'disconnect_btn'):
                         self.disconnect_btn.setEnabled(True)
                 elif creds and creds.expired and creds.refresh_token:
                     self.oauth_status_label.setText("⚠ Token expired (will auto-refresh)")
                     self.oauth_status_label.setStyleSheet("color: orange;")
                     if hasattr(self, 'oauth_btn'):
-                        self.oauth_btn.setText("Reconnect Google Account")
+                        self.oauth_btn.setText("Sign in with Google")
                     if hasattr(self, 'disconnect_btn'):
                         self.disconnect_btn.setEnabled(True)
                 else:
                     self.oauth_status_label.setText("⚠ Authentication required")
                     self.oauth_status_label.setStyleSheet("color: orange;")
                     if hasattr(self, 'oauth_btn'):
-                        self.oauth_btn.setText("Connect Google Account")
+                        self.oauth_btn.setText("Sign in with Google")
                     if hasattr(self, 'disconnect_btn'):
                         self.disconnect_btn.setEnabled(False)
             except Exception:
                 self.oauth_status_label.setText("⚠ Authentication required")
                 self.oauth_status_label.setStyleSheet("color: orange;")
                 if hasattr(self, 'oauth_btn'):
-                    self.oauth_btn.setText("Connect Google Account")
+                    self.oauth_btn.setText("Sign in with Google")
                 if hasattr(self, 'disconnect_btn'):
                     self.disconnect_btn.setEnabled(False)
         else:
             self.oauth_status_label.setText("⚠ Not authenticated")
             self.oauth_status_label.setStyleSheet("color: orange;")
             if hasattr(self, 'oauth_btn'):
-                self.oauth_btn.setText("Connect Google Account")
+                self.oauth_btn.setText("Sign in with Google")
                 self.oauth_btn.setEnabled(True)
             if hasattr(self, 'disconnect_btn'):
                 self.disconnect_btn.setEnabled(False)
@@ -459,3 +488,81 @@ class ConfigWindow(QWidget):
                 logger.info("Govee API key saved to keyring.")
             except NoKeyringError:
                 logger.error("No secure keyring backend available. Cannot save API key.")
+
+    def apply_google_button_style(self, button):
+        """Apply Google branding guidelines styling to OAuth button with logo."""
+        # Try to load Google logo, fall back to text if not available
+        google_logo_path = resource_path('img/google_logo.png')
+        
+        if os.path.exists(google_logo_path):
+            # Use Google logo if available
+            from PySide6.QtGui import QPixmap
+            icon = QIcon(google_logo_path)
+            button.setIcon(icon)
+            button.setIconSize(button.fontMetrics().height(), button.fontMetrics().height())
+        else:
+            # Create a simple "G" logo as fallback
+            self.create_google_g_icon(button)
+        
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: #4285f4;
+                border: none;
+                border-radius: 4px;
+                color: white;
+                font-family: 'Google Sans', Roboto, Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 10px 24px 10px 20px;
+                min-height: 20px;
+                min-width: 200px;
+                text-align: left;
+            }
+            QPushButton:hover {
+                background-color: #3367d6;
+                box-shadow: 0 1px 2px 0 rgba(66, 133, 244, 0.3), 0 1px 3px 1px rgba(66, 133, 244, 0.15);
+            }
+            QPushButton:pressed {
+                background-color: #2d5aa0;
+            }
+            QPushButton:disabled {
+                background-color: #f8f9fa;
+                color: #5f6368;
+                border: 1px solid #f8f9fa;
+            }
+        """)
+        
+        # Set appropriate size policy
+        from PySide6.QtWidgets import QSizePolicy
+        button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+    
+    def create_google_g_icon(self, button):
+        """Create a simple Google 'G' icon as fallback."""
+        from PySide6.QtGui import QPixmap, QPainter, QFont, QColor
+        from PySide6.QtCore import QSize
+        
+        # Create a small pixmap for the "G" logo
+        size = button.fontMetrics().height()
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor(255, 255, 255, 0))  # Transparent background
+        
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Draw a circle background
+        painter.setBrush(QColor(255, 255, 255))
+        painter.setPen(QColor(220, 220, 220))
+        painter.drawEllipse(1, 1, size-2, size-2)
+        
+        # Draw the "G" text
+        font = QFont("Arial", max(8, size//2), QFont.Bold)
+        painter.setFont(font)
+        painter.setPen(QColor(66, 133, 244))  # Google blue
+        painter.drawText(pixmap.rect(), Qt.AlignCenter, "G")
+        
+        painter.end()
+        
+        # Set the icon
+        icon = QIcon(pixmap)
+        button.setIcon(icon)
+        button.setIconSize(QSize(size, size))
