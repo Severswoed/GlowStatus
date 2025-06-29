@@ -186,22 +186,28 @@ class ConfigWindow(QWidget):
         # Check OAuth status and update display
         self.update_oauth_status()
         
-        # OAuth buttons layout (side by side)
+        # OAuth buttons layout (side by side, centered)
         oauth_buttons_layout = QHBoxLayout()
+        
+        # Add stretch to center the buttons
+        oauth_buttons_layout.addStretch()
         
         # Google Sign-in Button (following Google branding guidelines)
         self.oauth_btn = QPushButton("Sign in with Google")
         self.oauth_btn.clicked.connect(self.run_oauth_flow)
-        self.oauth_btn.setFixedSize(200, 40)  # Fixed size
+        self.oauth_btn.setFixedSize(180, 40)  # Slightly smaller for better balance
         
         # Apply Google branding styles
         self.apply_google_button_style(self.oauth_btn)
         oauth_buttons_layout.addWidget(self.oauth_btn)
         
+        # Add small spacing between buttons
+        oauth_buttons_layout.addSpacing(10)
+        
         # Disconnect Button
-        self.disconnect_btn = QPushButton("Disconnect Google Account")
+        self.disconnect_btn = QPushButton("Disconnect")
         self.disconnect_btn.clicked.connect(self.disconnect_oauth)
-        self.disconnect_btn.setFixedSize(200, 40)  # Fixed size to match
+        self.disconnect_btn.setFixedSize(120, 40)  # Smaller since shorter text
         
         # Style disconnect button to be less prominent
         self.disconnect_btn.setStyleSheet("""
@@ -231,7 +237,7 @@ class ConfigWindow(QWidget):
         """)
         oauth_buttons_layout.addWidget(self.disconnect_btn)
         
-        # Add stretch to prevent buttons from expanding
+        # Add stretch to center the buttons
         oauth_buttons_layout.addStretch()
         
         form_layout.addRow(oauth_buttons_layout)

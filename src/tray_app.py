@@ -96,6 +96,7 @@ def main():
         
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
+        app.config_window = None  # Initialize config window reference
         print("Qt Application created")
 
         # Set the application icon for the taskbar/dock
@@ -215,25 +216,48 @@ def main():
             tray.setToolTip(f"GlowStatus - {status} ({cal_id})")
 
         def show_config():
+            # Store config window as an attribute of the app to prevent garbage collection
+            if hasattr(app, 'config_window') and app.config_window:
+                # If window already exists, just bring it to front
+                app.config_window.show()
+                app.config_window.raise_()
+                app.config_window.activateWindow()
+                return
+            
             config_window = ConfigWindow()
             config_window.setAttribute(Qt.WA_DeleteOnClose)
             
+            # Store reference to prevent garbage collection
+            app.config_window = config_window
+            
             # Ensure tray icon stays visible when config window opens
-            tray.show()
+            if tray.isVisible():
+                logger.debug("Tray icon is visible before opening config")
+            else:
+                logger.warning("Tray icon not visible before opening config, showing it")
+                tray.show()
             
             config_window.show()
             config_window.raise_()           # Bring window to front
             config_window.activateWindow()   # Give it focus
-            app.config_window = config_window
 
             def on_config_closed():
+                logger.debug("Config window closed, updating tray")
                 # Reload config and update tray icon
                 config = load_config()
                 tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
                 tray.setIcon(QIcon(f"img/{tray_icon}"))
                 update_tray_tooltip()
+                
                 # Ensure tray icon is still visible after config closes
-                tray.show()
+                if not tray.isVisible():
+                    logger.warning("Tray icon disappeared after config close, restoring")
+                    tray.show()
+                else:
+                    logger.debug("Tray icon still visible after config close")
+                
+                # Clear the reference
+                app.config_window = None
 
             config_window.destroyed.connect(on_config_closed)
 
