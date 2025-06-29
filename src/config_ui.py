@@ -26,6 +26,10 @@ def load_config():
         # Default to disabled since we'll support multiple calendar providers
         config["DISABLE_CALENDAR_SYNC"] = True
     
+    if "DISABLE_LIGHT_CONTROL" not in config:
+        # Default to disabled since we'll support multiple light controller brands
+        config["DISABLE_LIGHT_CONTROL"] = True
+    
     return config
 
 def save_config(config):
@@ -133,6 +137,11 @@ class ConfigWindow(QWidget):
         self.disable_sync_chk = QCheckBox("Disable Calendar Sync")
         self.disable_sync_chk.setChecked(config.get("DISABLE_CALENDAR_SYNC", False))
         form_layout.addRow(self.disable_sync_chk)
+
+        # Disable Light Control
+        self.disable_light_chk = QCheckBox("Disable Light Control")
+        self.disable_light_chk.setChecked(config.get("DISABLE_LIGHT_CONTROL", False))
+        form_layout.addRow(self.disable_light_chk)
 
         layout.addLayout(form_layout)
 
@@ -263,6 +272,7 @@ class ConfigWindow(QWidget):
         config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_chk.isChecked()
         config["OFF_FOR_UNKNOWN_STATUS"] = self.off_for_unknown_chk.isChecked()
         config["DISABLE_CALENDAR_SYNC"] = self.disable_sync_chk.isChecked()
+        config["DISABLE_LIGHT_CONTROL"] = self.disable_light_chk.isChecked()
         config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
         config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
         # Save the selected calendar ID from the dropdown

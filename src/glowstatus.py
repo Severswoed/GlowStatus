@@ -75,10 +75,24 @@ class GlowStatusController:
         POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
         OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
         DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
+        DISABLE_LIGHT_CONTROL = bool(config.get("DISABLE_LIGHT_CONTROL", False))
+
+        # Guard: If light control is disabled, only update status without controlling lights
+        if DISABLE_LIGHT_CONTROL:
+            logger.info("Light control disabled - status tracking only")
+            if not DISABLE_CALENDAR_SYNC:
+                status = get_current_status(SELECTED_CALENDAR_ID, STATUS_COLOR_MAP)
+            else:
+                status = config.get("CURRENT_STATUS", "available")
+            
+            config["CURRENT_STATUS"] = status
+            save_config(config)
+            logger.info(f"Current status: {status} | Color map keys: {list(STATUS_COLOR_MAP.keys())}")
+            return
 
         # Guard: If Govee credentials are missing, skip light control
         if not GOVEE_API_KEY or not GOVEE_DEVICE_ID or not GOVEE_DEVICE_MODEL:
-            logger.warning("Govee API key, Device ID, or Device Model not set. Please configure in Settings.")
+            logger.error("Govee API key or Device ID not set.")
             return
         
         govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
@@ -151,10 +165,31 @@ class GlowStatusController:
             POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
             OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
             DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
+            DISABLE_LIGHT_CONTROL = bool(config.get("DISABLE_LIGHT_CONTROL", False))
 
             # Log the exact time we're checking for precision verification
             now = datetime.datetime.now()
             logger.info(f"Status check at: {now.strftime('%H:%M:%S.%f')[:-3]} (:{now.second:02d}.{now.microsecond//1000:03d})")
+
+            # If light control is disabled, only track status without controlling lights
+            if DISABLE_LIGHT_CONTROL:
+                if not DISABLE_CALENDAR_SYNC:
+                    calendar = CalendarSync(SELECTED_CALENDAR_ID)
+                    status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
+                else:
+                    status = config.get("CURRENT_STATUS", "available")
+                
+                config["CURRENT_STATUS"] = status
+                save_config(config)
+                logger.info(f"Current status: {status} | Color map keys: {list(STATUS_COLOR_MAP.keys())}")
+                self._sleep_until_next_interval(REFRESH_INTERVAL)
+                continue
+
+            # Guard: If Govee credentials are missing, skip light control
+            if not GOVEE_API_KEY or not GOVEE_DEVICE_ID or not GOVEE_DEVICE_MODEL:
+                logger.error("Govee API key or Device ID not set.")
+                self._sleep_until_next_interval(REFRESH_INTERVAL)
+                continue
 
             govee = GoveeController(GOVEE_API_KEY, GOVEE_DEVICE_ID, GOVEE_DEVICE_MODEL)
 

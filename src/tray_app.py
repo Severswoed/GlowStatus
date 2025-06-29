@@ -98,10 +98,25 @@ def main():
 
     # --- Show tooltip if setup is incomplete ---
     missing = []
-    if not config.get("GOVEE_DEVICE_ID"):
-        missing.append("Govee Device ID")
-    if not config.get("GOVEE_DEVICE_MODEL"):
-        missing.append("Govee Device Model")
+    
+    # Check for light controller configuration
+    govee_configured = bool(config.get("GOVEE_DEVICE_ID") and config.get("GOVEE_DEVICE_MODEL"))
+    
+    # Auto-disable light control if no device is configured
+    # This prepares for future Hue/LIFX/Nanoleaf support
+    if not govee_configured and "DISABLE_LIGHT_CONTROL" not in config:
+        config["DISABLE_LIGHT_CONTROL"] = True
+        save_config(config)
+        logger.info("Auto-disabled light control: no device configuration found")
+    
+    # Only show missing device warnings if light control is enabled
+    if not config.get("DISABLE_LIGHT_CONTROL", False):
+        if not config.get("GOVEE_DEVICE_ID"):
+            missing.append("Smart Light Device ID")
+        if not config.get("GOVEE_DEVICE_MODEL"):
+            missing.append("Smart Light Device Model")
+    
+    # Check for calendar configuration
     if not config.get("SELECTED_CALENDAR_ID"):
         missing.append("Google Calendar")
     client_secret_path = resource_path('resources/client_secret.json')
