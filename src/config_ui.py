@@ -526,31 +526,9 @@ class ConfigWindow(QWidget):
                 self.status_table.setItem(row, col, QTableWidgetItem(rgb))
 
     def run_oauth_flow(self):
-        # Show consent information before starting OAuth
-        from PySide6.QtWidgets import QMessageBox
-        
-        consent_msg = QMessageBox(self)
-        consent_msg.setWindowTitle("Google Calendar Access")
-        consent_msg.setIcon(QMessageBox.Information)
-        consent_msg.setText("GlowStatus needs access to your Google Calendar")
-        consent_msg.setInformativeText(
-            "GlowStatus will:\n"
-            "• Read your calendar events (read-only access)\n"
-            "• Check meeting status and timing\n"
-            "• NOT modify, create, or delete any calendar events\n"
-            "• NOT access other Google services\n"
-            "• NOT share your data with third parties\n\n"
-            "Your data stays on your device and is not shared with third parties.\n"
-            "You can revoke access at any time at: https://myaccount.google.com/permissions\n\n"
-            "This app complies with Google's Limited Use requirements."
-        )
-        consent_msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        consent_msg.setDefaultButton(QMessageBox.Ok)
-        
-        if consent_msg.exec() != QMessageBox.Ok:
+        # Prevent multiple OAuth windows by disabling the button immediately
+        if not self.oauth_btn.isEnabled():
             return
-        
-        # Disable UI elements during OAuth flow
         self.oauth_btn.setEnabled(False)
         self.oauth_btn.setText("Connecting...")
         self.disconnect_btn.setEnabled(False)
@@ -564,6 +542,15 @@ class ConfigWindow(QWidget):
         self.update_oauth_status()
         
         # Start the OAuth flow in a separate thread
+        # Disconnect previous signals to avoid double triggers
+        if hasattr(self, 'oauth_worker') and self.oauth_worker is not None:
+            try:
+                self.oauth_worker.oauth_success.disconnect()
+                self.oauth_worker.oauth_error.disconnect()
+                self.oauth_worker.oauth_no_calendars.disconnect()
+                self.oauth_worker.finished.disconnect()
+            except Exception:
+                pass
         self.oauth_worker = OAuthWorker()
         self.oauth_worker.oauth_success.connect(self.on_oauth_success)
         self.oauth_worker.oauth_error.connect(self.on_oauth_error)
