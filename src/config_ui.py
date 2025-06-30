@@ -475,6 +475,10 @@ class ConfigWindow(QWidget):
 
     def load_calendars(self):
         """Populate the calendar dropdown with available calendars if authenticated."""
+        # Always clear and set a default first to prevent crashes
+        self.selected_calendar_id_dropdown.clear()
+        self.selected_calendar_id_dropdown.addItem("No calendars found")
+        
         try:
             from calendar_sync import CalendarSync
             cal_sync = CalendarSync("primary")
@@ -482,23 +486,26 @@ class ConfigWindow(QWidget):
             if not service:
                 raise Exception("No calendar service (not authenticated)")
             calendar_list = service.calendarList().list().execute()
-            self.selected_calendar_id_dropdown.clear()
+            
+            # Only proceed if we successfully got calendars
             calendars = calendar_list.get("items", [])
-            for cal in calendars:
-                summary = cal.get("summary", "")
-                cal_id = cal.get("id", "")
-                display = f"{summary} ({cal_id})"
-                self.selected_calendar_id_dropdown.addItem(display, cal_id)
-            # Set to saved value if present
-            config = load_config()
-            saved_id = config.get("SELECTED_CALENDAR_ID", "")
-            if saved_id:
-                idx = self.selected_calendar_id_dropdown.findData(saved_id)
-                if idx != -1:
-                    self.selected_calendar_id_dropdown.setCurrentIndex(idx)
+            if calendars:
+                self.selected_calendar_id_dropdown.clear()
+                for cal in calendars:
+                    summary = cal.get("summary", "")
+                    cal_id = cal.get("id", "")
+                    display = f"{summary} ({cal_id})"
+                    self.selected_calendar_id_dropdown.addItem(display, cal_id)
+                
+                # Set to saved value if present
+                config = load_config()
+                saved_id = config.get("SELECTED_CALENDAR_ID", "")
+                if saved_id:
+                    idx = self.selected_calendar_id_dropdown.findData(saved_id)
+                    if idx != -1:
+                        self.selected_calendar_id_dropdown.setCurrentIndex(idx)
         except Exception as e:
-            self.selected_calendar_id_dropdown.clear()
-            self.selected_calendar_id_dropdown.addItem("No calendars found")
+            # Silently fail - dropdown already has "No calendars found"
             logger.info(f"No calendars loaded (likely not authenticated): {e}")
 
     def add_status_row(self, status="", color="", power_off=False):
@@ -719,10 +726,31 @@ class ConfigWindow(QWidget):
 
     def update_oauth_status(self):
         """Update the OAuth status display based on current authentication state."""
-        from constants import CLIENT_SECRET_PATH, TOKEN_PATH
-        import pickle
-        client_secret_exists = os.path.exists(CLIENT_SECRET_PATH)
-        token_exists = os.path.exists(TOKEN_PATH)
+        try:
+            from constants import CLIENT_SECRET_PATH, TOKEN_PATH
+        except ImportError:
+            # If constants can't be imported, disable OAuth
+            self.oauth_status_label.setText("⚠ OAuth not available")
+            self.oauth_status_label.setStyleSheet("color: red;")
+            if hasattr(self, 'oauth_btn'):
+                self.oauth_btn.setEnabled(False)
+            if hasattr(self, 'disconnect_btn'):
+                self.disconnect_btn.setEnabled(False)
+            return
+            
+        try:
+            client_secret_exists = os.path.exists(CLIENT_SECRET_PATH)
+            token_exists = os.path.exists(TOKEN_PATH)
+        except Exception:
+            # If path checking fails, disable OAuth
+            self.oauth_status_label.setText("⚠ OAuth not available")
+            self.oauth_status_label.setStyleSheet("color: red;")
+            if hasattr(self, 'oauth_btn'):
+                self.oauth_btn.setEnabled(False)
+            if hasattr(self, 'disconnect_btn'):
+                self.disconnect_btn.setEnabled(False)
+            return
+            
         if not client_secret_exists:
             self.oauth_status_label.setText("⚠ OAuth credentials not found")
             self.oauth_status_label.setStyleSheet("color: red;")
@@ -731,9 +759,11 @@ class ConfigWindow(QWidget):
             if hasattr(self, 'disconnect_btn'):
                 self.disconnect_btn.setEnabled(False)
             return
+            
         # Always allow UI to load, even if token is missing or revoked
         if token_exists:
             try:
+                import pickle
                 with open(TOKEN_PATH, "rb") as token:
                     creds = pickle.load(token)
                 if creds and getattr(creds, 'valid', False):
@@ -765,7 +795,7 @@ class ConfigWindow(QWidget):
                     self.oauth_btn.setEnabled(True)
                 if hasattr(self, 'disconnect_btn'):
                     self.disconnect_btn.setEnabled(False)
-                logger.warning(f"OAuth token invalid or revoked: {e}")
+                logger.info(f"OAuth token not available: {e}")
         else:
             self.oauth_status_label.setText("⚠ Not authenticated")
             self.oauth_status_label.setStyleSheet("color: orange;")
