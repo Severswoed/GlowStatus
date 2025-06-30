@@ -479,6 +479,8 @@ class ConfigWindow(QWidget):
             from calendar_sync import CalendarSync
             cal_sync = CalendarSync("primary")
             service = cal_sync._get_service()
+            if not service:
+                raise Exception("No calendar service (not authenticated)")
             calendar_list = service.calendarList().list().execute()
             self.selected_calendar_id_dropdown.clear()
             calendars = calendar_list.get("items", [])
@@ -497,7 +499,7 @@ class ConfigWindow(QWidget):
         except Exception as e:
             self.selected_calendar_id_dropdown.clear()
             self.selected_calendar_id_dropdown.addItem("No calendars found")
-            logger.error(f"Failed to load calendars: {e}")
+            logger.info(f"No calendars loaded (likely not authenticated): {e}")
 
     def add_status_row(self, status="", color="", power_off=False):
         row = self.status_table.rowCount()
@@ -719,10 +721,8 @@ class ConfigWindow(QWidget):
         """Update the OAuth status display based on current authentication state."""
         from constants import CLIENT_SECRET_PATH, TOKEN_PATH
         import pickle
-        
         client_secret_exists = os.path.exists(CLIENT_SECRET_PATH)
         token_exists = os.path.exists(TOKEN_PATH)
-        
         if not client_secret_exists:
             self.oauth_status_label.setText("⚠ OAuth credentials not found")
             self.oauth_status_label.setStyleSheet("color: red;")
@@ -731,20 +731,19 @@ class ConfigWindow(QWidget):
             if hasattr(self, 'disconnect_btn'):
                 self.disconnect_btn.setEnabled(False)
             return
-        
+        # Always allow UI to load, even if token is missing or revoked
         if token_exists:
             try:
-                # Try to load and check if tokens are valid
                 with open(TOKEN_PATH, "rb") as token:
                     creds = pickle.load(token)
-                if creds and creds.valid:
+                if creds and getattr(creds, 'valid', False):
                     self.oauth_status_label.setText("✓ Connected and authenticated")
                     self.oauth_status_label.setStyleSheet("color: green;")
                     if hasattr(self, 'oauth_btn'):
                         self.oauth_btn.setText("Sign in with Google")
                     if hasattr(self, 'disconnect_btn'):
                         self.disconnect_btn.setEnabled(True)
-                elif creds and creds.expired and creds.refresh_token:
+                elif creds and getattr(creds, 'expired', False) and getattr(creds, 'refresh_token', None):
                     self.oauth_status_label.setText("⚠ Token expired (will auto-refresh)")
                     self.oauth_status_label.setStyleSheet("color: orange;")
                     if hasattr(self, 'oauth_btn'):
@@ -758,13 +757,15 @@ class ConfigWindow(QWidget):
                         self.oauth_btn.setText("Sign in with Google")
                     if hasattr(self, 'disconnect_btn'):
                         self.disconnect_btn.setEnabled(False)
-            except Exception:
-                self.oauth_status_label.setText("⚠ Authentication required")
+            except Exception as e:
+                self.oauth_status_label.setText("⚠ Not authenticated")
                 self.oauth_status_label.setStyleSheet("color: orange;")
                 if hasattr(self, 'oauth_btn'):
                     self.oauth_btn.setText("Sign in with Google")
+                    self.oauth_btn.setEnabled(True)
                 if hasattr(self, 'disconnect_btn'):
                     self.disconnect_btn.setEnabled(False)
+                logger.warning(f"OAuth token invalid or revoked: {e}")
         else:
             self.oauth_status_label.setText("⚠ Not authenticated")
             self.oauth_status_label.setStyleSheet("color: orange;")
