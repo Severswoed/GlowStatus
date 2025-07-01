@@ -8,7 +8,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction, QIcon, QCursor
 from PySide6.QtCore import Qt, QTimer
 from utils import resource_path
-from config_ui import ConfigWindow, load_config, save_config
+from config_ui import load_config, save_config
+from settings_ui import SettingsWindow
 from glowstatus import GlowStatusController
 from logger import get_logger
 from constants import TOKEN_PATH
@@ -260,7 +261,7 @@ def main():
             tray.show()
             logger.debug("Ensured tray icon visible before opening config")
             
-            config_window = ConfigWindow()
+            config_window = SettingsWindow()
             config_window.setAttribute(Qt.WA_DeleteOnClose)
             
             # Store reference to prevent garbage collection

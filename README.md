@@ -161,6 +161,8 @@ Our Discord follows proven community best practices:
 - **Expert Moderation**: Automated security with human oversight
 - **Growth-Oriented**: Built to scale from early adopters to thousands of users
 
+> **🤖 Note for Server Admins**: If you're setting up your own Discord server using our automation scripts, remember that Discord bots need 24/7 hosting to work properly. Running `python discord/setup_discord.py` locally only works while your terminal is open. See `discord/DEPLOYMENT.md` for hosting options including free cloud hosting and VPS solutions.
+
 ### 📋 Community Channels
 
 **🟢 Info & Announcements**

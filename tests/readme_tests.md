@@ -19,6 +19,7 @@ tests/
 ├── test_main.py                       # Core utilities and validation functions + final verification
 ├── test_token_robustness.py           # OAuth token error handling tests (NEW)
 ├── test_config_ui.py                  # Configuration UI and management
+├── test_settings_ui_headless.py       # Settings UI interface tests (NEW)
 ├── test_config.py                     # Configuration loading and path resolution
 ├── test_setup_functions.py            # Build and setup helper function tests
 ├── test_calendar_sync.py              # Google Calendar integration
@@ -53,6 +54,9 @@ python tests/test_token_robustness.py
 
 # Configuration management
 python tests/test_config_ui.py
+
+# Settings UI interface tests (NEW)
+python tests/test_settings_ui_headless.py
 
 # Configuration loading and path resolution
 python tests/test_config.py
@@ -134,6 +138,24 @@ python tests/test_main.py --final-verification
 - `load_config()` / `save_config()` functions
 - Light control auto-enabling for new installations
 
+### 2.1. Settings UI Interface (`test_settings_ui_headless.py`) ✅ **NEW**
+- **Tabbed Navigation**: Sidebar navigation with 7 tabs (About, OAuth, Integrations, etc.)
+- **Form Validation**: Govee device ID, API key, and configuration validation
+- **Headless Testing**: Complete UI functionality testing without requiring a display
+- **Configuration Integration**: Settings UI properly loads and saves all configuration options
+- **Component Functionality**: All UI components (dropdowns, checkboxes, tables) work correctly
+
+**Key Features Tested:**
+- `SettingsWindow` class initialization and UI setup
+- All tab creation methods (About, OAuth, Integrations, Calendar, Status, Options, Accessibility)
+- Form validation functions (device ID format, color RGB values)
+- Configuration loading and saving through the UI
+- Status table management for color/power mappings
+- Govee integration settings (API key, device ID, model)
+- Calendar sync settings and refresh intervals
+- Manual status override functionality
+- Accessibility options and UI preferences
+
 ### 3. Configuration Path Resolution (`test_config.py`) ✅
 - **Path resolution**: Config file location across different environments
 - **Development vs production**: Bundle vs development mode detection
@@ -202,7 +224,7 @@ python tests/test_main.py --final-verification
 - Integration between calendar and light control
 - Application startup and shutdown
 
-### 6. Bug Fix Verification (`test_light_control_bug_fix.py`) ✅
+### 8. Bug Fix Verification (`test_light_control_bug_fix.py`) ✅
 - **User choice preservation**: Light control disable setting
 - **Auto-enabling logic**: New installation behavior
 - **Configuration persistence**: Settings survival across saves
@@ -214,7 +236,7 @@ python tests/test_main.py --final-verification
 - Auto-enabling only for new installations
 - Configuration save behavior
 
-### 7. OAuth Threading Fix (`test_oauth_threading.py`) ✅
+### 9. OAuth Threading Fix (`test_oauth_threading.py`) ✅
 - **Threading implementation**: OAuth flow runs on separate thread
 - **UI responsiveness**: Dialog remains responsive during OAuth
 - **Error handling**: Proper cleanup and UI reset on errors
@@ -232,7 +254,7 @@ This test verifies the fix for OAuth dialog unresponsiveness where:
 - Users couldn't interact with Cancel/OK buttons
 - Spinning wheel would appear on macOS without response
 
-### 8. Google OAuth Token Path Bug Fix (`test_google_oauth_token_path_bug.py`) ✅
+### 10. Google OAuth Token Path Bug Fix (`test_google_oauth_token_path_bug.py`) ✅
 - **Path consistency**: Unified token storage location
 - **UI/App integration**: Settings UI and main app coordination  
 - **Configuration standards**: Centralized path management
@@ -261,7 +283,7 @@ This test was created to identify and verify the fix for a critical bug where:
 python tests/test_google_oauth_token_path_bug.py
 ```
 
-### 8. Immediate Menu Actions (`test_immediate_actions.py`) ✅
+### 11. Immediate Menu Actions (`test_immediate_actions.py`) ✅
 - **Immediate Light Turn-Off**: Instant response when disabling light control
 - **Sync Toggle Updates**: Immediate status refresh when enabling sync
 - **Tray Menu Integration**: Proper method calls for instant feedback
@@ -288,7 +310,7 @@ Previously, when users clicked "Disable Lights" in the tray menu while lights we
 python tests/test_immediate_actions.py
 ```
 
-### 9. Meeting Transition Scenarios (`test_meeting_transitions.py`) ✅
+### 12. Meeting Transition Scenarios (`test_meeting_transitions.py`) ✅
 - **Meeting End Behavior**: Proper handling when meetings end early
 - **Overlapping Meetings**: Seamless transition between consecutive meetings  
 - **Imminent Meeting Detection**: 1-minute advance light activation

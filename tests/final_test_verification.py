@@ -41,13 +41,17 @@ def main():
     tests_dir = os.path.dirname(__file__)
     
     # Define test categories for better organization
-    test_categories = {        'Core Unit Tests': [
+    test_categories = {
+        'Core Unit Tests': [
             'test_main.py',
             'test_calendar_sync.py',
             'test_govee_controller.py',
             'test_glowstatus.py',
             'test_config_ui.py',
             'test_config.py'
+        ],
+        'UI Tests': [
+            'test_settings_ui_headless.py'
         ],
         'Build & Setup Tests': [
             'test_setup_functions.py'
@@ -153,7 +157,8 @@ def main():
         ("Application Logic", "Module imports, integration testing"),
         ("Timing & Sync", "Minute-boundary calculations, autostart"),
         ("Bug Fixes", "OAuth token paths, Govee keyring, light control"),
-        ("UI Features", "Tray menu toggles, settings window")
+        ("UI Features", "Tray menu toggles, settings window"),
+        ("Settings Interface", "Tabbed settings UI, form validation, configuration")
     ]
     
     for category, description in categories:
@@ -165,6 +170,7 @@ def main():
     print(f"   python tests/test_calendar_sync.py           # Calendar integration")
     print(f"   python tests/test_govee_controller.py        # Govee smart lights")
     print(f"   python tests/test_glowstatus.py              # Main app logic")
+    print(f"   python tests/test_settings_ui_headless.py    # Settings UI interface")
     print(f"   python tests/test_light_toggle_tray_menu.py  # Tray menu features")
     print(f"   python tests/test_immediate_actions.py       # Immediate menu responses")
     print(f"   python tests/final_test_verification.py      # This comprehensive test")
