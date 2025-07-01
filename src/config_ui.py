@@ -374,7 +374,7 @@ class ConfigWindow(QWidget):
         # Selected Calendar ID (dropdown)
         self.selected_calendar_id_dropdown = QComboBox()
         self.selected_calendar_id_dropdown.setEditable(False)
-        self.selected_calendar_id_dropdown.addItem("Loading...")  # Placeholder
+        self.selected_calendar_id_dropdown.addItem("Please authenticate first")  # Default state
         form_layout.addRow("Selected Calendar:", self.selected_calendar_id_dropdown)
 
         # Refresh Interval
@@ -477,20 +477,26 @@ class ConfigWindow(QWidget):
         """Populate the calendar dropdown with available calendars if authenticated."""
         # Always clear and set a default first to prevent crashes
         self.selected_calendar_id_dropdown.clear()
-        self.selected_calendar_id_dropdown.addItem("No calendars found")
+        
+        # Check if we have valid authentication first
+        from constants import TOKEN_PATH
+        if not os.path.exists(TOKEN_PATH):
+            self.selected_calendar_id_dropdown.addItem("Please authenticate first")
+            return
         
         try:
             from calendar_sync import CalendarSync
             cal_sync = CalendarSync("primary")
             service = cal_sync._get_service()
             if not service:
-                raise Exception("No calendar service (not authenticated)")
+                self.selected_calendar_id_dropdown.addItem("Please authenticate first")
+                return
+                
             calendar_list = service.calendarList().list().execute()
             
             # Only proceed if we successfully got calendars
             calendars = calendar_list.get("items", [])
             if calendars:
-                self.selected_calendar_id_dropdown.clear()
                 for cal in calendars:
                     summary = cal.get("summary", "")
                     cal_id = cal.get("id", "")
@@ -504,9 +510,17 @@ class ConfigWindow(QWidget):
                     idx = self.selected_calendar_id_dropdown.findData(saved_id)
                     if idx != -1:
                         self.selected_calendar_id_dropdown.setCurrentIndex(idx)
+            else:
+                self.selected_calendar_id_dropdown.addItem("No calendars found")
+                
         except Exception as e:
-            # Silently fail - dropdown already has "No calendars found"
-            logger.info(f"No calendars loaded (likely not authenticated): {e}")
+            # Silently fail and show appropriate message - dropdown already has fallback
+            self.selected_calendar_id_dropdown.clear()
+            if "invalid_grant" in str(e).lower() or "expired" in str(e).lower() or "revoked" in str(e).lower():
+                self.selected_calendar_id_dropdown.addItem("Please re-authenticate (token expired)")
+            else:
+                self.selected_calendar_id_dropdown.addItem("Please authenticate first")
+            logger.info(f"Calendar loading failed (likely authentication issue): {e}")
 
     def add_status_row(self, status="", color="", power_off=False):
         row = self.status_table.rowCount()
@@ -599,7 +613,10 @@ class ConfigWindow(QWidget):
         """Handle errors during OAuth authentication."""
         self.google_calendar_id_label.setText("Not authenticated")
         self.selected_calendar_id_dropdown.clear()
-        self.selected_calendar_id_dropdown.addItem("Please authenticate first")
+        if "invalid_grant" in error_message.lower() or "expired" in error_message.lower() or "revoked" in error_message.lower():
+            self.selected_calendar_id_dropdown.addItem("Please re-authenticate (token expired)")
+        else:
+            self.selected_calendar_id_dropdown.addItem("Please authenticate first")
         self.update_oauth_status()
         
         logger.error(f"OAuth Error: {error_message}")

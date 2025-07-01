@@ -27,8 +27,13 @@ class CalendarSync:
             logger.warning("Google OAuth credentials not found. Please set up OAuth in Settings.")
             self.service = None
             return
-        self.service = self._get_service()
-        self._log_calendar_email()
+        
+        try:
+            self.service = self._get_service()
+            self._log_calendar_email()
+        except Exception as e:
+            logger.warning(f"Failed to initialize calendar service: {e}")
+            self.service = None
 
     def _log_calendar_email(self):
         """Log the email address or ID of the calendar being accessed."""
@@ -50,12 +55,30 @@ class CalendarSync:
             return None
         # Load token if it exists
         if os.path.exists(TOKEN_PATH):
-            with open(TOKEN_PATH, "rb") as token:
-                creds = pickle.load(token)
+            try:
+                with open(TOKEN_PATH, "rb") as token:
+                    creds = pickle.load(token)
+            except Exception as token_error:
+                logger.warning(f"Failed to load token file (may be corrupted): {token_error}")
+                # Remove the corrupted token file
+                try:
+                    os.remove(TOKEN_PATH)
+                    logger.info("Removed corrupted token file")
+                except Exception:
+                    pass
+                creds = None
         # If no valid creds, start OAuth flow
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except Exception as refresh_error:
+                    logger.warning(f"Token refresh failed: {refresh_error}")
+                    # Remove the invalid token file so user can re-authenticate
+                    if os.path.exists(TOKEN_PATH):
+                        os.remove(TOKEN_PATH)
+                        logger.info("Removed invalid token file")
+                    raise Exception(f"Token has been expired or revoked: {refresh_error}")
             else:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
@@ -70,7 +93,7 @@ class CalendarSync:
                         logger.info("OAuth fallback: Using console-based authentication")
                     except Exception as console_error:
                         logger.error(f"OAuth console fallback failed: {console_error}")
-                        return None
+                        raise Exception(f"OAuth authentication failed: {console_error}")
             # Save the credentials for next run
             with open(TOKEN_PATH, "wb") as token:
                 pickle.dump(creds, token)

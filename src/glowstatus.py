@@ -63,6 +63,18 @@ class GlowStatusController:
                 govee.set_color(255, 255, 255)
 
     def update_now(self):
+        try:
+            self._update_now_impl()
+        except Exception as e:
+            logger.error(f"Critical error during status update: {e}")
+            # Auto-disable calendar sync if we encounter any critical errors
+            config = load_config()
+            if not config.get("DISABLE_CALENDAR_SYNC", False):
+                config["DISABLE_CALENDAR_SYNC"] = True
+                save_config(config)
+                logger.info("Auto-disabled calendar sync due to critical error")
+
+    def _update_now_impl(self):
         now = datetime.datetime.now()
         logger.info(f"Manual status update at: {now.strftime('%H:%M:%S.%f')[:-3]}")
         
@@ -81,8 +93,16 @@ class GlowStatusController:
         if DISABLE_LIGHT_CONTROL:
             logger.info("Light control disabled - status tracking only")
             if not DISABLE_CALENDAR_SYNC:
-                calendar = CalendarSync(SELECTED_CALENDAR_ID)
-                status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
+                try:
+                    calendar = CalendarSync(SELECTED_CALENDAR_ID)
+                    status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
+                except Exception as e:
+                    logger.warning(f"Calendar sync failed (token may be expired): {e}")
+                    status = config.get("CURRENT_STATUS", "available")
+                    # Auto-disable calendar sync to prevent future crashes
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    save_config(config)
+                    logger.info("Auto-disabled calendar sync due to authentication failure")
             else:
                 status = config.get("CURRENT_STATUS", "available")
             
@@ -157,8 +177,17 @@ class GlowStatusController:
                     govee.set_power("off")
                     return
                 
-                calendar = CalendarSync(SELECTED_CALENDAR_ID)
-                calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                try:
+                    calendar = CalendarSync(SELECTED_CALENDAR_ID)
+                    calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                except Exception as e:
+                    logger.warning(f"Calendar sync failed (token may be expired): {e}")
+                    # Auto-disable calendar sync to prevent future crashes
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    save_config(config)
+                    logger.info("Auto-disabled calendar sync due to authentication failure")
+                    govee.set_power("off")
+                    return
                 
                 # Check for imminent meeting (within 1 minute) - this overrides manual status
                 imminent_meeting = (
@@ -237,8 +266,16 @@ class GlowStatusController:
             # If light control is disabled, only track status without controlling lights
             if DISABLE_LIGHT_CONTROL:
                 if not DISABLE_CALENDAR_SYNC:
-                    calendar = CalendarSync(SELECTED_CALENDAR_ID)
-                    status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
+                    try:
+                        calendar = CalendarSync(SELECTED_CALENDAR_ID)
+                        status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
+                    except Exception as e:
+                        logger.warning(f"Calendar sync failed (token may be expired): {e}")
+                        status = config.get("CURRENT_STATUS", "available")
+                        # Auto-disable calendar sync to prevent future crashes
+                        config["DISABLE_CALENDAR_SYNC"] = True
+                        save_config(config)
+                        logger.info("Auto-disabled calendar sync due to authentication failure")
                 else:
                     status = config.get("CURRENT_STATUS", "available")
                 
@@ -285,7 +322,40 @@ class GlowStatusController:
                 self._sleep_until_next_interval(REFRESH_INTERVAL)
                 continue
 
-            calendar = CalendarSync(SELECTED_CALENDAR_ID)
+            try:
+                calendar = CalendarSync(SELECTED_CALENDAR_ID)
+            except Exception as e:
+                logger.warning(f"Calendar sync failed (token may be expired): {e}")
+                # Auto-disable calendar sync to prevent future crashes
+                config["DISABLE_CALENDAR_SYNC"] = True
+                save_config(config)
+                logger.info("Auto-disabled calendar sync due to authentication failure")
+                
+                # Handle manual status without calendar sync
+                manual_status = config.get("CURRENT_STATUS")
+                if manual_status:
+                    try:
+                        color_map = STATUS_COLOR_MAP or {
+                            "in_meeting": {"color": "255,0,0", "power_off": False},
+                            "available": {"color": "0,255,0", "power_off": True},
+                            "focus": {"color": "0,0,255", "power_off": False},
+                            "offline": {"color": "128,128,128", "power_off": False},
+                        }
+                        self.apply_status_to_light(govee, manual_status, color_map, OFF_FOR_UNKNOWN_STATUS)
+                        logger.info(f"Manual status: {manual_status} (calendar sync disabled due to error)")
+                    except Exception as light_error:
+                        logger.error(f"Error setting light for manual status: {light_error}")
+                else:
+                    # No manual status, default behavior
+                    if config.get("POWER_OFF_WHEN_AVAILABLE", True):
+                        try:
+                            govee.set_power("off")
+                            logger.info("No manual status - lights off (calendar sync disabled due to error)")
+                        except Exception as light_error:
+                            logger.error(f"Error turning off lights: {light_error}")
+                
+                self._sleep_until_next_interval(REFRESH_INTERVAL)
+                continue
             try:
                 manual_status = config.get("CURRENT_STATUS")
                 manual_timestamp = config.get("MANUAL_STATUS_TIMESTAMP")
@@ -303,7 +373,13 @@ class GlowStatusController:
                 
                 if manual_status == "meeting_ended_early":
                     # Even when meeting ended early, check for imminent meetings
-                    calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    try:
+                        calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    except Exception as e:
+                        logger.warning(f"Calendar sync failed during meeting_ended_early check: {e}")
+                        # Treat as no imminent meeting if we can't check
+                        calendar_status = "available"
+                        next_event_start = None
                     
                     # Check for imminent meeting (within 1 minute)
                     imminent_meeting = (
@@ -325,7 +401,18 @@ class GlowStatusController:
                         continue
                 
                 if not manual_status:  # Only check calendar if no manual status is active
-                    calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    try:
+                        calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                    except Exception as e:
+                        logger.warning(f"Calendar sync failed during regular check: {e}")
+                        # Auto-disable calendar sync to prevent future crashes
+                        config["DISABLE_CALENDAR_SYNC"] = True
+                        save_config(config)
+                        logger.info("Auto-disabled calendar sync due to authentication failure")
+                        
+                        # Default to available status
+                        calendar_status = "available"
+                        next_event_start = None
                     
                     # Check for imminent meeting (within 1 minute) - this overrides manual status
                     imminent_meeting = (

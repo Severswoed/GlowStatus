@@ -1,6 +1,14 @@
 # GlowStatus Test Suite
 
-This directory contains the comprehensive test suite for the GlowStatus application. The test suite provides robust coverage of all major functionality including configuration management, Google Calendar integration, Govee smart light control, and application logic.
+This directory contains the comprehensive test suit### Running All Tests
+
+```bash
+# Run comprehensive verification (includes token robustness tests)
+python tests/test_main.py --final-verification
+
+# Verify test environment and setup
+python tests/verify_tests.py
+``` GlowStatus application. The test suite provides robust coverage of all major functionality including configuration management, Google Calendar integration, Govee smart light control, and application logic.
 
 ## 📁 Test Structure
 
@@ -8,7 +16,8 @@ This directory contains the comprehensive test suite for the GlowStatus applicat
 tests/
 ├── readme_tests.md                    # This file - comprehensive test documentation
 ├── __init__.py                        # Python package initialization
-├── test_main.py                       # Core utilities and validation functions
+├── test_main.py                       # Core utilities and validation functions + final verification
+├── test_token_robustness.py           # OAuth token error handling tests (NEW)
 ├── test_config_ui.py                  # Configuration UI and management
 ├── test_config.py                     # Configuration loading and path resolution
 ├── test_setup_functions.py            # Build and setup helper function tests
@@ -38,6 +47,9 @@ tests/
 ```bash
 # Core utilities (RGB handling, validation functions)
 python tests/test_main.py
+
+# OAuth token robustness tests (NEW)
+python tests/test_token_robustness.py
 
 # Configuration management
 python tests/test_config_ui.py
@@ -76,8 +88,8 @@ python tests/test_immediate_actions.py
 # Run comprehensive test verification (recommended)
 python tests/final_test_verification.py
 
-# Verify test environment and setup
-python tests/verify_tests.py
+# Alternative: Run through main test file with final verification flag
+python tests/test_main.py --final-verification
 ```
 
 ## 📊 Test Categories and Coverage
@@ -87,13 +99,29 @@ python tests/verify_tests.py
 - **Status normalization**: Keyword matching, fallback logic
 - **Validation functions**: Govee device ID/model format validation
 - **Utility functions**: Resource path resolution, time formatting
+- **Final verification**: Comprehensive test runner with token robustness tests
 
 **Key Features Tested:**
 - `clamp_rgb()` - RGB value bounds checking
 - `normalize_status()` - Status keyword extraction
 - `is_valid_govee_device_id()` - Device ID format validation
 - `is_valid_govee_device_model()` - Device model validation
+- `final_test_verification()` - Runs all tests including token robustness
 - Boolean return values for testability
+
+### 1.1. OAuth Token Robustness (`test_token_robustness.py`) ✅ **NEW**
+- **Invalid token handling**: Corrupted token files, authentication failures
+- **Expired token handling**: Graceful degradation when tokens expire
+- **Calendar sync robustness**: Auto-disable calendar sync on auth failure
+- **UI robustness**: Config window loads even with bad tokens
+- **Worker thread safety**: OAuth worker handles failures gracefully
+
+**Key Features Tested:**
+- `CalendarSync` with invalid/expired tokens - should not crash
+- `GlowStatusController.update_now()` with auth failures - should auto-disable calendar sync
+- `ConfigWindow.load_calendars()` with auth failures - should show "No calendars found"
+- `OAuthWorker.run()` with auth failures - should emit error signal
+- App startup robustness with missing/expired tokens
 
 ### 2. Configuration Management (`test_config_ui.py`) ✅
 - **File I/O operations**: Loading, saving, error handling

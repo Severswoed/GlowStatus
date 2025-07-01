@@ -209,7 +209,23 @@ def main():
         sync_toggle_action = [None]  # Store reference to sync toggle action
         light_toggle_action = [None]  # Store reference to light toggle action
         if sync_enabled[0]:
-            glowstatus.start()
+            try:
+                glowstatus.start()
+            except Exception as e:
+                logger.error(f"Failed to start GlowStatus controller: {e}")
+                # Auto-disable calendar sync if it fails to start
+                config["DISABLE_CALENDAR_SYNC"] = True
+                sync_enabled[0] = False
+                save_config(config)
+                logger.info("Auto-disabled calendar sync due to startup failure")
+                
+                # Show a non-blocking notification
+                tray.showMessage(
+                    "GlowStatus - Calendar Sync Disabled",
+                    "Calendar authentication failed. Please re-authenticate in Settings.",
+                    QSystemTrayIcon.Warning,
+                    5000  # 5 seconds
+                )
 
         # --- Helper Functions ---
         def update_tray_tooltip():
@@ -334,12 +350,23 @@ def main():
             if not sync_enabled[0]:
                 config["DISABLE_CALENDAR_SYNC"] = False
                 save_config(config)
-                glowstatus.start()
-                sync_toggle_action[0].setText("Disable Sync")
-                sync_enabled[0] = True
-                # Update immediately to refresh status from calendar
-                glowstatus.update_now()
-                update_tray_tooltip()
+                try:
+                    glowstatus.start()
+                    sync_toggle_action[0].setText("Disable Sync")
+                    sync_enabled[0] = True
+                    # Update immediately to refresh status from calendar
+                    glowstatus.update_now()
+                    update_tray_tooltip()
+                except Exception as e:
+                    logger.error(f"Failed to start calendar sync: {e}")
+                    # Revert the change
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    save_config(config)
+                    sync_enabled[0] = False
+                    
+                    # Show error message
+                    QMessageBox.critical(None, "Calendar Sync Error", 
+                                       f"Failed to enable calendar sync:\n\n{e}\n\nPlease check your Google authentication in Settings.")
             else:
                 config["DISABLE_CALENDAR_SYNC"] = True
                 save_config(config)

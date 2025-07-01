@@ -1,6 +1,7 @@
 import unittest
 import sys
 import os
+import subprocess
 from unittest.mock import patch, MagicMock
 
 # Add src directory to path
@@ -54,5 +55,50 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(is_valid_google_calendar_id("not-an-email"))
         self.assertFalse(is_valid_google_calendar_id(""))
 
+def final_test_verification():
+    """Run comprehensive tests including token robustness."""
+    print("Running final test verification...")
+    
+    # Run the token robustness tests
+    test_script_path = os.path.join(os.path.dirname(__file__), 'test_token_robustness.py')
+    try:
+        result = subprocess.run([sys.executable, test_script_path], 
+                              capture_output=True, text=True, timeout=30)
+        
+        if result.returncode != 0:
+            print("Token robustness tests failed:")
+            print(result.stdout)
+            print(result.stderr)
+            return False
+        else:
+            print("✓ Token robustness tests passed")
+            
+    except subprocess.TimeoutExpired:
+        print("✗ Token robustness tests timed out")
+        return False
+    except Exception as e:
+        print(f"✗ Error running token robustness tests: {e}")
+        return False
+    
+    # Run unit tests
+    print("Running unit tests...")
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromTestCase(TestUtils)
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+    
+    if result.wasSuccessful():
+        print("✓ All unit tests passed")
+        return True
+    else:
+        print("✗ Some unit tests failed")
+        return False
+
 if __name__ == "__main__":
-    unittest.main()
+    # Check if running final verification
+    if len(sys.argv) > 1 and sys.argv[1] == "--final-verification":
+        success = final_test_verification()
+        sys.exit(0 if success else 1)
+    else:
+        # Run regular unit tests
+        unittest.main()
