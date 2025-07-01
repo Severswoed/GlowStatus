@@ -23,9 +23,7 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 - **Tray Icon Picker** – Choose your tray icon from any image in `/img` with `_tray_` in the filename.
 - **Persistent Sync State** – Sync on/off state is remembered between runs.
 - **Efficient Calendar Sync** – Only fetches events from the last 15 minutes up to midnight, for fast performance even on busy calendars.
-- **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use.
-- **Secure by Default** – Uses `.env` for secure API key and token management in dev.
-- **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
+- **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use, works on iPad via GitHub Codespaces.
 - **Discord Community** – Join our Discord server for support, feature requests, and to show off your GlowStatus setup!
 
 ---
@@ -50,17 +48,13 @@ GlowStatus/
 ├── img/
 │   └── GlowStatus_tray_*.png   # Tray icon images (selectable)
 ├── tests/
-<<<<<<< HEAD
-│   └── test_main.py            # Unit tests
+│   ├── test_main.py               # Unit tests + final verification
+│   ├── test_token_robustness.py   # OAuth token error handling tests
+│   └── readme_tests.md            # Testing documentation
 ├── discord/
 │   ├── setup_discord.py        # Discord server automation
 │   ├── README.md               # Discord setup guide
 │   └── webhooks.json           # GitHub integration template
-=======
-│   ├── test_main.py               # Unit tests + final verification
-│   ├── test_token_robustness.py   # OAuth token error handling tests
-│   └── readme_tests.md            # Testing documentation
->>>>>>> e0d770c69c2c0f2cf6dc9f3bd13842459e44e574
 ├── docs/
 │   ├── govee_apikey_instructions.md
 │   ├── govee_device_id_instructions.md
