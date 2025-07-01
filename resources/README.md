@@ -11,6 +11,7 @@ This directory contains Google OAuth credentials for calendar access.
   - Create OAuth 2.0 credentials for a desktop application
   - Download the JSON file and rename it to `client_secret.json`
   - Place it in this directory
+  - See `client_secret.json.template` for the expected file structure
 
 ## Note:
 
