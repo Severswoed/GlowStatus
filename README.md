@@ -24,7 +24,7 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 - **Persistent Sync State** – Sync on/off state is remembered between runs.
 - **Efficient Calendar Sync** – Only fetches events from the last 15 minutes up to midnight, for fast performance even on busy calendars.
 - **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use, works on iPad via GitHub Codespaces.
-- **Discord Community** – Join our Discord server for support, feature requests, and to show off your GlowStatus setup!
+- **Discord Community** – Join our [Discord server](https://discord.gg/TcKVQkS274) for support, feature requests, and to show off your GlowStatus setup!
 
 ---
 
@@ -153,7 +153,7 @@ Connect with the GlowStatus community - a focused space for smart lighting enthu
 - **🔨 Early Access** - Be first to know about new features and beta releases
 - **☕ Network** - Connect with other remote workers optimizing their home office setups
 
-**[Join Discord Server](https://discord.gg/glowstatus)** 🚀
+**[Join Discord Server](https://discord.gg/TcKVQkS274)** 🚀
 
 Our Discord follows proven community best practices:
 - **Focused Topic**: Everything relates to smart lighting and productivity
@@ -257,7 +257,7 @@ MIT License — see [LICENSE](./LICENSE) for full details.
 
 ## 💬 Feedback & Contributions
 
-**Got questions? Join our [Discord Server](https://discord.gg/glowstatus)** for real-time help and community support!
+**Got questions? Join our [Discord Server](https://discord.gg/TcKVQkS274)** for real-time help and community support!
 
 Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
@@ -274,7 +274,7 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 ### 🔗 Related Projects
 - [Govee Developer Portal](https://developer.govee.com)
 - [Google Calendar API Docs](https://developers.google.com/calendar/api)
-- [GlowStatus Discord Community](https://discord.gg/glowstatus)
+- [GlowStatus Discord Community](https://discord.gg/TcKVQkS274)
 
 ---
 

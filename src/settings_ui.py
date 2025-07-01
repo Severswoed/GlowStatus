@@ -19,6 +19,9 @@ logger = get_logger()
 class SettingsWindow(QWidget):
     """Modern tabbed settings interface for GlowStatus."""
     
+    # Internal developer toggle - set to True to enable experimental accessibility features
+    ENABLE_ACCESSIBILITY_TAB = False
+    
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(resource_path("img/GlowStatus_tray_tp_tight.png")))
@@ -37,31 +40,39 @@ class SettingsWindow(QWidget):
 
     def init_ui(self):
         """Initialize the tabbed user interface."""
+        # Apply GlowStatus dark theme
+        self.apply_glowstatus_theme()
+        
         # Main layout
-        main_layout = QHBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(0)
+        
+        # Create horizontal layout for sidebar and content
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(10)
         
         # Create sidebar navigation
         self.sidebar = QListWidget()
-        self.sidebar.setMaximumWidth(200)
-        self.sidebar.setMinimumWidth(180)
+        self.sidebar.setMaximumWidth(220)
+        self.sidebar.setMinimumWidth(200)
         self.setup_sidebar()
         
         # Create content area with stacked widget
         self.content_stack = QStackedWidget()
         self.setup_content_pages()
         
-        # Create splitter for resizable layout
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(self.sidebar)
-        splitter.addWidget(self.content_stack)
-        splitter.setSizes([200, 800])  # Default proportions
+        # Add widgets to content layout
+        content_layout.addWidget(self.sidebar)
+        content_layout.addWidget(self.content_stack, 1)  # Content takes remaining space
         
-        main_layout.addWidget(splitter)
+        # Create content widget and add to main layout
+        content_widget = QWidget()
+        content_widget.setLayout(content_layout)
+        main_layout.addWidget(content_widget, 1)  # Takes most space
         
         # Add bottom bar with save status and buttons
-        self.create_bottom_bar(main_layout)
+        self.create_bottom_bar_horizontal(main_layout)
         
         self.setLayout(main_layout)
         
@@ -71,36 +82,255 @@ class SettingsWindow(QWidget):
         # Set default selection
         self.sidebar.setCurrentRow(0)
 
+    def apply_glowstatus_theme(self):
+        """Apply GlowStatus color theme to the entire window."""
+        # GlowStatus color palette
+        glowstatus_style = """
+        QWidget {
+            background-color: #1a1a1a;
+            color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        QMainWindow {
+            background-color: #1a1a1a;
+        }
+        
+        QLabel {
+            color: #f8f9fa;
+            background-color: transparent;
+        }
+        
+        QGroupBox {
+            background-color: #2d2d2d;
+            border: 2px solid #00d4ff;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        
+        QGroupBox::title {
+            color: #00d4ff;
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 8px 0 8px;
+        }
+        
+        QLineEdit, QTextEdit {
+            background-color: #2d2d2d;
+            border: 2px solid #0099cc;
+            border-radius: 6px;
+            padding: 8px;
+            color: #f8f9fa;
+            selection-background-color: #bf40ff;
+        }
+        
+        QLineEdit:focus, QTextEdit:focus {
+            border: 2px solid #00d4ff;
+            background-color: #3d3d3d;
+        }
+        
+        QComboBox {
+            background-color: #2d2d2d;
+            border: 2px solid #0099cc;
+            border-radius: 6px;
+            padding: 8px;
+            color: #f8f9fa;
+            min-width: 6em;
+        }
+        
+        QComboBox:focus {
+            border: 2px solid #00d4ff;
+        }
+        
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 20px;
+            border-left: 1px solid #0099cc;
+        }
+        
+        QComboBox::down-arrow {
+            image: none;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid #00d4ff;
+            margin-right: 6px;
+        }
+        
+        QComboBox QAbstractItemView {
+            background-color: #2d2d2d;
+            border: 2px solid #00d4ff;
+            selection-background-color: #bf40ff;
+            color: #f8f9fa;
+        }
+        
+        QCheckBox {
+            color: #f8f9fa;
+            spacing: 8px;
+        }
+        
+        QCheckBox::indicator {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #0099cc;
+            border-radius: 3px;
+            background-color: #2d2d2d;
+        }
+        
+        QCheckBox::indicator:checked {
+            background-color: #00d4ff;
+            border: 2px solid #00d4ff;
+        }
+        
+        QSlider::groove:horizontal {
+            background-color: #2d2d2d;
+            height: 6px;
+            border-radius: 3px;
+        }
+        
+        QSlider::handle:horizontal {
+            background-color: #00d4ff;
+            border: 2px solid #00d4ff;
+            width: 18px;
+            margin: -6px 0;
+            border-radius: 9px;
+        }
+        
+        QSlider::handle:horizontal:hover {
+            background-color: #bf40ff;
+            border: 2px solid #bf40ff;
+        }
+        
+        QSpinBox {
+            background-color: #2d2d2d;
+            border: 2px solid #0099cc;
+            border-radius: 6px;
+            padding: 6px;
+            color: #f8f9fa;
+        }
+        
+        QSpinBox:focus {
+            border: 2px solid #00d4ff;
+        }
+        
+        QTextBrowser {
+            background-color: #2d2d2d;
+            border: 2px solid #0099cc;
+            border-radius: 6px;
+            color: #f8f9fa;
+            padding: 10px;
+        }
+        
+        QScrollArea {
+            background-color: transparent;
+            border: none;
+        }
+        
+        QScrollBar:vertical {
+            background-color: #2d2d2d;
+            width: 16px;
+            border-radius: 8px;
+        }
+        
+        QScrollBar::handle:vertical {
+            background-color: #00d4ff;
+            border-radius: 6px;
+            min-height: 20px;
+            margin: 2px;
+        }
+        
+        QScrollBar::handle:vertical:hover {
+            background-color: #bf40ff;
+        }
+        
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+        
+        QScrollBar:horizontal {
+            background-color: #2d2d2d;
+            height: 16px;
+            border-radius: 8px;
+        }
+        
+        QScrollBar::handle:horizontal {
+            background-color: #00d4ff;
+            border-radius: 6px;
+            min-width: 20px;
+            margin: 2px;
+        }
+        
+        QScrollBar::handle:horizontal:hover {
+            background-color: #bf40ff;
+        }
+        
+        QTabWidget::pane {
+            border: 2px solid #0099cc;
+            background-color: #2d2d2d;
+            border-radius: 6px;
+        }
+        
+        QTabBar::tab {
+            background-color: #2d2d2d;
+            border: 2px solid #0099cc;
+            padding: 8px 16px;
+            margin-right: 2px;
+            border-radius: 6px 6px 0 0;
+            color: #f8f9fa;
+        }
+        
+        QTabBar::tab:selected {
+            background-color: #00d4ff;
+            color: #1a1a1a;
+            border-bottom: 2px solid #00d4ff;
+        }
+        
+        QTabBar::tab:hover {
+            background-color: #bf40ff;
+            color: #f8f9fa;
+        }
+        """
+        self.setStyleSheet(glowstatus_style)
+
     def setup_sidebar(self):
-        """Set up the sidebar navigation."""
+        """Set up the sidebar navigation with GlowStatus theming."""
         self.sidebar.setStyleSheet("""
             QListWidget {
-                background-color: #f5f5f5;
-                border: none;
-                border-right: 1px solid #ddd;
+                background-color: #2d2d2d;
+                border: 2px solid #00d4ff;
+                border-radius: 8px;
                 outline: none;
                 font-size: 14px;
+                font-weight: 500;
             }
             QListWidget::item {
-                padding: 12px 16px;
-                border-bottom: 1px solid #eee;
-                color: #333;
+                padding: 15px 20px;
+                border-bottom: 1px solid #3d3d3d;
+                color: #f8f9fa;
+                border-radius: 4px;
+                margin: 2px;
             }
             QListWidget::item:selected {
-                background-color: #4285f4;
-                color: white;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #00d4ff, stop:1 #bf40ff);
+                color: #1a1a1a;
+                font-weight: bold;
             }
             QListWidget::item:hover {
-                background-color: #e8f0fe;
-                color: #1a73e8;
+                background-color: #3d3d3d;
+                color: #00d4ff;
             }
             QListWidget::item:selected:hover {
-                background-color: #3367d6;
-                color: white;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #bf40ff, stop:1 #00d4ff);
+                color: #1a1a1a;
             }
         """)
         
-        # Add navigation items
+        # Add navigation items with better icons
         nav_items = [
             ("About", "ℹ️"),
             ("OAuth", "🔐"),
@@ -108,8 +338,10 @@ class SettingsWindow(QWidget):
             ("Calendar", "📅"),
             ("Status", "💡"),
             ("Options", "⚙️"),
-            ("Accessibility", "♿")
+            ("Discord", "💬")
         ]
+        
+        # Note: Accessibility section is hidden as it's not yet implemented
         
         for title, icon in nav_items:
             item = QListWidgetItem(f"{icon}  {title}")
@@ -125,7 +357,7 @@ class SettingsWindow(QWidget):
         self.calendar_page = self.create_calendar_page()
         self.status_page = self.create_status_page()
         self.options_page = self.create_options_page()
-        self.accessibility_page = self.create_accessibility_page()
+        self.discord_page = self.create_discord_page()
         
         # Add pages to stack
         self.content_stack.addWidget(self.about_page)
@@ -134,16 +366,26 @@ class SettingsWindow(QWidget):
         self.content_stack.addWidget(self.calendar_page)
         self.content_stack.addWidget(self.status_page)
         self.content_stack.addWidget(self.options_page)
-        self.content_stack.addWidget(self.accessibility_page)
+        self.content_stack.addWidget(self.discord_page)
+        
+        # Note: Accessibility page is not implemented yet, so it's not included
 
     def create_scrollable_page(self, title):
-        """Create a scrollable page with title."""
+        """Create a scrollable page with title using GlowStatus theme."""
         page = QWidget()
         layout = QVBoxLayout(page)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         
-        # Title
+        # Title with GlowStatus styling
         title_label = QLabel(title)
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #1a73e8;")
+        title_label.setStyleSheet("""
+            font-size: 28px; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        """)
         layout.addWidget(title_label)
         
         # Scroll area for content
@@ -151,11 +393,12 @@ class SettingsWindow(QWidget):
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        scroll_area.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
         
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
         content_layout.setSpacing(15)
+        content_layout.setContentsMargins(10, 10, 10, 10)
         
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
@@ -176,50 +419,93 @@ class SettingsWindow(QWidget):
         logo_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(logo_label)
         
-        # Version and description
-        version_label = QLabel("Version 1.0.0")
+        # Version and description with GlowStatus styling
+        version_label = QLabel("Version 2.0.0 - GlowStatus")
         version_label.setAlignment(Qt.AlignCenter)
-        version_label.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px 0;")
+        version_label.setStyleSheet("""
+            font-size: 18px; 
+            font-weight: bold; 
+            margin: 15px 0;
+            color: #bf40ff;
+            text-shadow: 0 0 10px rgba(191, 64, 255, 0.4);
+        """)
         layout.addWidget(version_label)
         
         description = QTextBrowser()
-        description.setMaximumHeight(200)
+        description.setMaximumHeight(250)
+        description.setStyleSheet("""
+            QTextBrowser {
+                background-color: #2d2d2d;
+                border: 2px solid #00d4ff;
+                border-radius: 8px;
+                color: #f8f9fa;
+                padding: 15px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+        """)
         description.setHtml("""
-        <p><strong>GlowStatus</strong> is a smart status light controller that automatically adjusts your lights based on your calendar status.</p>
+        <div style="color: #f8f9fa; line-height: 1.6;">
+        <p style="color: #00d4ff; font-weight: bold; font-size: 16px;">🌟 Light up your availability with smart LED integration</p>
         
-        <p><strong>Features:</strong></p>
-        <ul>
-        <li>🔗 Google Calendar integration</li>
-        <li>💡 Govee smart light control</li>
-        <li>🎨 Customizable status colors</li>
-        <li>⚙️ Flexible configuration options</li>
-        <li>🔒 Secure credential storage</li>
+        <p><strong style="color: #bf40ff;">GlowStatus</strong> is an intelligent status light controller that automatically adjusts your smart lights based on your calendar status, perfect for remote workers and streamers.</p>
+        
+        <p style="color: #00d4ff; font-weight: bold;">✨ Key Features:</p>
+        <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 8px;">🔗 <span style="color: #00ff7f;">Google Calendar integration</span> - Real-time meeting status</li>
+        <li style="margin-bottom: 8px;">💡 <span style="color: #ff6b35;">Govee smart light control</span> - Professional lighting automation</li>
+        <li style="margin-bottom: 8px;">🎨 <span style="color: #bf40ff;">Customizable status colors</span> - Match your workflow</li>
+        <li style="margin-bottom: 8px;">⚙️ <span style="color: #00d4ff;">Flexible configuration</span> - Tailored to your needs</li>
+        <li style="margin-bottom: 8px;">🔒 <span style="color: #00ff7f;">Secure credential storage</span> - Privacy-first design</li>
         </ul>
         
-        <p>Perfect for remote workers, streamers, and anyone who wants to visually communicate their availability.</p>
+        <p style="color: #bf40ff; font-style: italic;">Transform your workspace with intelligent lighting that reflects your availability status!</p>
+        </div>
         """)
         layout.addWidget(description)
         
-        # Links section
-        links_group = QGroupBox("Links & Support")
+        # Links section with GlowStatus styling
+        links_group = QGroupBox("🔗 Links & Support")
+        links_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 16px;
+                font-weight: bold;
+                padding-top: 15px;
+            }
+        """)
         links_layout = QVBoxLayout(links_group)
+        links_layout.setSpacing(12)
         
-        link_style = "color: #1a73e8; text-decoration: underline; margin: 5px 0;"
+        link_style = """
+            color: #00d4ff; 
+            text-decoration: none; 
+            margin: 8px 0; 
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: rgba(0, 212, 255, 0.1);
+        """
         
-        website_link = QLabel('<a href="https://www.glowstatus.app">Official Website</a>')
-        website_link.setStyleSheet(link_style)
+        website_link = QLabel('<a href="https://www.glowstatus.app" style="{}">🌐 Official Website - glowstatus.app</a>'.format(link_style))
         website_link.setOpenExternalLinks(True)
         links_layout.addWidget(website_link)
         
-        privacy_link = QLabel('<a href="https://www.glowstatus.app/privacy">Privacy Policy</a>')
-        privacy_link.setStyleSheet(link_style)
+        github_link = QLabel('<a href="https://github.com/Severswoed/GlowStatus" style="{}">💻 GitHub Repository</a>'.format(link_style))
+        github_link.setOpenExternalLinks(True)
+        links_layout.addWidget(github_link)
+        
+        privacy_link = QLabel('<a href="https://www.glowstatus.app/privacy" style="{}">🔒 Privacy Policy</a>'.format(link_style))
         privacy_link.setOpenExternalLinks(True)
         links_layout.addWidget(privacy_link)
         
-        terms_link = QLabel('<a href="https://www.glowstatus.app/terms">Terms of Service</a>')
-        terms_link.setStyleSheet(link_style)
+        terms_link = QLabel('<a href="https://www.glowstatus.app/terms" style="{}">📋 Terms of Service</a>'.format(link_style))
         terms_link.setOpenExternalLinks(True)
         links_layout.addWidget(terms_link)
+        
+        sponsor_link = QLabel('<a href="https://github.com/sponsors/Severswoed" style="{}">💝 Sponsor this Project</a>'.format(link_style))
+        sponsor_link.setOpenExternalLinks(True)
+        links_layout.addWidget(sponsor_link)
         
         layout.addWidget(links_group)
         layout.addStretch()
@@ -242,44 +528,66 @@ class SettingsWindow(QWidget):
         self.google_user_label = QLabel("Not authenticated")
         google_layout.addRow("Authenticated as:", self.google_user_label)
         
-        # OAuth buttons
+        # OAuth buttons with improved layout
         oauth_buttons = QHBoxLayout()
         
-        self.oauth_btn = QPushButton("Sign in with Google")
+        self.oauth_btn = QPushButton("🔑 Sign in with Google")
         self.oauth_btn.clicked.connect(self.run_oauth_flow)
+        self.oauth_btn.setMinimumHeight(45)
+        self.oauth_btn.setMinimumWidth(200)
         self.apply_google_button_style(self.oauth_btn)
         oauth_buttons.addWidget(self.oauth_btn)
         
-        self.disconnect_btn = QPushButton("Disconnect")
+        self.disconnect_btn = QPushButton("🔌 Disconnect")
         self.disconnect_btn.clicked.connect(self.disconnect_oauth)
+        self.disconnect_btn.setMinimumHeight(45)
+        self.disconnect_btn.setMinimumWidth(150)
         self.disconnect_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f8f9fa;
-                border: 1px solid #dadce0;
-                border-radius: 4px;
-                color: #3c4043;
+                background-color: #2d2d2d;
+                border: 2px solid #ff6b35;
+                border-radius: 8px;
+                color: #ff6b35;
                 font-size: 14px;
-                font-weight: 500;
-                padding: 8px 16px;
-                min-height: 20px;
+                font-weight: 600;
+                padding: 10px 20px;
             }
-            QPushButton:hover { background-color: #f1f3f4; }
-            QPushButton:pressed { background-color: #e8eaed; }
-            QPushButton:disabled { background-color: #f8f9fa; color: #9aa0a6; }
+            QPushButton:hover { 
+                background-color: #ff6b35; 
+                color: #1a1a1a;
+                box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+            }
+            QPushButton:pressed { 
+                background-color: #e55a2b; 
+                border: 2px solid #e55a2b;
+            }
+            QPushButton:disabled { 
+                background-color: #2d2d2d; 
+                color: #666; 
+                border: 2px solid #666;
+            }
         """)
         oauth_buttons.addWidget(self.disconnect_btn)
         oauth_buttons.addStretch()
         
         google_layout.addRow("Actions:", oauth_buttons)
         
-        # Privacy notice
+        # Privacy notice with GlowStatus styling
         privacy_notice = QLabel(
-            'By connecting your Google account, you agree to GlowStatus accessing your calendar data '
-            'in read-only mode to determine your meeting status.'
+            '🔒 By connecting your Google account, you agree to GlowStatus accessing your calendar data '
+            'in read-only mode to determine your meeting status. Your data remains secure and private.'
         )
         privacy_notice.setWordWrap(True)
-        privacy_notice.setStyleSheet("color: #666; font-size: 11px; margin: 10px 0; padding: 8px; "
-                                   "background-color: #f8f9fa; border-radius: 4px;")
+        privacy_notice.setStyleSheet("""
+            color: #f8f9fa; 
+            font-size: 12px; 
+            margin: 15px 0; 
+            padding: 12px; 
+            background-color: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 6px;
+            line-height: 1.4;
+        """)
         google_layout.addRow(privacy_notice)
         
         layout.addWidget(google_group)
@@ -659,109 +967,312 @@ class SettingsWindow(QWidget):
         
         return page
 
-    def create_bottom_bar(self, main_layout):
-        """Create the bottom bar with save status and action buttons."""
-        bottom_widget = QWidget()
-        bottom_layout = QHBoxLayout(bottom_widget)
-        bottom_layout.setContentsMargins(20, 10, 20, 15)
+    def create_discord_page(self):
+        """Create the Discord Community page."""
+        page, layout = self.create_scrollable_page("Discord Community")
         
-        # Save status indicator
-        self.save_status_label = QLabel("Ready")
-        self.save_status_label.setStyleSheet("color: #666; font-size: 12px;")
+        # Discord logo and welcome section
+        welcome_group = QGroupBox("🎮 Join the GlowStatus Community")
+        welcome_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 18px;
+                font-weight: bold;
+                padding-top: 20px;
+                color: #5865f2;
+                border: 2px solid #5865f2;
+                border-radius: 10px;
+                margin-top: 10px;
+            }
+        """)
+        welcome_layout = QVBoxLayout(welcome_group)
+        welcome_layout.setSpacing(15)
+        
+        # Community description
+        description = QTextBrowser()
+        description.setMaximumHeight(200)
+        description.setStyleSheet("""
+            QTextBrowser {
+                background-color: #2d2d2d;
+                border: 2px solid #5865f2;
+                border-radius: 8px;
+                color: #f8f9fa;
+                padding: 15px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+        """)
+        description.setHtml("""
+        <div style="color: #f8f9fa; line-height: 1.6;">
+        <p style="color: #5865f2; font-weight: bold; font-size: 16px;">💬 Connect with fellow GlowStatus users!</p>
+        
+        <p>Join our vibrant Discord community to get help, share setups, discuss features, and connect with other smart lighting enthusiasts.</p>
+        
+        <p style="color: #5865f2; font-weight: bold;">What you'll find:</p>
+        <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 8px;">💡 <span style="color: #00ff7f;">Setup assistance</span> - Get help with configuration and troubleshooting</li>
+        <li style="margin-bottom: 8px;">🎨 <span style="color: #bf40ff;">Show off your setups</span> - Share your lighting configurations</li>
+        <li style="margin-bottom: 8px;">🚀 <span style="color: #00d4ff;">Feature discussions</span> - Suggest and discuss new features</li>
+        <li style="margin-bottom: 8px;">🔧 <span style="color: #ff6b35;">Beta testing</span> - Test new features before release</li>
+        <li style="margin-bottom: 8px;">📢 <span style="color: #00ff7f;">Updates & announcements</span> - Stay informed about releases</li>
+        </ul>
+        </div>
+        """)
+        welcome_layout.addWidget(description)
+        
+        layout.addWidget(welcome_group)
+        
+        # Invite section
+        invite_group = QGroupBox("🔗 Join Now")
+        invite_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 16px;
+                font-weight: bold;
+                padding-top: 15px;
+                color: #00d4ff;
+            }
+        """)
+        invite_layout = QVBoxLayout(invite_group)
+        invite_layout.setSpacing(15)
+        
+        # Permanent invite link
+        invite_label = QLabel("Click the link below to join our Discord server:")
+        invite_label.setStyleSheet("color: #f8f9fa; font-size: 14px; margin-bottom: 10px;")
+        invite_layout.addWidget(invite_label)
+        
+        discord_invite = QLabel('<a href="https://discord.gg/TcKVQkS274" style="color: #5865f2; text-decoration: none; font-size: 18px; font-weight: bold; padding: 12px 20px; border: 2px solid #5865f2; border-radius: 8px; background-color: rgba(88, 101, 242, 0.1); display: inline-block; margin: 10px 0;">🎮 Join GlowStatus Discord Server</a>')
+        discord_invite.setOpenExternalLinks(True)
+        discord_invite.setAlignment(Qt.AlignCenter)
+        discord_invite.setStyleSheet("margin: 15px 0; padding: 10px;")
+        invite_layout.addWidget(discord_invite)
+        
+        # Additional info
+        info_text = QLabel("The invite link will open in your default browser. If you don't have Discord installed, you can use it in your web browser or download the Discord app.")
+        info_text.setWordWrap(True)
+        info_text.setStyleSheet("""
+            color: #b0b0b0; 
+            font-size: 12px; 
+            font-style: italic; 
+            padding: 10px; 
+            background-color: rgba(176, 176, 176, 0.1); 
+            border-radius: 6px;
+            margin-top: 10px;
+        """)
+        invite_layout.addWidget(info_text)
+        
+        layout.addWidget(invite_group)
+        
+        # Community guidelines section
+        guidelines_group = QGroupBox("📋 Community Guidelines")
+        guidelines_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 16px;
+                font-weight: bold;
+                padding-top: 15px;
+                color: #00ff7f;
+            }
+        """)
+        guidelines_layout = QVBoxLayout(guidelines_group)
+        
+        guidelines_text = QTextBrowser()
+        guidelines_text.setMaximumHeight(150)
+        guidelines_text.setStyleSheet("""
+            QTextBrowser {
+                background-color: #2d2d2d;
+                border: 2px solid #00ff7f;
+                border-radius: 8px;
+                color: #f8f9fa;
+                padding: 15px;
+                font-size: 13px;
+                line-height: 1.4;
+            }
+        """)
+        guidelines_text.setHtml("""
+        <div style="color: #f8f9fa; line-height: 1.5;">
+        <p style="color: #00ff7f; font-weight: bold;">Please follow these guidelines to keep our community welcoming:</p>
+        <ul style="margin-left: 15px;">
+        <li style="margin-bottom: 6px;">✅ Be respectful and helpful to all members</li>
+        <li style="margin-bottom: 6px;">✅ Use appropriate channels for your questions</li>
+        <li style="margin-bottom: 6px;">✅ Search previous messages before asking duplicate questions</li>
+        <li style="margin-bottom: 6px;">✅ Share screenshots/logs when asking for technical help</li>
+        <li style="margin-bottom: 6px;">❌ No spam, self-promotion, or off-topic content</li>
+        </ul>
+        </div>
+        """)
+        guidelines_layout.addWidget(guidelines_text)
+        
+        layout.addWidget(guidelines_group)
+        
+        # Support section
+        support_group = QGroupBox("🆘 Need Help?")
+        support_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 16px;
+                font-weight: bold;
+                padding-top: 15px;
+                color: #bf40ff;
+            }
+        """)
+        support_layout = QVBoxLayout(support_group)
+        
+        support_text = QLabel("""
+If you're experiencing issues or need immediate help:
+
+• Check the #help-and-support channel in Discord
+• Browse the #frequently-asked-questions channel
+• Use the search function to find previous discussions
+• Create a GitHub issue for bug reports
+• Tag @Moderators for urgent community issues
+        """)
+        support_text.setWordWrap(True)
+        support_text.setStyleSheet("""
+            color: #f8f9fa; 
+            font-size: 13px; 
+            line-height: 1.5; 
+            padding: 15px; 
+            background-color: rgba(191, 64, 255, 0.1); 
+            border: 1px solid #bf40ff;
+            border-radius: 6px;
+        """)
+        support_layout.addWidget(support_text)
+        
+        layout.addWidget(support_group)
+        layout.addStretch()
+        
+        return page
+
+    def create_bottom_bar_horizontal(self, main_layout):
+        """Create a horizontal bottom bar with save status and buttons."""
+        bottom_frame = QFrame()
+        bottom_frame.setFixedHeight(60)
+        bottom_frame.setStyleSheet("""
+            QFrame {
+                background-color: #2d2d2d;
+                border-top: 2px solid #00d4ff;
+                border-radius: 0;
+            }
+        """)
+        
+        bottom_layout = QHBoxLayout(bottom_frame)
+        bottom_layout.setContentsMargins(20, 10, 20, 10)
+        
+        # Save status on the left
+        self.save_status_label = QLabel("✅ All changes saved")
+        self.save_status_label.setStyleSheet("""
+            color: #00ff7f;
+            font-weight: 500;
+            font-size: 14px;
+        """)
         bottom_layout.addWidget(self.save_status_label)
         
+        # Spacer
         bottom_layout.addStretch()
         
-        # Action buttons
-        self.save_btn = QPushButton("Save Settings")
-        self.save_btn.clicked.connect(self.save_settings)
+        # Action buttons on the right
+        button_layout = QHBoxLayout()
+        button_layout.setSpacing(10)
+        
+        # Reset button
+        self.reset_btn = QPushButton("🔄 Reset to Defaults")
+        self.reset_btn.clicked.connect(self.reset_to_defaults)
+        self.reset_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2d2d2d;
+                border: 2px solid #ff6b35;
+                border-radius: 6px;
+                color: #ff6b35;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 8px 16px;
+                min-width: 120px;
+            }
+            QPushButton:hover { 
+                background-color: #ff6b35; 
+                color: #1a1a1a;
+            }
+            QPushButton:pressed { background-color: #e55a2b; }
+        """)
+        button_layout.addWidget(self.reset_btn)
+        
+        # Save button
+        self.save_btn = QPushButton("💾 Save All Changes")
+        self.save_btn.clicked.connect(self.save_all_settings)
         self.save_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4285f4;
-                color: white;
-                font-weight: bold;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                min-width: 100px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #00d4ff, stop:1 #bf40ff);
+                border: 2px solid #00d4ff;
+                border-radius: 6px;
+                color: #ffffff;
+                font-size: 13px;
+                font-weight: 600;
+                padding: 8px 16px;
+                min-width: 120px;
             }
-            QPushButton:hover { background-color: #3367d6; }
-            QPushButton:pressed { background-color: #2d5aa0; }
-        """)
-        bottom_layout.addWidget(self.save_btn)
-        
-        self.close_btn = QPushButton("Close")
-        self.close_btn.clicked.connect(self.close_settings)
-        self.close_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                border: 1px solid #dadce0;
-                color: #3c4043;
-                font-weight: bold;
-                padding: 10px 20px;
-                border-radius: 4px;
-                min-width: 80px;
+            QPushButton:hover { 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #bf40ff, stop:1 #00d4ff);
+                box-shadow: 0 0 15px rgba(191, 64, 255, 0.5);
             }
-            QPushButton:hover { background-color: #f1f3f4; }
-            QPushButton:pressed { background-color: #e8eaed; }
+            QPushButton:pressed { 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #9932cc, stop:1 #0099cc);
+            }
+            QPushButton:disabled { 
+                background-color: #3d3d3d; 
+                color: #666; 
+                border: 2px solid #666;
+            }
         """)
-        bottom_layout.addWidget(self.close_btn)
+        button_layout.addWidget(self.save_btn)
         
-        # Create a separate widget for the bottom bar and add it to main layout
-        main_widget = QWidget()
-        content_layout = QVBoxLayout(main_widget)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
-        
-        # Create the main splitter content
-        splitter_widget = QWidget()
-        splitter_layout = QHBoxLayout(splitter_widget)
-        splitter_layout.setContentsMargins(0, 0, 0, 0)
-        splitter_layout.setSpacing(0)
-        
-        # Create splitter for resizable layout
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(self.sidebar)
-        splitter.addWidget(self.content_stack)
-        splitter.setSizes([200, 800])
-        
-        splitter_layout.addWidget(splitter)
-        content_layout.addWidget(splitter_widget)
-        content_layout.addWidget(bottom_widget)
-        
-        # Set the main widget as the layout
-        main_layout.addWidget(main_widget)
+        bottom_layout.addLayout(button_layout)
+        main_layout.addWidget(bottom_frame)
 
     # === OAUTH METHODS (adapted from original config_ui.py) ===
     
     def apply_google_button_style(self, button):
-        """Apply Google branding guidelines styling to OAuth button."""
+        """Apply Google branding with GlowStatus theme styling to OAuth button."""
         google_logo_path = resource_path('img/google_logo.png')
         
         if os.path.exists(google_logo_path):
             icon = QIcon(google_logo_path)
             button.setIcon(icon)
-            size = button.fontMetrics().height()
-            button.setIconSize(QSize(size, size))
+            button.setIconSize(QSize(20, 20))
         else:
             self.create_google_g_icon(button)
         
         button.setStyleSheet("""
             QPushButton {
-                background-color: #4285f4;
-                border: none;
-                border-radius: 4px;
-                color: white;
-                font-family: 'Google Sans', Roboto, Arial, sans-serif;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #4285f4, stop:1 #00d4ff);
+                border: 2px solid #00d4ff;
+                border-radius: 8px;
+                color: #ffffff;
+                font-family: 'Segoe UI', Roboto, Arial, sans-serif;
                 font-size: 14px;
-                font-weight: 500;
-                padding: 10px 24px 10px 20px;
-                min-height: 20px;
-                text-align: left;
+                font-weight: 600;
+                padding: 12px 24px;
+                text-align: center;
+                box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
             }
-            QPushButton:hover { background-color: #3367d6; }
-            QPushButton:pressed { background-color: #2d5aa0; }
-            QPushButton:disabled { background-color: #f8f9fa; color: #5f6368; }
+            QPushButton:hover { 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #3367d6, stop:1 #bf40ff);
+                border: 2px solid #bf40ff;
+                box-shadow: 0 0 20px rgba(191, 64, 255, 0.5);
+                transform: translateY(-1px);
+            }
+            QPushButton:pressed { 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #2d5aa0, stop:1 #9932cc);
+                box-shadow: 0 0 10px rgba(153, 50, 204, 0.3);
+            }
+            QPushButton:disabled { 
+                background-color: #2d2d2d; 
+                color: #666; 
+                border: 2px solid #666;
+                box-shadow: none;
+            }
         """)
     
     def create_google_g_icon(self, button):
@@ -839,12 +1350,13 @@ class SettingsWindow(QWidget):
             return
             
         self.oauth_btn.setEnabled(False)
-        self.oauth_btn.setText("Connecting...")
+        self.oauth_btn.setText("🔄 Connecting...")
         self.disconnect_btn.setEnabled(False)
         
-        self.google_user_label.setText("Not authenticated")
-        self.selected_calendar_dropdown.clear()
-        self.selected_calendar_dropdown.addItem("Loading calendars...")
+        self.google_user_label.setText("Authenticating...")
+        if hasattr(self, 'selected_calendar_dropdown'):
+            self.selected_calendar_dropdown.clear()
+            self.selected_calendar_dropdown.addItem("Loading calendars...")
         self.update_oauth_status()
         
         # Start OAuth worker thread
@@ -857,12 +1369,16 @@ class SettingsWindow(QWidget):
             except Exception:
                 pass
                 
-        self.oauth_worker = OAuthWorker()
-        self.oauth_worker.oauth_success.connect(self.on_oauth_success)
-        self.oauth_worker.oauth_error.connect(self.on_oauth_error)
-        self.oauth_worker.oauth_no_calendars.connect(self.on_oauth_no_calendars)
-        self.oauth_worker.finished.connect(self.on_oauth_finished)
-        self.oauth_worker.start()
+        try:
+            self.oauth_worker = OAuthWorker()
+            self.oauth_worker.oauth_success.connect(self.on_oauth_success)
+            self.oauth_worker.oauth_error.connect(self.on_oauth_error)
+            self.oauth_worker.oauth_no_calendars.connect(self.on_oauth_no_calendars)
+            self.oauth_worker.finished.connect(self.on_oauth_finished)
+            self.oauth_worker.start()
+        except Exception as e:
+            logger.error(f"Failed to start OAuth worker: {e}")
+            self.on_oauth_error(str(e))
 
     def on_oauth_success(self, user_email, calendars):
         """Handle successful OAuth authentication."""
@@ -906,7 +1422,7 @@ class SettingsWindow(QWidget):
     def on_oauth_finished(self):
         """Re-enable UI after OAuth flow finishes."""
         self.oauth_btn.setEnabled(True)
-        self.oauth_btn.setText("Sign in with Google")
+        self.oauth_btn.setText("🔑 Sign in with Google")
         self.disconnect_btn.setEnabled(True)
         
         if hasattr(self, 'oauth_worker'):
@@ -1182,117 +1698,116 @@ class SettingsWindow(QWidget):
             except Exception as e:
                 QMessageBox.critical(self, "Reset Failed", f"Failed to reset settings: {e}")
 
-    def save_settings(self):
-        """Save all settings."""
+    def save_all_settings(self):
+        """Save all current settings to configuration."""
         try:
             config = load_config()
             
-            # Save Govee settings
-            if hasattr(self, 'govee_api_key_edit'):
+            # Save Govee settings from Integrations page
+            try:
                 api_key = self.govee_api_key_edit.text().strip()
                 if api_key:
-                    try:
-                        keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
-                    except Exception as e:
-                        logger.error(f"Failed to save API key to keyring: {e}")
-                        QMessageBox.warning(self, "Keyring Error", f"Failed to save API key securely: {e}")
+                    keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
                 else:
                     try:
                         keyring.delete_password("GlowStatus", "GOVEE_API_KEY")
                     except:
                         pass
+            except Exception as e:
+                logger.warning(f"Could not save Govee API key: {e}")
             
-            if hasattr(self, 'govee_device_id_edit'):
-                config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
-            if hasattr(self, 'govee_device_model_edit'):
-                config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
+            # Save other settings
+            config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
+            config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
             
-            # Save calendar settings
-            if hasattr(self, 'selected_calendar_dropdown'):
-                calendar_data = self.selected_calendar_dropdown.currentData()
-                config["SELECTED_CALENDAR_ID"] = calendar_data if calendar_data else ""
-            if hasattr(self, 'refresh_interval_spin'):
-                config["REFRESH_INTERVAL"] = self.refresh_interval_spin.value()
-            if hasattr(self, 'disable_calendar_sync_chk'):
-                config["DISABLE_CALENDAR_SYNC"] = self.disable_calendar_sync_chk.isChecked()
+            # Save calendar settings if available
+            if hasattr(self, 'selected_calendar_dropdown') and self.selected_calendar_dropdown.currentData():
+                config["SELECTED_CALENDAR_ID"] = self.selected_calendar_dropdown.currentData()
             
-            # Save light control settings
-            if hasattr(self, 'disable_light_control_chk'):
-                config["DISABLE_LIGHT_CONTROL"] = self.disable_light_control_chk.isChecked()
-            if hasattr(self, 'power_off_available_chk'):
-                config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_chk.isChecked()
-            if hasattr(self, 'power_off_unknown_chk'):
-                config["OFF_FOR_UNKNOWN_STATUS"] = self.power_off_unknown_chk.isChecked()
-            
-            # Save tray icon
-            if hasattr(self, 'tray_icon_dropdown'):
-                config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
-            
-            # Save status color mappings
-            if hasattr(self, 'status_table'):
-                status_color_map = {}
-                for row in range(self.status_table.rowCount()):
-                    status_item = self.status_table.item(row, 0)
-                    color_item = self.status_table.item(row, 1)
-                    power_widget = self.status_table.cellWidget(row, 2)
-                    
-                    if status_item and color_item and power_widget:
-                        status = status_item.text()
-                        color = color_item.text()
-                        power_off = power_widget.isChecked()
-                        status_color_map[status] = {"color": color, "power_off": power_off}
-                
-                config["STATUS_COLOR_MAP"] = status_color_map
-            
-            # Save config
+            # Save config to file
             save_config(config)
             
-            # Update form status
+            # Update save status
+            self.save_status_label.setText("✅ All changes saved")
+            self.save_status_label.setStyleSheet("color: #00ff7f; font-weight: 500; font-size: 14px;")
             self.form_dirty = False
-            self.update_save_status()
             
-            QMessageBox.information(self, "Settings Saved", "All settings have been saved successfully!")
+            # Show success message
+            QMessageBox.information(
+                self, 
+                "Settings Saved", 
+                "All settings have been saved successfully!"
+            )
             
         except Exception as e:
-            QMessageBox.critical(self, "Save Error", f"Failed to save settings: {e}")
-
-    def close_settings(self):
-        """Close settings window with unsaved changes check."""
-        if self.form_dirty:
-            reply = QMessageBox.question(
+            logger.error(f"Error saving settings: {e}")
+            self.save_status_label.setText("❌ Error saving changes")
+            self.save_status_label.setStyleSheet("color: #ff6b35; font-weight: 500; font-size: 14px;")
+            QMessageBox.warning(
                 self, 
-                "Unsaved Changes", 
-                "You have unsaved changes. Do you want to save before closing?",
-                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                QMessageBox.Save
+                "Save Error", 
+                f"Failed to save settings: {e}"
             )
-            
-            if reply == QMessageBox.Save:
-                self.save_settings()
-                self.close()
-            elif reply == QMessageBox.Discard:
-                self.close()
-            # Cancel: do nothing
-        else:
-            self.close()
 
-    def closeEvent(self, event):
-        """Handle window close event."""
-        if self.form_dirty:
-            reply = QMessageBox.question(
-                self, 
-                "Unsaved Changes", 
-                "You have unsaved changes. Do you want to save before closing?",
-                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                QMessageBox.Save
-            )
-            
-            if reply == QMessageBox.Save:
-                self.save_settings()
-                event.accept()
-            elif reply == QMessageBox.Discard:
-                event.accept()
-            else:
-                event.ignore()
-        else:
-            event.accept()
+    def reset_to_defaults(self):
+        """Reset all settings to default values."""
+        reply = QMessageBox.question(
+            self, 
+            "Reset to Defaults", 
+            "Are you sure you want to reset all settings to their default values?\n\n"
+            "This will:\n"
+            "• Clear all API keys and credentials\n"
+            "• Reset device configurations\n"
+            "• Remove OAuth connections\n"
+            "• Restore default preferences\n\n"
+            "This action cannot be undone.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                # Clear keyring credentials
+                try:
+                    keyring.delete_password("GlowStatus", "GOVEE_API_KEY")
+                except:
+                    pass
+                
+                # Reset form fields
+                if hasattr(self, 'govee_api_key_edit'):
+                    self.govee_api_key_edit.clear()
+                if hasattr(self, 'govee_device_id_edit'):
+                    self.govee_device_id_edit.clear()
+                if hasattr(self, 'govee_device_model_edit'):
+                    self.govee_device_model_edit.clear()
+                
+                # Reset OAuth status
+                if hasattr(self, 'google_user_label'):
+                    self.google_user_label.setText("Not authenticated")
+                if hasattr(self, 'selected_calendar_dropdown'):
+                    self.selected_calendar_dropdown.clear()
+                
+                # Load template config and save it
+                if os.path.exists(TEMPLATE_CONFIG_PATH):
+                    import shutil
+                    shutil.copy2(TEMPLATE_CONFIG_PATH, CONFIG_PATH)
+                    logger.info("Reset configuration to template defaults")
+                
+                # Update UI
+                self.update_oauth_status()
+                self.save_status_label.setText("🔄 Reset to defaults")
+                self.save_status_label.setStyleSheet("color: #ff6b35; font-weight: 500; font-size: 14px;")
+                
+                QMessageBox.information(
+                    self, 
+                    "Reset Complete", 
+                    "All settings have been reset to their default values."
+                )
+                
+            except Exception as e:
+                logger.error(f"Error resetting to defaults: {e}")
+                QMessageBox.warning(
+                    self, 
+                    "Reset Error", 
+                    f"Failed to reset settings: {e}"
+                )
