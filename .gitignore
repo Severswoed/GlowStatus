@@ -69,6 +69,7 @@ google_service_account.json
 *.pickle
 # Ignore user-specific OAuth files but not the bundled template
 resources/client_secret.json  # Ignore real OAuth credentials for security
+!resources/client_secret.json.template  # Allow template file
 google_token.pickle
 
 # Build exclusion backups (temporary directories created during build)
