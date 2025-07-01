@@ -1,0 +1,14 @@
+{
+  "description": "GitHub webhook configuration for Discord integration",
+  "webhook_url": "DISCORD_WEBHOOK_URL_HERE",
+  "events": [
+    "push",
+    "pull_request", 
+    "release",
+    "issues"
+  ],
+  "channels": {
+    "dev-updates": "All GitHub activity",
+    "announcements": "Releases only"
+  }
+}

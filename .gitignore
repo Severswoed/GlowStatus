@@ -71,6 +71,12 @@ google_service_account.json
 resources/client_secret.json  # Ignore real OAuth credentials for security
 google_token.pickle
 
+# Build exclusion backups (temporary directories created during build)
+discord_backup/
+
+# Discord bot active configuration (contains webhook URLs)
+discord/active_webhooks.json
+
 # Optional
 *.bak
 *.tmp

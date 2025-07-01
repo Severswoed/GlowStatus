@@ -7,6 +7,13 @@ if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
 if exist __pycache__ rmdir /s /q __pycache__
 
+echo Excluding Discord directory from build...
+if exist discord_backup rmdir /s /q discord_backup
+if exist discord (
+    echo Moving discord directory temporarily...
+    move discord discord_backup
+)
+
 echo Building GlowStatus.exe using spec file...
 pyinstaller --noconfirm GlowStatus.spec
 
@@ -31,4 +38,12 @@ if exist dist\GlowStatus\GlowStatus.exe (
 
 echo.
 echo Build process finished!
+
+echo Restoring discord directory...
+if exist discord_backup (
+    if exist discord rmdir /s /q discord
+    move discord_backup discord
+    echo ✓ Discord directory restored
+)
+
 pause

@@ -26,6 +26,7 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 - **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use.
 - **Secure by Default** – Uses `.env` for secure API key and token management in dev.
 - **Mobile & Codespace Friendly** – Works on iPad via GitHub Codespaces.
+- **Discord Community** – Join our Discord server for support, feature requests, and to show off your GlowStatus setup!
 
 ---
 
@@ -50,6 +51,10 @@ GlowStatus/
 │   └── GlowStatus_tray_*.png   # Tray icon images (selectable)
 ├── tests/
 │   └── test_main.py            # Unit tests
+├── discord/
+│   ├── setup_discord.py        # Discord server automation
+│   ├── README.md               # Discord setup guide
+│   └── webhooks.json           # GitHub integration template
 ├── docs/
 │   ├── govee_apikey_instructions.md
 │   ├── govee_device_id_instructions.md
@@ -233,6 +238,60 @@ This is ideal for headless, remote, or minimal environments.
 
 ---
 
+## 💬 Community & Support
+
+### 🎮 Join Our Discord Community
+
+Connect with the GlowStatus community - a focused space for smart lighting enthusiasts, remote workers, and developers building the future of presence indicators.
+
+**Why Join?**
+- **🆘 Expert Support** - Get help from experienced users and developers
+- **💡 Shape Development** - Your feature requests directly influence our roadmap
+- **🔧 Hardware Integration** - Request support for new smart light brands and devices
+- **📸 Setup Inspiration** - See creative GlowStatus configurations from the community
+- **🔨 Early Access** - Be first to know about new features and beta releases
+- **☕ Network** - Connect with other remote workers optimizing their home office setups
+
+**[Join Discord Server](https://discord.gg/glowstatus)** 🚀
+
+Our Discord follows proven community best practices:
+- **Focused Topic**: Everything relates to smart lighting and productivity
+- **Quality Discussions**: No spam bots or off-topic noise
+- **Expert Moderation**: Automated security with human oversight
+- **Growth-Oriented**: Built to scale from early adopters to thousands of users
+
+### 📋 Community Channels
+
+**🟢 Info & Announcements**
+- **#welcome** - Quick intro with essential links and channel guide
+- **#rules** - Community guidelines and code of conduct
+- **#announcements** - Official releases, roadmap updates, and major news
+
+**🔧 Support & Feedback**  
+- **#setup-help** - Installation troubleshooting and configuration questions
+- **#feature-requests** - Community-driven development ideas and voting
+- **#integration-requests** - Request support for new hardware brands
+
+**🔨 Development**
+- **#dev-updates** - Automated GitHub activity feed (commits, releases, issues)
+- **#cli-version-v1** - Legacy CLI version support and discussion
+- **#app-version-v2** - Current GUI version questions and feedback
+- **#api-dev** - Technical API and integration discussions
+
+**☕ Community**
+- **#general** - Remote work tips, productivity discussions, general chat
+- **#show-your-glow** - Share photos and videos of your GlowStatus setup
+
+### 🎯 Community Goals
+
+Following successful Discord community patterns:
+- **Quality over Quantity**: Engaged users who actually use GlowStatus
+- **Educational Focus**: Share knowledge about smart lighting and productivity
+- **Collaborative Development**: Community input drives feature priorities
+- **Supportive Environment**: Help newcomers get their lights working perfectly
+
+---
+
 ## 🛠️ Troubleshooting
 
 - **Tray icon or config UI does not appear:**  
@@ -252,6 +311,9 @@ This is ideal for headless, remote, or minimal environments.
 
 - **Other errors:**  
   Check the logs for details. File an issue if you need help!
+
+- **Discord Bot Permission Errors:**  
+  If setting up your own Discord server, ensure the bot has Administrator permissions or all required individual permissions (Manage Server, Manage Roles, Manage Channels, Manage Webhooks). Enable "Server Members Intent" and "Message Content Intent" in the Discord Developer Portal.
 
 ---
 
@@ -292,13 +354,24 @@ MIT License — see [LICENSE](./LICENSE) for full details.
 
 ## 💬 Feedback & Contributions
 
+**Got questions? Join our [Discord Server](https://discord.gg/glowstatus)** for real-time help and community support!
+
 Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
+
+**Ways to Contribute:**
+- 🐛 Report bugs and issues
+- 💡 Suggest new features in Discord
+- 🔧 Submit pull requests
+- 📖 Improve documentation
+- 🎨 Share your setup photos
+- ⭐ Star the repository if you find it useful!
 
 ---
 
 ### 🔗 Related Projects
 - [Govee Developer Portal](https://developer.govee.com)
 - [Google Calendar API Docs](https://developers.google.com/calendar/api)
+- [GlowStatus Discord Community](https://discord.gg/glowstatus)
 
 ---
 

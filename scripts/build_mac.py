@@ -296,6 +296,17 @@ original_cwd = os.getcwd()
 os.chdir(PROJECT_ROOT)
 print(f"📁 Changed working directory to: {PROJECT_ROOT}")
 
+# Exclude Discord directory from build if py2app is being used
+discord_backup_dir = None
+if 'py2app' in sys.argv:
+    discord_dir = os.path.join(PROJECT_ROOT, 'discord')
+    if os.path.exists(discord_dir):
+        discord_backup_dir = os.path.join(PROJECT_ROOT, 'discord_backup')
+        if os.path.exists(discord_backup_dir):
+            shutil.rmtree(discord_backup_dir)
+        shutil.move(discord_dir, discord_backup_dir)
+        print("📁 Moved discord directory temporarily to exclude from build")
+
 APP = ['src/tray_app.py']
 DATA_FILES = [
     ('img', glob.glob('img/*')),
@@ -470,6 +481,14 @@ setup(
 
 # Restore original working directory
 os.chdir(original_cwd)
+
+# Restore discord directory if it was moved
+if 'py2app' in sys.argv and discord_backup_dir and os.path.exists(discord_backup_dir):
+    discord_dir = os.path.join(PROJECT_ROOT, 'discord')
+    if os.path.exists(discord_dir):
+        shutil.rmtree(discord_dir)
+    shutil.move(discord_backup_dir, discord_dir)
+    print("📁 Restored discord directory after build")
 
 # Print completion message with actual app size
 if 'py2app' in sys.argv:

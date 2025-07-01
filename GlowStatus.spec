@@ -27,7 +27,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['discord', 'discord.*'],
     noarchive=False,
 )
 pyz = PYZ(a.pure)
