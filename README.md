@@ -1,4 +1,4 @@
-![GlowStatus Logo](./img/GlowStatus_TagLine.png)
+![GlowStatus Logo](./img/GlowStatus_TagLine_tight.png)
 
 # 🌟 GlowStatus
 
@@ -49,7 +49,9 @@ GlowStatus/
 ├── img/
 │   └── GlowStatus_tray_*.png   # Tray icon images (selectable)
 ├── tests/
-│   └── test_main.py            # Unit tests
+│   ├── test_main.py               # Unit tests + final verification
+│   ├── test_token_robustness.py   # OAuth token error handling tests
+│   └── readme_tests.md            # Testing documentation
 ├── docs/
 │   ├── govee_apikey_instructions.md
 │   ├── govee_device_id_instructions.md
@@ -58,39 +60,6 @@ GlowStatus/
 ├── README.md                   # You're here!
 └── LICENSE                     # MIT License
 ```
-
----
-
-## 🛠️ Setup Instructions
-
-### [macOS Local Development Setup](#macos-local-development-setup)
-### [Windows Local Development Setup](#windows-local-development-setup)
-
-1. **Clone the Repo**
-   ```bash
-   git clone https://github.com/Severswoed/GlowStatus.git
-   cd GlowStatus
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   python -m venv .venv
-   .\.venv\Scripts\Activate
-   pip install -r requirements.txt
-   ```
-
-3. **Launch the App (with Tray Icon)**
-   ```bash
-   python src/tray_app.py
-   ```
-   - Click the GlowStatus tray icon and select **"Open Settings"** to enter your Govee and Google details, connect your Google account, and customize status colors and options.
-   - All settings are saved securely—no manual file editing required!
-
-4. **(Optional) Run the Main App Directly**
-   ```bash
-   python src/glowstatus.py
-   ```
-   - This will use your saved config and secrets.
 
 ---
 
@@ -146,77 +115,11 @@ You'll never shine if you dont glow ✨
 
 ---
 
-## 🧑‍💻 macOS Local Development Setup
+## 🔆 Wall of Glow
 
-1. **Install Python 3.9+**  
-   You can use [Homebrew](https://brew.sh/):
-   ```bash
-   brew install python
-   ```
+Thanks to these amazing sponsors who help keep GlowStatus glowing bright! ✨
 
-2. **(Recommended) Create a Virtual Environment**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install Dependencies**
-   ```bash
-   pip3 install -r requirements.txt
-   ```
-
-4. **Continue with the main setup instructions above.**
-
----
-
-## 🖥️ Windows Local Development Setup
-
-1. **Install Python 3.9+**  
-   Download from [python.org](https://www.python.org/downloads/windows/) and ensure "Add Python to PATH" is checked.
-
-2. **(Recommended) Create a Virtual Environment**
-   ```powershell
-   python -m venv venv
-   .\venv\Scripts\activate
-   ```
-
-3. **Install Dependencies**
-   ```powershell
-   pip install -r requirements.txt
-   ```
-
-4. **Continue with the main setup instructions above.**
-
----
-
-## 🧪 Example `.env`
-
-```env
-# .env.example
-GOVEE_API_KEY=your-govee-api-key
-GOVEE_DEVICE_ID=your-light-device-id
-GOVEE_DEVICE_MODEL=your-device-model
-GOOGLE_CALENDAR_ID=your_email@gmail.com
-GOOGLE_SERVICE_ACCOUNT_JSON=./google_service_account.json
-REFRESH_INTERVAL=60
-DISABLE_CALENDAR_SYNC=0
-POWER_OFF_WHEN_AVAILABLE=1
-```
-
----
-
-## 🧑‍💻 Codespaces/iPad Quick Start
-
-> **Note:** The configuration UI requires a desktop environment. For Codespaces or iPad, edit `config/glowstatus_config.json` manually and use the CLI.
-
-**Alternative:**  
-You can also pull the `v1.0-MVP` branch to run GlowStatus locally in CLI mode with no GUI:
-```bash
-git fetch origin v1.0-MVP
-git checkout v1.0-MVP
-python src/glowstatus.py
-```
-This is ideal for headless, remote, or minimal environments.
+*[Become a sponsor](https://github.com/sponsors/Severswoed) and join the Wall of Glow!*
 
 ---
 
