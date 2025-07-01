@@ -223,32 +223,53 @@ The `scripts/build_mac.py` file has been enhanced with several improvements for 
 
 **Important:** py2app only works on macOS. You cannot build macOS apps from Windows or Linux.
 
-### Quick Build
+### Quick Build with Custom Recipe
 
-GlowStatus now includes an improved `scripts/build_mac.py` that automatically:
-- Checks and installs required dependencies
-- Verifies critical modules are available
-- Fixes Google namespace package issues for py2app
-- Handles all necessary PySide6 and Google API includes
+GlowStatus now includes an advanced `scripts/build_mac.py` with a **custom py2app recipe** that dramatically reduces app bundle size by only including essential Qt components.
 
 ```bash
 # Clean previous builds
 rm -rf build/ dist/
 
-# Build the app (this will auto-check dependencies and fix namespace issues)
+# Build the app with custom minimal recipe
 python scripts/build_mac.py py2app
 ```
+
+### What the Custom Recipe Does
+
+Our custom py2app recipe **replaces the default PySide6 recipe** to eliminate massive bloat:
+
+**Only Includes Essential Qt Components:**
+- `QtCore` - Core functionality (required)
+- `QtGui` - Icons, pixmaps, painting (required for QIcon, QPainter)
+- `QtWidgets` - Window system (required for QWidget, layouts, dialogs)
+- `QtDBus` - macOS system integration (small, needed for system tray)
+- Only 6 essential Qt plugins (platform, image formats, native style)
+
+**Excludes Massive Qt Bloat:**
+- `QtWebEngine` + `QtWebEngineCore` (~200MB web browser engine)
+- `QtMultimedia` + FFmpeg codecs (~100MB video/audio)
+- `Qt3D` graphics modules (~50MB 3D rendering)
+- `QtQuick` + `QtQml` (~50MB modern UI framework)
+- `QtCharts` + `QtDataVisualization` (~30MB charting)
+- Hundreds of unused Qt plugins (GPS, CAN bus, SQL drivers, etc.)
+
+**Expected Results:**
+- **Target Size:** 50-100MB (down from 1.2GB = 92% reduction)
+- **Faster builds:** Less to process and bundle
+- **Faster startup:** Less to load at runtime
 
 ### What the build_mac.py Does Automatically
 
 1. **Dependency Check**: Verifies all requirements.txt packages are installed
 2. **Module Verification**: Tests that critical modules (PySide6, Google APIs, etc.) can be imported
-3. **Namespace Package Fix**: Resolves Google namespace package issues that can cause "No module named 'google'" errors
-4. **Comprehensive Includes**: Explicitly includes all necessary PySide6 and Google API submodules
+3. **Custom Recipe Creation**: Replaces default PySide6 recipe with minimal version
+4. **Namespace Package Fix**: Resolves Google namespace package issues
+5. **Recipe Restoration**: Restores original py2app recipes after build
 
 ### Manual Build Steps (if needed)
 
-If the automatic build fails, you can manually install and verify:
+If the automatic build fails, you can manually troubleshoot:
 
 1. **Install dependencies and py2app:**
     ```bash
@@ -261,21 +282,34 @@ If the automatic build fails, you can manually install and verify:
     python scripts/build_mac.py py2app
     ```
     - The `.app` bundle will be in the `dist/` folder.
-    - The build_mac.py will show status messages for each step.
+    - Look for "🎯 GlowStatus: Using minimal PySide6 recipe" in the output.
+    - Final size should be displayed as ~50-100MB instead of 1.2GB.
 
-3. **If build fails with missing modules:**
+3. **If build fails with custom recipe errors:**
     ```bash
-    # Clean previous build and rebuild
+    # Clean previous build and try again
     rm -rf build/ dist/
     pip install -r requirements.txt
     python scripts/build_mac.py py2app
     ```
 
+4. **Verify the custom recipe worked:**
+    ```bash
+    # Check the app size
+    du -sh dist/GlowStatus.app
+    
+    # Should show ~50-100MB, not 1.2GB
+    # Check that bloated Qt plugins are NOT included
+    find dist/GlowStatus.app -name "*webengine*" | wc -l  # Should be 0
+    find dist/GlowStatus.app -name "*3d*" | wc -l        # Should be 0
+    find dist/GlowStatus.app -name "*multimedia*" | wc -l # Should be 0
+    ```
+
 5. **Test the App:**
     - Open `dist/GlowStatus.app` by double-clicking.
-    - Ensure all features work and resources load correctly.
+    - Ensure all features work despite the minimal Qt components.
     - Test on a clean macOS machine without development tools installed.
-    - Verify that all PySide6 GUI components function properly.
+    - Verify that PySide6 GUI components function properly with reduced bundle size.
 
 5. **Code Signing & Notarization:**
     
@@ -485,7 +519,13 @@ After completing either the Windows or macOS build process, you should verify:
   Run `pip install -r requirements.txt` first. The updated build_mac.py will check dependencies automatically.
 
 - **PySide6 import errors on macOS:**  
-  The updated build_mac.py explicitly includes PySide6 modules. Clean build and retry: `rm -rf build/ dist/` then rebuild.
+  The custom recipe handles PySide6 inclusion. If errors persist, clean build and retry: `rm -rf build/ dist/` then rebuild.
+
+- **App bundle still over 200MB:**  
+  Check that the custom recipe is working - look for "🎯 GlowStatus: Using minimal PySide6 recipe" in build output. If not present, the recipe failed to apply.
+
+- **Custom recipe errors:**
+  The build script backs up and restores original py2app recipes. If recipe modification fails, the build will continue with default behavior but larger size.
 
 - **App name is wrong:**  
   Set `CFBundleName` in the `plist` section of `scripts/build_mac.py` (macOS).
@@ -541,10 +581,7 @@ After completing either the Windows or macOS build process, you should verify:
   - Check DMG signature: `codesign --verify --verbose YourFile.dmg`
 
 - **"No module named 'google'" error with py2app:**  
-  This is a namespace package issue. The updated build_mac.py automatically fixes this by:
-  - Creating necessary `__init__.py` files for Google namespace packages
-  - Explicitly including all Google submodules in the 'includes' list
-  - Using `site_packages: True` to ensure proper package discovery
+  The build_mac.py automatically fixes this by creating necessary `__init__.py` files and including Google submodules.
   
   If the issue persists:
   ```bash
@@ -555,6 +592,14 @@ After completing either the Windows or macOS build process, you should verify:
   # Clean build and retry
   rm -rf build/ dist/
   python scripts/build_mac.py py2app
+  ```
+
+- **py2app recipe backup/restore issues:**
+  If py2app recipes get corrupted, reinstall py2app:
+  ```bash
+  pip uninstall py2app
+  pip install py2app
+  ```
   ```
 
 - **py2app build hanging or taking very long:**
