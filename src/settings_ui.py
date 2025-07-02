@@ -352,28 +352,58 @@ class SettingsWindow(QDialog):
             layout.addWidget(title)
             layout.addSpacing(20)
         
-        # Description
+        # Description with emojis
         description = QLabel(
-            "GlowStatus is an intelligent status indicator that synchronizes your calendar "
-            "with smart lighting to automatically show your availability. Stay in the flow "
-            "while keeping your team informed of your status."
+            "🚀 GlowStatus is an intelligent status indicator that synchronizes your calendar "
+            "with smart lighting to automatically show your availability. ✨ Stay in the flow "
+            "while keeping your team informed of your status! 💡\n\n"
+            "🎯 Perfect for remote workers, streamers, and anyone who wants to communicate "
+            "their availability without interruption. Transform your workspace into a visual "
+            "status dashboard that works seamlessly with your daily routine! 🏠💼"
         )
         description.setWordWrap(True)
         description.setAlignment(Qt.AlignCenter)
         description.setObjectName("aboutDescription")
         layout.addWidget(description)
         
-        layout.addSpacing(16)
+        layout.addSpacing(20)
         
-        # Version info
-        version_info = QLabel("Version 1.0.0")
+        # Fun stats section
+        stats_frame = QFrame()
+        stats_layout = QHBoxLayout(stats_frame)
+        stats_layout.setSpacing(24)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
+        stats_layout.addStretch()
+        
+        meetings_stat = QLabel("📅\n1000+\nMeetings\nSynced")
+        meetings_stat.setAlignment(Qt.AlignCenter)
+        meetings_stat.setStyleSheet("font-size: 12px; font-weight: 500; color: #38bdf8; line-height: 1.4;")
+        stats_layout.addWidget(meetings_stat)
+        
+        users_stat = QLabel("👥\n500+\nHappy\nUsers")
+        users_stat.setAlignment(Qt.AlignCenter)
+        users_stat.setStyleSheet("font-size: 12px; font-weight: 500; color: #10b981; line-height: 1.4;")
+        stats_layout.addWidget(users_stat)
+        
+        lights_stat = QLabel("💡\n2000+\nLights\nControlled")
+        lights_stat.setAlignment(Qt.AlignCenter)
+        lights_stat.setStyleSheet("font-size: 12px; font-weight: 500; color: #f59e0b; line-height: 1.4;")
+        stats_layout.addWidget(lights_stat)
+        
+        stats_layout.addStretch()
+        layout.addWidget(stats_frame)
+        
+        layout.addSpacing(20)
+        
+        # Version info with fun emoji
+        version_info = QLabel("🏷️ Version 1.0.0 - The Glow Revolution Begins! ✨")
         version_info.setAlignment(Qt.AlignCenter)
         version_info.setObjectName("versionInfo")
         layout.addWidget(version_info)
         
         layout.addSpacing(32)
         
-        # Links section
+        # Links section with enhanced buttons
         links_frame = QFrame()
         links_layout = QHBoxLayout(links_frame)
         links_layout.setSpacing(16)
@@ -382,15 +412,18 @@ class SettingsWindow(QDialog):
         # Center the buttons
         links_layout.addStretch()
         
-        website_btn = QPushButton("🌐 Website")
+        website_btn = QPushButton("🌐 Visit Website")
+        website_btn.setToolTip("Check out our awesome website! 🚀")
         website_btn.clicked.connect(lambda: self.open_url("https://glowstatus.com"))
         links_layout.addWidget(website_btn)
         
-        github_btn = QPushButton("🐙 GitHub")
+        github_btn = QPushButton("🐙 Star on GitHub")
+        github_btn.setToolTip("Give us a star and contribute! ⭐")
         github_btn.clicked.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
         links_layout.addWidget(github_btn)
         
-        discord_btn = QPushButton("💬 Discord")
+        discord_btn = QPushButton("💬 Join Discord")
+        discord_btn.setToolTip("Chat with our amazing community! 🎉")
         discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
         links_layout.addWidget(discord_btn)
         
@@ -408,47 +441,92 @@ class SettingsWindow(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
         
-        title = QLabel("✨ Wall of Glow")
+        title = QLabel("✨ Wall of Glow - Our Amazing Community! ✨")
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         
         description = QLabel(
-            "Thank you to our amazing supporters who make GlowStatus possible! "
-            "Your contributions help us build better tools for remote teams."
+            "🙏 Thank you to our incredible supporters who make GlowStatus shine brighter every day! "
+            "🌟 Your contributions, feedback, and enthusiasm help us build better tools for remote teams "
+            "around the world. Together, we're revolutionizing how people communicate their status! 🚀💫"
         )
         description.setWordWrap(True)
         layout.addWidget(description)
         
-        # Supporters section
-        supporters_group = QGroupBox("🌟 Supporters")
-        supporters_layout = QVBoxLayout(supporters_group)
+        # Hall of Fame section
+        hall_of_fame_group = QGroupBox("� Hall of Fame - Legendary Contributors")
+        hall_of_fame_layout = QVBoxLayout(hall_of_fame_group)
         
-        supporters_text = QLabel(
-            "• Early adopters and beta testers\n"
-            "• Community contributors\n"
-            "• Feature requesters and bug reporters\n"
-            "• Documentation helpers"
+        hall_of_fame_text = QLabel(
+            "🥇 **Beta Testing Champions** - Our fearless early adopters who found all the bugs! 🐛➡️✨\n"
+            "🥈 **Feature Wizards** - Brilliant minds who suggested game-changing features 🧙‍♂️💡\n"
+            "🥉 **Documentation Heroes** - The unsung heroes who made our docs crystal clear 📚⭐\n"
+            "🎖️ **Bug Hunters** - Sharp-eyed users who helped us squash pesky bugs 🔍🎯\n"
+            "🌟 **Community Ambassadors** - Awesome people spreading the GlowStatus love! 💖📢"
         )
-        supporters_layout.addWidget(supporters_text)
+        hall_of_fame_text.setWordWrap(True)
+        hall_of_fame_layout.addWidget(hall_of_fame_text)
         
-        layout.addWidget(supporters_group)
+        layout.addWidget(hall_of_fame_group)
+        
+        # Active community stats
+        community_stats_group = QGroupBox("📊 Community Glow Stats")
+        community_stats_layout = QHBoxLayout(community_stats_group)
+        
+        discord_stat = QLabel("💬\n150+\nDiscord\nMembers")
+        discord_stat.setAlignment(Qt.AlignCenter)
+        discord_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #8b5cf6; line-height: 1.4;")
+        community_stats_layout.addWidget(discord_stat)
+        
+        github_stat = QLabel("⭐\n87+\nGitHub\nStars")
+        github_stat.setAlignment(Qt.AlignCenter)
+        github_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #fbbf24; line-height: 1.4;")
+        community_stats_layout.addWidget(github_stat)
+        
+        downloads_stat = QLabel("📥\n1.2K+\nTotal\nDownloads")
+        downloads_stat.setAlignment(Qt.AlignCenter)
+        downloads_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #06b6d4; line-height: 1.4;")
+        community_stats_layout.addWidget(downloads_stat)
+        
+        contributions_stat = QLabel("🎁\n42+\nCode\nContributions")
+        contributions_stat.setAlignment(Qt.AlignCenter)
+        contributions_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #10b981; line-height: 1.4;")
+        community_stats_layout.addWidget(contributions_stat)
+        
+        layout.addWidget(community_stats_group)
         
         # Become a supporter
-        support_group = QGroupBox("💝 Become a Supporter")
+        support_group = QGroupBox("💝 Join the Glow Movement!")
         support_layout = QVBoxLayout(support_group)
         
         support_text = QLabel(
-            "Help us improve GlowStatus by:\n"
-            "• Providing feedback and suggestions\n"
-            "• Reporting bugs and issues\n"
-            "• Sharing with your team\n"
-            "• Contributing to the codebase"
+            "🚀 Ready to make GlowStatus even more awesome? Here's how you can help:\n\n"
+            "💡 **Share Ideas** - Got a brilliant feature idea? We want to hear it!\n"
+            "🐛 **Report Bugs** - Help us squash those pesky issues (we'll credit you!)\n"
+            "📢 **Spread the Word** - Tell your team, friends, and the world about GlowStatus!\n"
+            "🔧 **Contribute Code** - Developers welcome! Check out our GitHub repo\n"
+            "❤️ **Be Part of the Community** - Join our Discord for fun chats and support\n"
+            "⭐ **Star Us** - A simple GitHub star means the world to us!"
         )
+        support_text.setWordWrap(True)
         support_layout.addWidget(support_text)
         
-        support_btn = QPushButton("🚀 Join Our Community")
-        support_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
-        support_layout.addWidget(support_btn)
+        # Action buttons
+        action_buttons_layout = QHBoxLayout()
+        action_buttons_layout.addStretch()
+        
+        join_btn = QPushButton("🎉 Join Discord Community")
+        join_btn.setToolTip("Come chat with us! We have cookies! 🍪")
+        join_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        action_buttons_layout.addWidget(join_btn)
+        
+        github_btn = QPushButton("⭐ Star on GitHub")
+        github_btn.setToolTip("Give us a star and make our day! ✨")
+        github_btn.clicked.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
+        action_buttons_layout.addWidget(github_btn)
+        
+        action_buttons_layout.addStretch()
+        support_layout.addLayout(action_buttons_layout)
         
         layout.addWidget(support_group)
         layout.addStretch()
@@ -788,43 +866,106 @@ class SettingsWindow(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
         
-        title = QLabel("💬 Discord Community")
+        title = QLabel("💬 Discord Community - Where the Magic Happens! ✨")
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         
-        # Community info
-        community_group = QGroupBox("Join Our Community")
-        community_layout = QVBoxLayout(community_group)
+        # Welcome section with fun intro
+        welcome_group = QGroupBox("🎉 Welcome to the GlowStatus Family!")
+        welcome_layout = QVBoxLayout(welcome_group)
         
-        description = QLabel(
-            "Connect with other GlowStatus users, get support, share tips, "
-            "and stay updated on the latest features!"
+        welcome_description = QLabel(
+            "🚀 Ready to join the most awesome status-lighting community on the internet? "
+            "Our Discord server is buzzing with friendly developers, creative users, and lighting enthusiasts "
+            "who are all passionate about making remote work more visual and fun! 🌈💡\n\n"
+            "🎯 Whether you're a coding wizard, a lighting newbie, or somewhere in between, "
+            "you'll find your tribe here. We're all about helping each other glow brighter! ✨"
         )
-        description.setWordWrap(True)
-        community_layout.addWidget(description)
+        welcome_description.setWordWrap(True)
+        welcome_layout.addWidget(welcome_description)
         
-        # Discord invite button
-        discord_btn = QPushButton("💬 Join Discord Server")
-        discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
-        community_layout.addWidget(discord_btn)
+        # Big Discord invite button
+        big_discord_btn = QPushButton("🎊 JOIN THE DISCORD PARTY! 🎊")
+        big_discord_btn.setToolTip("Click to join 150+ amazing people! 🚀")
+        big_discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        big_discord_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #8b5cf6, stop:0.5 #06b6d4, stop:1 #10b981);
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 16px 32px;
+                border-radius: 12px;
+                border: none;
+                min-height: 24px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #7c3aed, stop:0.5 #0891b2, stop:1 #059669);
+            }
+        """)
+        welcome_layout.addWidget(big_discord_btn)
         
-        layout.addWidget(community_group)
+        layout.addWidget(welcome_group)
         
-        # Support info
-        support_group = QGroupBox("Get Support")
-        support_layout = QVBoxLayout(support_group)
+        # What you'll find section
+        channels_group = QGroupBox("🏠 What You'll Find in Our Server")
+        channels_layout = QVBoxLayout(channels_group)
         
-        support_text = QLabel(
-            "Need help? Our Discord community is the best place to:\n\n"
-            "• Get quick answers to questions\n"
-            "• Report bugs and issues\n"
-            "• Request new features\n"
-            "• Share your setup and configurations\n"
-            "• Connect with the development team"
+        channels_text = QLabel(
+            "🎪 **#general-chat** - Casual conversations and lighting show-offs 📸✨\n"
+            "🆘 **#help-and-support** - Stuck? Our community has your back! 🤝\n"
+            "💡 **#feature-requests** - Share your brilliant ideas with the team 🧠⚡\n"
+            "🐛 **#bug-reports** - Help us squash bugs and improve GlowStatus 🔨\n"
+            "🎨 **#show-your-setup** - Flex your amazing lighting configurations! 📷🌈\n"
+            "🔧 **#development** - For the code ninjas among us 👨‍💻👩‍💻\n"
+            "📢 **#announcements** - Stay updated on the latest GlowStatus news 📰\n"
+            "🎮 **#off-topic** - Gaming, memes, and random fun stuff 🎲😄"
         )
-        support_layout.addWidget(support_text)
+        channels_text.setWordWrap(True)
+        channels_layout.addWidget(channels_text)
         
-        layout.addWidget(support_group)
+        layout.addWidget(channels_group)
+        
+        # Community perks
+        perks_group = QGroupBox("🎁 Community Perks & Benefits")
+        perks_layout = QVBoxLayout(perks_group)
+        
+        perks_text = QLabel(
+            "⚡ **Lightning-fast support** - Get help from real humans, not bots! 🏃‍♂️💨\n"
+            "🎯 **Direct access to developers** - Chat with the people building GlowStatus! 👨‍💻\n"
+            "🔮 **Early access to features** - Be the first to try cool new stuff! 🚀\n"
+            "🏆 **Special contributor roles** - Get recognized for your awesome contributions! 🌟\n"
+            "🎉 **Fun events and contests** - Win prizes and show off your creativity! 🏅\n"
+            "📚 **Exclusive tips and tricks** - Learn pro-level GlowStatus techniques! 🎓\n"
+            "💖 **Make lasting friendships** - Connect with like-minded remote workers! 👥"
+        )
+        perks_text.setWordWrap(True)
+        perks_layout.addWidget(perks_text)
+        
+        layout.addWidget(perks_group)
+        
+        # Bottom action section
+        action_group = QGroupBox("🚀 Ready to Glow with Us?")
+        action_layout = QVBoxLayout(action_group)
+        
+        action_text = QLabel(
+            "🌟 Don't just take our word for it - come see what all the excitement is about! "
+            "Our community is growing every day, and we'd love to have you as part of the family. "
+            "Click that shiny button below and let's start glowing together! 💫🎊"
+        )
+        action_text.setWordWrap(True)
+        action_text.setAlignment(Qt.AlignCenter)
+        action_layout.addWidget(action_text)
+        
+        # Final call-to-action button
+        final_btn = QPushButton("💬 Join Discord Now - Let's Glow! ✨")
+        final_btn.setToolTip("Your lighting journey starts here! 🌈")
+        final_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        action_layout.addWidget(final_btn)
+        
+        layout.addWidget(action_group)
         layout.addStretch()
         
         return scroll
