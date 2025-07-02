@@ -6,14 +6,16 @@
 - **Owner/Maintainer Only**: Actions can only be triggered by repository owners or explicitly listed maintainers
 - **No External Contributors**: Prevents unauthorized users from consuming resources or accessing builds
 - **Specific User Allowlist**: Currently limited to `["Severswoed"]` - update as needed
+- **Secure Credential Handling**: OAuth secrets are injected at build time, never stored in repository
 
 ### **Financial Protection**
-- **No Auto-Publishing**: Workflow does NOT automatically publish to paid services
-- **No API Keys Required**: No sensitive credentials stored or used
+- **Secure Credential Storage**: Google OAuth and Chocolatey API keys stored in GitHub Secrets (encrypted)
+- **Environment Approval Gates**: Publishing requires manual approval via GitHub Environments
 - **Artifact Retention Limits**: 
   - Windows builds: 30 days (reduces storage costs)
   - Chocolatey packages: 90 days (for publishing workflow)
-- **Manual Approval Gates**: Publishing jobs require environment approval
+- **Authenticated Publishing**: All operations use encrypted secrets securely
+- **Automatic Cleanup**: Sensitive files are removed after build completion
 
 ### **Cost Breakdown**
 ```
@@ -23,10 +25,14 @@
 - Uploading GitHub artifacts
 - Creating GitHub releases
 
-💰 POTENTIAL COSTS (All Manual):
+� AUTOMATED (Secure):
+- Chocolatey publishing (uses your API key securely)
+- Package submission to community review queue
+
+�💰 POTENTIAL COSTS (All Controlled):
 - GitHub Actions minutes (only for authorized users)
 - GitHub artifact storage (auto-expires)
-- Chocolatey publishing (manual upload only)
+- Chocolatey API usage (minimal, covered by free tier)
 ```
 
 ## 🔒 What Other Users CANNOT Do

@@ -12,6 +12,24 @@ if "%VERSION%"=="" (
 echo Building version: %VERSION%
 
 echo.
+echo Step 0: Setting up Google OAuth credentials...
+if defined CLIENT_SECRET_JSON (
+    echo Creating client_secret.json from environment variable...
+    echo %CLIENT_SECRET_JSON% > resources\client_secret.json
+    echo ✓ client_secret.json created from CLIENT_SECRET_JSON
+) else (
+    if exist "resources\client_secret.json" (
+        echo ✓ Using existing client_secret.json
+    ) else (
+        echo ⚠️  Warning: No client_secret.json found
+        echo   - Set CLIENT_SECRET_JSON environment variable, or
+        echo   - Copy your Google OAuth credentials to resources\client_secret.json
+        echo   - See resources\client_secret.json.template for format
+        pause
+    )
+)
+
+echo.
 echo Step 1: Building Windows executable...
 call scripts\build_windows.bat
 
@@ -116,7 +134,18 @@ if exist "glowstatus.%VERSION%.nupkg" (
     echo   choco install glowstatus -s . -y --force
     echo.
     echo To publish to Chocolatey Community:
-    echo   choco push glowstatus.%VERSION%.nupkg --source https://push.chocolatey.org/
+    if defined CHOCO_APIKEY (
+        echo Publishing automatically with API key...
+        choco push glowstatus.%VERSION%.nupkg --source https://push.chocolatey.org/ --api-key %CHOCO_APIKEY%
+        if %ERRORLEVEL% equ 0 (
+            echo ✓ Package published successfully!
+        ) else (
+            echo ✗ Publishing failed
+        )
+    ) else (
+        echo   choco push glowstatus.%VERSION%.nupkg --source https://push.chocolatey.org/ --api-key YOUR_API_KEY
+        echo   Or set CHOCO_APIKEY environment variable for automatic publishing
+    )
 ) else (
     echo ✗ Chocolatey package creation failed
     exit /b 1
