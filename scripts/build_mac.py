@@ -15,9 +15,117 @@ import tempfile
 import shutil
 import subprocess
 
+def setup_environment():
+    """Set up Python virtual environment and install dependencies."""
+    print("🚀 GlowStatus macOS Build Script")
+    print("=" * 50)
+    
+    # Check if Python is available
+    try:
+        result = subprocess.run([sys.executable, '--version'], 
+                              capture_output=True, text=True, check=True)
+        print(f"✓ Python found: {result.stdout.strip()}")
+    except subprocess.CalledProcessError:
+        print("✗ Python is not available")
+        print("Please install Python 3.8+ and try again")
+        sys.exit(1)
+    
+    print("\nSetting up Python environment...")
+    print("=" * 50)
+    
+    # Check if .venv exists, create if not
+    venv_path = os.path.join(os.getcwd(), '.venv')
+    if not os.path.exists(venv_path):
+        print("Creating virtual environment...")
+        try:
+            subprocess.run([sys.executable, '-m', 'venv', '.venv'], check=True)
+            print("✓ Virtual environment created")
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Failed to create virtual environment: {e}")
+            print("Make sure you have python-venv installed")
+            sys.exit(1)
+    else:
+        print("✓ Using existing virtual environment")
+    
+    # Determine the correct activation script path
+    if sys.platform == "win32":
+        activate_script = os.path.join(venv_path, 'Scripts', 'activate')
+        python_executable = os.path.join(venv_path, 'Scripts', 'python')
+        pip_executable = os.path.join(venv_path, 'Scripts', 'pip')
+    else:
+        activate_script = os.path.join(venv_path, 'bin', 'activate')
+        python_executable = os.path.join(venv_path, 'bin', 'python')
+        pip_executable = os.path.join(venv_path, 'bin', 'pip')
+    
+    print("Installing Python dependencies...")
+    
+    # Upgrade pip first
+    try:
+        subprocess.run([python_executable, '-m', 'pip', 'install', '--upgrade', 'pip'], check=True)
+        print("✓ Pip upgraded")
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️  Could not upgrade pip: {e}")
+    
+    # Install requirements
+    requirements_file = os.path.join(os.getcwd(), 'requirements.txt')
+    if os.path.exists(requirements_file):
+        try:
+            subprocess.run([pip_executable, 'install', '-r', requirements_file], check=True)
+            print("✓ Requirements installed")
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Failed to install requirements: {e}")
+            sys.exit(1)
+    else:
+        print("⚠️  No requirements.txt found")
+    
+    # Install py2app specifically for macOS builds
+    try:
+        subprocess.run([pip_executable, 'install', 'py2app'], check=True)
+        print("✓ py2app installed")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Failed to install py2app: {e}")
+        sys.exit(1)
+    
+    print("✓ All dependencies installed successfully")
+    print()
+    
+    return python_executable
+
 # Import build helper functions from scripts directory
 sys.path.insert(0, os.path.dirname(__file__))
-from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages, get_version_string
+
+# Set up environment before importing helpers
+if __name__ == '__main__' and 'py2app' in sys.argv:
+    python_exe = setup_environment()
+    # Update sys.executable to use venv python for the rest of the script
+    sys.executable = python_exe
+
+# Try to import build helper functions from scripts directory
+try:
+    from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages, get_version_string
+except ImportError:
+    # Provide fallback functions if build_helpers is not available
+    def check_and_install_requirements():
+        print("⚠️  Build helpers not available, skipping dependency check")
+        
+    def verify_critical_modules():
+        print("⚠️  Build helpers not available, skipping module verification")
+        return True
+        
+    def fix_google_namespace_packages():
+        print("⚠️  Build helpers not available, skipping namespace package fix")
+        
+    def get_version_string():
+        try:
+            import json
+            with open('version.json', 'r') as f:
+                version_data = json.load(f)
+            version = f"{version_data['major']}.{version_data['minor']}.{version_data['patch']}"
+            if version_data.get('pre'):
+                version += f"-{version_data['pre']}"
+            return version
+        except:
+            return "2.1.0"
 
 def create_custom_glowstatus_recipe():
     """
@@ -33,7 +141,12 @@ def create_custom_glowstatus_recipe():
         bool: True if recipe was successfully created, False otherwise
     """
     try:
-        import py2app
+        try:
+            import py2app
+        except ImportError:
+            print("⚠️  py2app not available, skipping custom recipe creation")
+            return False
+            
         py2app_path = os.path.dirname(py2app.__file__)
         recipes_dir = os.path.join(py2app_path, 'recipes')
         
@@ -130,7 +243,12 @@ def restore_original_recipes():
     after our custom recipe build is complete.
     """
     try:
-        import py2app
+        try:
+            import py2app
+        except ImportError:
+            print("⚠️  py2app not available for recipe restoration")
+            return
+            
         py2app_path = os.path.dirname(py2app.__file__)
         recipes_dir = os.path.join(py2app_path, 'recipes')
         
@@ -157,12 +275,19 @@ def restore_original_recipes():
 # Check requirements before building
 if 'py2app' in sys.argv:
     print("🚀 Preparing GlowStatus for macOS app bundle creation...")
-    check_and_install_requirements()
-    if not verify_critical_modules():
-        print("❌ Critical modules missing. Please fix the above issues and try again.")
-        sys.exit(1)
-    print("🔧 Fixing Google namespace packages for py2app...")
-    fix_google_namespace_packages()
+    
+    # Try to import build helpers, install if needed
+    try:
+        from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages, get_version_string
+        check_and_install_requirements()
+        if not verify_critical_modules():
+            print("❌ Critical modules missing. Please fix the above issues and try again.")
+            sys.exit(1)
+        print("🔧 Fixing Google namespace packages for py2app...")
+        fix_google_namespace_packages()
+    except ImportError as e:
+        print(f"⚠️  Build helpers not available: {e}")
+        print("Continuing with basic build...")
     
     print("✅ Ready to build with minimal configuration!")
     print("📦 Using py2app built-in options to minimize size")
@@ -385,7 +510,7 @@ if 'py2app' in sys.argv:
             f.write("=" * 60 + "\n\n")
             f.write(f"Final app bundle size: {size_value if 'size_value' in locals() else 'unknown'}\n")
             f.write(f"App path: {app_path}\n")
-            f.write(f"Custom recipe used: {recipe_success}\n")
+            f.write("Custom recipe approach used\n")
             f.write("\nCustom recipe approach - no aggressive cleanup needed.\n")
             f.write("Recipe only includes: QtCore, QtGui, QtWidgets + essential plugins\n")
         

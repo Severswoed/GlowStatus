@@ -334,7 +334,7 @@ class SettingsWindow(QDialog):
         # GitHub Star button
         self.github_btn = QPushButton("⭐ Star on GitHub")
         self.github_btn.setToolTip("Give us a star!")
-        self.github_btn.clicked.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
+        self.github_btn.clicked.connect(lambda: self.open_url("https://github.com/Severswoed/GlowStatus"))
         self.github_btn.setStyleSheet("""
             QPushButton {
                 background-color: #24292f;
@@ -355,10 +355,10 @@ class SettingsWindow(QDialog):
         """)
         buttons_layout.addWidget(self.github_btn)
         
-        # Sponsor button
-        self.sponsor_btn = QPushButton("❤️ Sponsor Us")
-        self.sponsor_btn.setToolTip("Support GlowStatus development!")
-        self.sponsor_btn.clicked.connect(lambda: self.open_url("https://github.com/sponsors/your-repo"))
+        # GitHub Sponsor button
+        self.sponsor_btn = QPushButton("❤️ Sponsor")
+        self.sponsor_btn.setToolTip("Support Severswoed on GitHub Sponsors!")
+        self.sponsor_btn.clicked.connect(lambda: self.open_url("https://github.com/sponsors/Severswoed"))
         self.sponsor_btn.setStyleSheet("""
             QPushButton {
                 background-color: #ea4aaa;
@@ -400,7 +400,7 @@ class SettingsWindow(QDialog):
         website_action.triggered.connect(lambda: self.open_url("https://glowstatus.com"))
         
         github_action = links_menu.addAction("🐙 Star on GitHub")
-        github_action.triggered.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
+        github_action.triggered.connect(lambda: self.open_url("https://github.com/Severswoed/GlowStatus"))
         
         discord_action = links_menu.addAction("💬 Join Discord")
         discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
@@ -412,6 +412,7 @@ class SettingsWindow(QDialog):
         
         # Stacked widget for pages
         self.content_stack = QStackedWidget()
+        self.content_stack.setMinimumHeight(700)  # Make content area taller to avoid scrolling
         layout.addWidget(self.content_stack)
         
         # Save status label
@@ -594,13 +595,8 @@ class SettingsWindow(QDialog):
         """Create the Wall of Glow page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 20, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin further
         layout.setSpacing(16)  # Tighter spacing for more room
-        
-        title = QLabel("✨ Wall of Glow - Our Amazing Community! ✨")
-        title.setObjectName("sectionTitle")
-        title.setStyleSheet("font-size: 22px; font-weight: 600; color: #38bdf8; margin-bottom: 16px;")
-        layout.addWidget(title)
         
         description = QLabel(
             "🙏 Thank you to our incredible supporters who make GlowStatus shine brighter every day! "
@@ -680,12 +676,8 @@ class SettingsWindow(QDialog):
         """Create the OAuth configuration page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
         layout.setSpacing(20)
-        
-        title = QLabel("🔐 Google Calendar Setup")
-        title.setObjectName("sectionTitle")
-        layout.addWidget(title)
         
         # Privacy notice (required for OAuth compliance) - matching original
         privacy_notice = QLabel(
@@ -786,12 +778,8 @@ class SettingsWindow(QDialog):
         """Create the Integrations page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
         layout.setSpacing(20)
-        
-        title = QLabel("🔗 Integrations")
-        title.setObjectName("sectionTitle")
-        layout.addWidget(title)
         
         # Govee Integration
         govee_group = QGroupBox("💡 Govee Smart Lights")
@@ -852,12 +840,8 @@ class SettingsWindow(QDialog):
         """Create the Calendar settings page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
         layout.setSpacing(20)
-        
-        title = QLabel("📅 Calendar Settings")
-        title.setObjectName("sectionTitle")
-        layout.addWidget(title)
         
         # Calendar selection
         calendar_group = QGroupBox("Calendar Selection")
@@ -930,12 +914,8 @@ class SettingsWindow(QDialog):
         """Create the Status configuration page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
         layout.setSpacing(20)
-        
-        title = QLabel("💡 Status Colors")
-        title.setObjectName("sectionTitle")
-        layout.addWidget(title)
         
         # Status colors table
         colors_group = QGroupBox("Status Color Mapping")
@@ -998,12 +978,8 @@ class SettingsWindow(QDialog):
         """Create the Options page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
         layout.setSpacing(20)
-        
-        title = QLabel("⚙️ Options")
-        title.setObjectName("sectionTitle")
-        layout.addWidget(title)
         
         # Advanced options
         advanced_group = QGroupBox("Advanced")
@@ -1026,13 +1002,8 @@ class SettingsWindow(QDialog):
         """Create the Discord information page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 20, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin further
         layout.setSpacing(16)  # Tighter spacing for more room
-        
-        title = QLabel("💬 Discord Community - Where the Magic Happens! ✨")
-        title.setObjectName("sectionTitle")
-        title.setStyleSheet("font-size: 22px; font-weight: 600; color: #38bdf8; margin-bottom: 16px;")
-        layout.addWidget(title)
         
         # Welcome section with fun intro
         welcome_group = QGroupBox("🎉 Welcome to the GlowStatus Family!")
@@ -1181,13 +1152,13 @@ class SettingsWindow(QDialog):
                     title = item.data(Qt.UserRole)
                     display_titles = {
                         "about": "About GlowStatus",
-                        "wall of glow": "Wall of Glow",
-                        "oauth": "Google Calendar OAuth",
-                        "integrations": "Integrations",
-                        "calendar": "Calendar Settings", 
-                        "status": "Status Configuration",
-                        "options": "Options",
-                        "discord": "Discord Community"
+                        "wall of glow": "✨ Wall of Glow - Our Amazing Community! ✨",
+                        "oauth": "🔐 Google Calendar Setup",
+                        "integrations": "🔗 Integrations",
+                        "calendar": "📅 Calendar Settings", 
+                        "status": "💡 Status Colors",
+                        "options": "⚙️ Options",
+                        "discord": "💬 Discord Community - Where the Magic Happens! ✨"
                     }
                     self.page_title.setText(display_titles.get(title, title.title()))
     
@@ -1210,18 +1181,32 @@ class SettingsWindow(QDialog):
         
         # Load calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
-            self.disable_sync_checkbox.setChecked(self.config.get("DISABLE_CALENDAR_SYNC", False))
+            checked_value = self.config.get("DISABLE_CALENDAR_SYNC", False)
+            self.disable_sync_checkbox.setChecked(checked_value)
+            # Force visual update
+            self.disable_sync_checkbox.repaint()
+            logger.info(f"Loaded disable_sync_checkbox: {checked_value}, actual state: {self.disable_sync_checkbox.isChecked()}")
+            
             self.sync_interval_spinbox.setValue(self.config.get("REFRESH_INTERVAL", 15))
             
         # Load additional settings
         if hasattr(self, 'power_off_available_checkbox'):
-            self.power_off_available_checkbox.setChecked(self.config.get("POWER_OFF_WHEN_AVAILABLE", True))
+            checked_value = self.config.get("POWER_OFF_WHEN_AVAILABLE", True)
+            self.power_off_available_checkbox.setChecked(checked_value)
+            self.power_off_available_checkbox.repaint()
+            logger.info(f"Loaded power_off_available_checkbox: {checked_value}, actual state: {self.power_off_available_checkbox.isChecked()}")
             
         if hasattr(self, 'off_for_unknown_checkbox'):
-            self.off_for_unknown_checkbox.setChecked(self.config.get("OFF_FOR_UNKNOWN_STATUS", True))
+            checked_value = self.config.get("OFF_FOR_UNKNOWN_STATUS", True)
+            self.off_for_unknown_checkbox.setChecked(checked_value)
+            self.off_for_unknown_checkbox.repaint()
+            logger.info(f"Loaded off_for_unknown_checkbox: {checked_value}, actual state: {self.off_for_unknown_checkbox.isChecked()}")
             
         if hasattr(self, 'disable_light_control_checkbox'):
-            self.disable_light_control_checkbox.setChecked(self.config.get("DISABLE_LIGHT_CONTROL", False))
+            checked_value = self.config.get("DISABLE_LIGHT_CONTROL", False)
+            self.disable_light_control_checkbox.setChecked(checked_value)
+            self.disable_light_control_checkbox.repaint()
+            logger.info(f"Loaded disable_light_control_checkbox: {checked_value}, actual state: {self.disable_light_control_checkbox.isChecked()}")
         
         # Load status colors
         self.populate_status_colors_table()
@@ -1231,6 +1216,9 @@ class SettingsWindow(QDialog):
         
         # Ensure calendar checkboxes are interactive
         self.ensure_calendar_checkboxes_interactive()
+        
+        # Force refresh of checkbox visual states
+        self.refresh_checkbox_states()
     
     def update_oauth_status(self):
         """Update OAuth connection status display."""
@@ -2324,6 +2312,21 @@ class SettingsWindow(QDialog):
         logger.info(f"DEBUG: Checkbox clicked - {sender.text()}, checked={sender.isChecked()}")
         print(f"DEBUG: Checkbox clicked - {sender.text()}, checked={sender.isChecked()}")
         self.on_form_changed()
+    
+    def refresh_checkbox_states(self):
+        """Force refresh of all checkbox visual states to ensure they display correctly."""
+        checkboxes = self.findChildren(QCheckBox)
+        for checkbox in checkboxes:
+            if checkbox.isEnabled():
+                # Store current state
+                current_state = checkbox.isChecked()
+                # Toggle to force visual update
+                checkbox.setChecked(not current_state)
+                checkbox.repaint()
+                # Restore correct state
+                checkbox.setChecked(current_state)
+                checkbox.repaint()
+                logger.debug(f"Refreshed checkbox {checkbox.text()}: {current_state}")
     
 
 # Main function for testing
