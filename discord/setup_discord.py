@@ -14,7 +14,12 @@ from datetime import datetime
 # Configuration
 CONFIG = {
     "server_name": "GlowStatus",
-    "bot_token": os.getenv("DISCORD_BOT_TOKEN"),  # Set this in your environment
+    "bot_token": os.getenv("DISCORD_BOT_TOKEN") or os.getenv("GLOWBOY"),  # GitHub Actions secret or local env
+    "authorized_users": ["severswoed"],  # Only these users can run the bot setup
+    "github_integration": {
+        "use_github_secret": True,  # Use GLOWBOY secret from GitHub Actions
+        "local_fallback": True      # Allow local DISCORD_BOT_TOKEN for testing
+    },
     "channels": {
         "info": [
             {"name": "welcome", "description": "Quick intro + project links"},
@@ -98,12 +103,35 @@ class GlowStatusSetup(commands.Bot):
 
     async def on_ready(self):
         print(f'Bot logged in as {self.user}')
+        
+        # Security check: Verify authorized user is running this
+        if not await self.verify_authorized_user():
+            print("❌ Unauthorized user attempting to run Discord setup")
+            print("⚠️ Only authorized maintainers can configure the server")
+            await self.close()
+            return
+        
+        # Get the action to perform (from GitHub Actions input or default)
+        action = os.getenv("DISCORD_SETUP_ACTION", "setup").lower()
+        
         guild = discord.utils.get(self.guilds, name=CONFIG["server_name"])
-        if guild:
+        if not guild:
+            print(f"Server '{CONFIG['server_name']}' not found!")
+            await self.close()
+            return
+        
+        # Perform the requested action
+        if action == "setup":
             await self.setup_server(guild)
             await self.assign_owner_privileges(guild)
+        elif action == "update-webhooks":
+            await self.setup_github_webhooks(guild)
+        elif action == "security-check":
+            await self.run_security_audit(guild)
         else:
-            print(f"Server '{CONFIG['server_name']}' not found!")
+            print(f"❌ Unknown action: {action}")
+        
+        await self.close()  # Close bot after completing action
 
     async def on_member_join(self, member):
         """Handle new member security screening"""
@@ -116,6 +144,44 @@ class GlowStatusSetup(commands.Bot):
         
         await self.check_message_security(message)
         await self.process_commands(message)
+
+    async def verify_authorized_user(self):
+        """Verify that an authorized user is running the Discord setup"""
+        # Check if running in GitHub Actions (controlled environment)
+        if os.getenv("GITHUB_ACTIONS") == "true":
+            github_actor = os.getenv("GITHUB_ACTOR", "").lower()
+            if github_actor in [user.lower() for user in CONFIG["authorized_users"]]:
+                print(f"✅ Authorized GitHub Actions run by: {github_actor}")
+                return True
+            else:
+                print(f"❌ Unauthorized GitHub Actions user: {github_actor}")
+                return False
+        
+        # For local runs, check environment or prompt for confirmation
+        local_user = os.getenv("DISCORD_SETUP_USER", "").lower()
+        if local_user in [user.lower() for user in CONFIG["authorized_users"]]:
+            print(f"✅ Authorized local user: {local_user}")
+            return True
+        
+        # Interactive confirmation for local testing
+        print("🔐 Discord Bot Setup Security Check")
+        print("This setup will configure the GlowStatus Discord server.")
+        print("Only authorized maintainers should run this setup.")
+        print()
+        
+        user_input = input("Enter your Discord username to continue (or 'cancel' to abort): ").strip().lower()
+        
+        if user_input == "cancel":
+            print("Setup cancelled by user")
+            return False
+        
+        if user_input in [user.lower() for user in CONFIG["authorized_users"]]:
+            print(f"✅ Authorized user confirmed: {user_input}")
+            return True
+        else:
+            print(f"❌ User '{user_input}' is not authorized to run Discord setup")
+            print(f"Authorized users: {', '.join(CONFIG['authorized_users'])}")
+            return False
 
     async def setup_server(self, guild):
         """Setup the entire server structure"""
@@ -768,6 +834,48 @@ class GlowStatusSetup(commands.Bot):
         except Exception as e:
             await ctx.send(f"❌ Error retrieving webhook data: {e}")
 
+    async def run_security_audit(self, guild):
+        """Run a comprehensive security audit of the Discord server"""
+        print("🔍 Running Discord server security audit...")
+        
+        audit_results = {
+            "server_name": guild.name,
+            "member_count": guild.member_count,
+            "verification_level": str(guild.verification_level),
+            "content_filter": str(guild.explicit_content_filter),
+            "audit_date": datetime.now().isoformat()
+        }
+        
+        # Check roles
+        audit_results["roles"] = {
+            "total_roles": len(guild.roles),
+            "admin_roles": [role.name for role in guild.roles if role.permissions.administrator],
+            "quarantine_enabled": any(CONFIG["roles"]["quarantine"]["name"] in role.name for role in guild.roles),
+            "trusted_bots_role": any(CONFIG["roles"]["trusted_bots"]["name"] in role.name for role in guild.roles)
+        }
+        
+        # Check channels
+        audit_results["channels"] = {
+            "total_channels": len(guild.channels),
+            "protected_channels": len([ch for ch in guild.channels if ch.name in CONFIG["protected_channels"]]),
+            "rate_limited_channels": len([ch for ch in guild.channels if hasattr(ch, 'slowmode_delay') and ch.slowmode_delay > 0])
+        }
+        
+        # Check quarantined members
+        quarantine_role = discord.utils.get(guild.roles, name=CONFIG["roles"]["quarantine"]["name"])
+        audit_results["security"] = {
+            "quarantined_members": len(quarantine_role.members) if quarantine_role else 0,
+            "automod_rules": len(await guild.fetch_auto_moderation_rules()) if hasattr(guild, 'fetch_auto_moderation_rules') else 0
+        }
+        
+        # Save audit results
+        audit_file = os.path.join(os.path.dirname(__file__), f"security_audit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        with open(audit_file, 'w') as f:
+            json.dump(audit_results, f, indent=2)
+        
+        print(f"✅ Security audit completed - saved to: {audit_file}")
+        print(f"📊 Summary: {audit_results['member_count']} members, {audit_results['security']['quarantined_members']} quarantined")
+
     @commands.command(name='remake_webhooks')
     @commands.has_permissions(administrator=True)
     async def remake_webhooks(self, ctx):
@@ -794,15 +902,38 @@ class GlowStatusSetup(commands.Bot):
         print(f"👑 {member.name} assigned admin by {ctx.author.name}")
 
 def main():
-    """Run the Discord setup bot"""
-    bot = GlowStatusSetup()
+    """Run the Discord setup bot with security checks"""
+    print("🤖 GlowStatus Discord Bot Setup")
+    print("=" * 40)
     
+    # Security validation
     if not CONFIG["bot_token"]:
-        print("Please set DISCORD_BOT_TOKEN environment variable")
+        print("❌ No Discord bot token found!")
+        print("For GitHub Actions: GLOWBOY secret should be set")
+        print("For local testing: Set DISCORD_BOT_TOKEN environment variable")
+        print("For authorized users: Set DISCORD_SETUP_USER environment variable")
         return
     
-    print("🛡️ Starting GlowStatus Security Bot...")
-    print("Features enabled:")
+    # Check if running in a secure environment
+    is_github_actions = os.getenv("GITHUB_ACTIONS") == "true"
+    github_actor = os.getenv("GITHUB_ACTOR", "unknown")
+    
+    if is_github_actions:
+        print(f"🔐 Running in GitHub Actions environment")
+        print(f"👤 Triggered by: {github_actor}")
+        if github_actor.lower() not in [user.lower() for user in CONFIG["authorized_users"]]:
+            print(f"❌ ERROR: {github_actor} is not authorized to run Discord setup!")
+            print(f"✅ Authorized users: {', '.join(CONFIG['authorized_users'])}")
+            print("🛡️ Security: Bot setup blocked for unauthorized user")
+            return
+    else:
+        print("🖥️ Running in local environment")
+        print("⚠️ Ensure you are an authorized maintainer before proceeding")
+    
+    bot = GlowStatusSetup()
+    
+    print("\n🛡️ Security Features Enabled:")
+    print("- User authorization verification")
     print("- Auto-moderation (spam, invites, caps)")
     print("- New member screening")
     print("- Quarantine system")
@@ -811,11 +942,15 @@ def main():
     print("- Owner privilege assignment")
     print("- GitHub webhook integration")
     print("- Repository monitoring (GlowStatus, GlowStatus-site)")
+    print("\n🚀 Starting Discord bot...")
     
     try:
         bot.run(CONFIG["bot_token"])
+    except discord.LoginFailure:
+        print("❌ Discord login failed - invalid bot token")
+        print("Check that GLOWBOY secret is set correctly in GitHub")
     except Exception as e:
-        print(f"Error running bot: {e}")
+        print(f"❌ Error running bot: {e}")
 
 if __name__ == "__main__":
     main()
