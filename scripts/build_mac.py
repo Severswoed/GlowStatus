@@ -129,7 +129,7 @@ def recipe(cmd, mf):
     # Return the recipe configuration dict as per py2app docs
     # The 'packages' key tells py2app which packages to include
     # The 'includes' key specifies modules to force include
-    # The 'expected_missing' key tells py2app it's OK if these are missing
+    # The 'expected_missing_imports' key tells py2app it's OK if these are missing
     return {
         'packages': ['PySide6', 'shiboken6'],
         'includes': [
@@ -138,7 +138,7 @@ def recipe(cmd, mf):
             'PySide6.QtWidgets',
             'shiboken6',
         ],
-        'expected_missing': [
+        'expected_missing_imports': [
             # Large Qt modules we explicitly don't want (saves ~500MB+)
             'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
             'PySide6.QtWebEngine', 'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 
@@ -156,18 +156,7 @@ def recipe(cmd, mf):
             'PySide6.QtSvg', 'PySide6.QtSvgWidgets',  # We handle SVG via plugins
             'PySide6.QtPdf', 'PySide6.QtPdfWidgets',
             'PySide6.QtSpellChecker', 'PySide6.QtVirtualKeyboard',
-        ],
-        # Optional: specify exact Qt frameworks if needed for fine control
-        # This is an advanced feature mentioned in py2app docs
-        'qt_plugins': [
-            # Only include absolutely essential Qt plugins
-            'platforms/libqcocoa',      # macOS platform integration (required)
-            'imageformats/libqpng',     # PNG image support (for icons)
-            'imageformats/libqjpeg',    # JPEG image support
-            'imageformats/libqsvg',     # SVG image support  
-            'iconengines/libqsvgicon',  # SVG icon rendering
-            'styles/libqmacstyle',      # Native macOS appearance
-        ],
+        ]
     }
 '''
     
