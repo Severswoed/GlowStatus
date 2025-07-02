@@ -1257,17 +1257,11 @@ class SettingsWindow(QDialog):
             # Create a temporary controller for testing
             controller = GoveeController(api_key, device_id, device_model)
             
-            # Try to set a brief test color (green flash)
-            controller.set_color(0, 255, 0)
+            # Flash green to test connection
+            controller.set_color(0, 255, 0)  # Green
             
-            QMessageBox.information(
-                self, 
-                "GlowStatus - Connection Test", 
-                "✅ Successfully connected to Govee device!\n"
-                f"Device ID: {device_id}\n"
-                f"Model: {device_model}\n"
-                "Your light should have briefly flashed green."
-            )
+            # Use QTimer to turn off the light after 3 seconds without blocking UI
+            QTimer.singleShot(3000, lambda: self._turn_off_test_light(controller))
             
         except Exception as e:
             QMessageBox.warning(
@@ -1280,6 +1274,13 @@ class SettingsWindow(QDialog):
                 "• Device model is correct\n"
                 "• Device is online and connected to WiFi"
             )
+    
+    def _turn_off_test_light(self, controller):
+        """Helper method to turn off the test light."""
+        try:
+            controller.turn_off()
+        except Exception as e:
+            logger.warning(f"Failed to turn off test light: {e}")
     
     def populate_status_colors_table(self):
         """Populate the status colors table with current settings."""
