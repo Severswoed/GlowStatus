@@ -212,7 +212,7 @@ class SettingsWindow(QDialog):
         
         # Left sidebar
         self.setup_sidebar()
-        splitter.addWidget(self.sidebar)
+        splitter.addWidget(self.sidebar_container)
         
         # Right content area
         self.setup_content_area()
@@ -247,8 +247,18 @@ class SettingsWindow(QDialog):
         
     def setup_sidebar(self):
         """Set up the navigation sidebar."""
+        # Create container widget for sidebar
+        self.sidebar_container = QWidget()
+        self.sidebar_container.setFixedWidth(250)
+        self.sidebar_container.setObjectName("sidebarContainer")
+        
+        # Vertical layout for sidebar container
+        sidebar_layout = QVBoxLayout(self.sidebar_container)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.setSpacing(0)
+        
+        # Navigation list widget
         self.sidebar = QListWidget()
-        self.sidebar.setFixedWidth(250)
         self.sidebar.setObjectName("sidebar")
         
         # Add navigation items
@@ -267,6 +277,106 @@ class SettingsWindow(QDialog):
             item = QListWidgetItem(f"{icon}  {title}")
             item.setData(Qt.UserRole, title.lower())
             self.sidebar.addItem(item)
+        
+        sidebar_layout.addWidget(self.sidebar)
+        
+        # Add spacer
+        sidebar_layout.addSpacing(20)
+        
+        # Static action buttons section
+        buttons_container = QWidget()
+        buttons_layout = QVBoxLayout(buttons_container)
+        buttons_layout.setContentsMargins(12, 0, 12, 12)
+        buttons_layout.setSpacing(8)
+        
+        # Section title
+        buttons_title = QLabel("Quick Links")
+        buttons_title.setStyleSheet("""
+            QLabel {
+                color: #999;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+            }
+        """)
+        buttons_layout.addWidget(buttons_title)
+        
+        # Discord button
+        self.discord_btn = QPushButton("💬 Join Discord")
+        self.discord_btn.setToolTip("Join our community chat!")
+        self.discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
+        self.discord_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #5865f2;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                text-align: left;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #4752c4;
+            }
+            QPushButton:pressed {
+                background-color: #3c45a3;
+            }
+        """)
+        buttons_layout.addWidget(self.discord_btn)
+        
+        # GitHub Star button
+        self.github_btn = QPushButton("⭐ Star on GitHub")
+        self.github_btn.setToolTip("Give us a star!")
+        self.github_btn.clicked.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
+        self.github_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #24292f;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                text-align: left;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #32383f;
+            }
+            QPushButton:pressed {
+                background-color: #1c2128;
+            }
+        """)
+        buttons_layout.addWidget(self.github_btn)
+        
+        # Sponsor button
+        self.sponsor_btn = QPushButton("❤️ Sponsor Us")
+        self.sponsor_btn.setToolTip("Support GlowStatus development!")
+        self.sponsor_btn.clicked.connect(lambda: self.open_url("https://github.com/sponsors/your-repo"))
+        self.sponsor_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ea4aaa;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                text-align: left;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #c026d3;
+            }
+            QPushButton:pressed {
+                background-color: #a21caf;
+            }
+        """)
+        buttons_layout.addWidget(self.sponsor_btn)
+        
+        sidebar_layout.addWidget(buttons_container)
+        sidebar_layout.addStretch()
         
         # Note: Signal connection moved to setup_ui after content area is created
         
@@ -291,6 +401,18 @@ class SettingsWindow(QDialog):
         
         discord_action = links_menu.addAction("💬 Join Discord")
         discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
+        
+        # Create actions menu for About page actions
+        actions_menu = self.menu_bar.addMenu("🎯 Actions")
+        
+        join_discord_action = actions_menu.addAction("🎉 Join Discord Community")
+        join_discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
+        
+        star_github_action = actions_menu.addAction("⭐ Star on GitHub")
+        star_github_action.triggered.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
+        
+        sponsor_action = actions_menu.addAction("❤️ Sponsor on GitHub")
+        sponsor_action.triggered.connect(lambda: self.open_url("https://github.com/sponsors/your-repo"))
         
         # Page title
         self.page_title = QLabel()
@@ -473,34 +595,6 @@ class SettingsWindow(QDialog):
         
         layout.addSpacing(20)
         
-        # GitHub Sponsor button at the bottom
-        sponsor_layout = QHBoxLayout()
-        sponsor_layout.addStretch()
-        
-        sponsor_btn = QPushButton("❤️ Sponsor on GitHub")
-        sponsor_btn.setToolTip("Support GlowStatus development! �")
-        sponsor_btn.clicked.connect(lambda: self.open_url("https://github.com/sponsors/your-repo"))
-        sponsor_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #ea4aaa;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 600;
-                font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: #c026d3;
-            }
-            QPushButton:pressed {
-                background-color: #a21caf;
-            }
-        """)
-        sponsor_layout.addWidget(sponsor_btn)
-        sponsor_layout.addStretch()
-        
-        layout.addLayout(sponsor_layout)
         layout.addStretch()
         
         return scroll
@@ -585,23 +679,6 @@ class SettingsWindow(QDialog):
         support_text.setWordWrap(True)
         support_text.setStyleSheet("font-size: 14px; line-height: 1.6; color: #ebebeb;")
         support_layout.addWidget(support_text)
-        
-        # Action buttons
-        action_buttons_layout = QHBoxLayout()
-        action_buttons_layout.addStretch()
-        
-        join_btn = QPushButton("🎉 Join Discord Community")
-        join_btn.setToolTip("Come chat with us! We have cookies! 🍪")
-        join_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
-        action_buttons_layout.addWidget(join_btn)
-        
-        github_btn = QPushButton("⭐ Star on GitHub")
-        github_btn.setToolTip("Give us a star and make our day! ✨")
-        github_btn.clicked.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
-        action_buttons_layout.addWidget(github_btn)
-        
-        action_buttons_layout.addStretch()
-        support_layout.addLayout(action_buttons_layout)
         
         layout.addWidget(support_group)
         layout.addStretch()
