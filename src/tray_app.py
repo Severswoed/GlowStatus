@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction, QIcon, QCursor
 from PySide6.QtCore import Qt, QTimer
 from utils import resource_path
-from config_ui import load_config, save_config
+from settings_ui import load_config, save_config
 from settings_ui import SettingsWindow
 from glowstatus import GlowStatusController
 from logger import get_logger
@@ -80,6 +80,8 @@ def main():
             # Try to show a message box if possible
             try:
                 temp_app = QApplication(sys.argv)
+                temp_app.setApplicationName("GlowStatus")
+                temp_app.setApplicationDisplayName("GlowStatus")
                 QMessageBox.warning(
                     None, 
                     "GlowStatus Already Running", 
@@ -99,6 +101,14 @@ def main():
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app.config_window = None  # Initialize config window reference
+        
+        # Set proper application branding for system notifications
+        app.setApplicationName("GlowStatus")
+        app.setApplicationDisplayName("GlowStatus")
+        app.setApplicationVersion("2.0.0")
+        app.setOrganizationName("GlowStatus")
+        app.setOrganizationDomain("glowstatus.app")
+        
         print("Qt Application created")
 
         # Set the application icon for the taskbar/dock
@@ -499,6 +509,8 @@ def main():
         try:
             if 'app' not in locals():
                 app = QApplication(sys.argv)
+                app.setApplicationName("GlowStatus")
+                app.setApplicationDisplayName("GlowStatus")
             QMessageBox.critical(
                 None,
                 "GlowStatus Startup Error", 

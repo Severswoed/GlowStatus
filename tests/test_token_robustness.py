@@ -136,7 +136,7 @@ def test_config_ui_with_bad_token():
     with patch('config_ui.CalendarSync') as mock_calendar_sync:
         mock_calendar_sync.side_effect = Exception("invalid_grant: Token has been expired or revoked")
         
-        from config_ui import ConfigWindow
+        from settings_ui import SettingsWindow
         
         # Mock QApplication and other Qt dependencies for headless testing
         with patch('config_ui.QWidget'):
@@ -162,7 +162,7 @@ def test_oauth_worker_with_bad_token():
     """Test that OAuth worker handles authentication failures gracefully."""
     print("Testing OAuth worker with authentication failures...")
     
-    from config_ui import OAuthWorker
+    from settings_ui import OAuthWorker
     
     # Mock CalendarSync to raise an authentication error
     with patch('config_ui.CalendarSync') as mock_calendar_sync:

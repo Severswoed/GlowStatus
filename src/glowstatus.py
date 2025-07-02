@@ -5,7 +5,7 @@ import os
 
 from govee_controller import GoveeController
 from calendar_sync import CalendarSync
-from config_ui import load_config, save_config
+from settings_ui import load_config, save_config
 from logger import get_logger
 from utils import normalize_status, load_secret, resource_path
 
