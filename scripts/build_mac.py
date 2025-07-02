@@ -58,65 +58,31 @@ def create_custom_glowstatus_recipe():
     
     # Create our minimal replacement recipe for PySide6
     custom_recipe_content = '''"""
-Custom minimal PySide6 recipe for GlowStatus - replaces the default bloated one.
+Custom minimal PySide6 recipe for GlowStatus - compatible with py2app 0.28.8
 
-Based on py2app recipes documentation at:
-https://py2app.readthedocs.io/en/latest/implementation.html
-
-This recipe follows the official pattern - just defines a recipe function that returns a dict.
+This recipe directly returns the configuration dict that py2app expects.
 """
 
 def check(cmd, mf):
-    """
-    Check if this recipe should be applied.
-    Always return True since we want to replace the default PySide6 recipe.
-    """
+    """Check if this recipe should be applied."""
     modules = mf.flatten()
-    module_names = {str(m) for m in modules}
-    pyside6_found = any('PySide6' in name for name in module_names)
-    
-    if pyside6_found:
-        print("🎯 PySide6 detected - applying minimal recipe")
-    return pyside6_found
+    return any('PySide6' in str(m) for m in modules)
 
 def recipe(cmd, mf):
-    """
-    Custom minimal recipe that replaces the default PySide6 recipe.
-    
-    According to py2app docs, recipes should use mf.import_hook() to
-    explicitly import needed modules and return a dict with configuration.
-    """
-    
+    """Apply the minimal PySide6 configuration."""
     print("🎯 GlowStatus: Applying minimal PySide6 recipe")
     
-    # Use mf.import_hook() as recommended in py2app docs
+    # Import only the essential PySide6 modules
     mf.import_hook('PySide6')
-    mf.import_hook('PySide6.QtCore') 
-    mf.import_hook('PySide6.QtGui')
+    mf.import_hook('PySide6.QtCore')
+    mf.import_hook('PySide6.QtGui') 
     mf.import_hook('PySide6.QtWidgets')
     mf.import_hook('shiboken6')
     
-    # Import specific Qt widgets we actually use
-    mf.import_hook('PySide6.QtCore', fromlist=[
-        'Qt', 'QThread', 'Signal', 'QSize', 'QTimer', 'QObject'
-    ])
-    mf.import_hook('PySide6.QtGui', fromlist=[
-        'QIcon', 'QPixmap', 'QColor', 'QPalette', 'QFont', 'QAction'
-    ])
-    mf.import_hook('PySide6.QtWidgets', fromlist=[
-        'QApplication', 'QWidget', 'QDialog', 'QMainWindow', 'QSystemTrayIcon',
-        'QVBoxLayout', 'QHBoxLayout', 'QFormLayout', 'QGridLayout',
-        'QLabel', 'QPushButton', 'QLineEdit', 'QComboBox', 'QCheckBox',
-        'QSpinBox', 'QTableWidget', 'QTableWidgetItem', 'QHeaderView',
-        'QScrollArea', 'QListWidget', 'QListWidgetItem',
-        'QStackedWidget', 'QSplitter', 'QGroupBox', 'QMessageBox',
-        'QTabWidget', 'QFrame', 'QSizePolicy', 'QMenu'
-    ])
+    print("🎯 Imported essential PySide6 modules")
     
-    print("🎯 Imported essential PySide6 modules with minimal Qt footprint")
-    
-    # Return the recipe configuration dict as per py2app docs
-    return {
+    # Return the configuration dictionary
+    result = {
         'packages': ['PySide6', 'shiboken6'],
         'includes': [
             'PySide6.QtCore',
@@ -125,7 +91,6 @@ def recipe(cmd, mf):
             'shiboken6',
         ],
         'expected_missing_imports': [
-            # Large Qt modules we explicitly don't want (saves ~500MB+)
             'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
             'PySide6.QtWebEngine', 'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 
             'PySide6.QtWebChannel', 'PySide6.QtWebSockets',
@@ -140,9 +105,10 @@ def recipe(cmd, mf):
             'PySide6.QtTextToSpeech', 'PySide6.QtHelp', 'PySide6.QtDesigner',
             'PySide6.QtSvg', 'PySide6.QtSvgWidgets',
             'PySide6.QtPdf', 'PySide6.QtPdfWidgets',
-            'PySide6.QtSpellChecker', 'PySide6.QtVirtualKeyboard',
         ]
     }
+    print(f"🎯 Recipe returning: {type(result)} with {len(result)} keys")
+    return result
 '''
     
     try:
