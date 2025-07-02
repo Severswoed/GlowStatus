@@ -183,7 +183,7 @@ class SettingsWindow(QDialog):
         
         # Try to set window icon
         try:
-            icon_path = resource_path("img/GlowStatus.png")
+            icon_path = resource_path("img/GlowStatus_tray_tp.png")
             if os.path.exists(icon_path):
                 self.setWindowIcon(QIcon(icon_path))
                 # Also set as application icon
@@ -222,6 +222,12 @@ class SettingsWindow(QDialog):
         
         # Apply GlowStatus theme
         self.apply_theme()
+        
+        # Force enable all widgets to ensure interactivity
+        self.setEnabled(True)
+        for widget in self.findChildren(QCheckBox):
+            widget.setEnabled(True)
+            widget.setCheckable(True)
         
     def setup_sidebar(self):
         """Set up the navigation sidebar."""
@@ -735,6 +741,11 @@ class SettingsWindow(QDialog):
         
         self.disable_sync_checkbox = QCheckBox("Disable calendar synchronization")
         self.disable_sync_checkbox.setEnabled(True)
+        self.disable_sync_checkbox.setCheckable(True)
+        self.disable_sync_checkbox.setFocusPolicy(Qt.StrongFocus)
+        self.disable_sync_checkbox.setMouseTracking(True)
+        # Connect a test signal to ensure it's working
+        self.disable_sync_checkbox.toggled.connect(lambda checked: logger.info(f"Disable sync toggled: {checked}"))
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
@@ -751,14 +762,26 @@ class SettingsWindow(QDialog):
         
         self.power_off_available_checkbox = QCheckBox("Turn light off when available")
         self.power_off_available_checkbox.setEnabled(True)
+        self.power_off_available_checkbox.setCheckable(True)
+        self.power_off_available_checkbox.setFocusPolicy(Qt.StrongFocus)
+        self.power_off_available_checkbox.setMouseTracking(True)
+        self.power_off_available_checkbox.toggled.connect(lambda checked: logger.info(f"Power off available toggled: {checked}"))
         additional_layout.addWidget(self.power_off_available_checkbox)
         
         self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
         self.off_for_unknown_checkbox.setEnabled(True)
+        self.off_for_unknown_checkbox.setCheckable(True)
+        self.off_for_unknown_checkbox.setFocusPolicy(Qt.StrongFocus)
+        self.off_for_unknown_checkbox.setMouseTracking(True)
+        self.off_for_unknown_checkbox.toggled.connect(lambda checked: logger.info(f"Off for unknown toggled: {checked}"))
         additional_layout.addWidget(self.off_for_unknown_checkbox)
         
         self.disable_light_control_checkbox = QCheckBox("Disable light control")
         self.disable_light_control_checkbox.setEnabled(True)
+        self.disable_light_control_checkbox.setCheckable(True)
+        self.disable_light_control_checkbox.setFocusPolicy(Qt.StrongFocus)
+        self.disable_light_control_checkbox.setMouseTracking(True)
+        self.disable_light_control_checkbox.toggled.connect(lambda checked: logger.info(f"Disable light control toggled: {checked}"))
         additional_layout.addWidget(self.disable_light_control_checkbox)
         
         layout.addWidget(additional_group)
@@ -1042,22 +1065,17 @@ class SettingsWindow(QDialog):
         # Load calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
             self.disable_sync_checkbox.setChecked(self.config.get("DISABLE_CALENDAR_SYNC", False))
-            self.disable_sync_checkbox.setEnabled(True)
             self.sync_interval_spinbox.setValue(self.config.get("REFRESH_INTERVAL", 15))
-            self.sync_interval_spinbox.setEnabled(True)
             
         # Load additional settings
         if hasattr(self, 'power_off_available_checkbox'):
             self.power_off_available_checkbox.setChecked(self.config.get("POWER_OFF_WHEN_AVAILABLE", True))
-            self.power_off_available_checkbox.setEnabled(True)
             
         if hasattr(self, 'off_for_unknown_checkbox'):
             self.off_for_unknown_checkbox.setChecked(self.config.get("OFF_FOR_UNKNOWN_STATUS", True))
-            self.off_for_unknown_checkbox.setEnabled(True)
             
         if hasattr(self, 'disable_light_control_checkbox'):
             self.disable_light_control_checkbox.setChecked(self.config.get("DISABLE_LIGHT_CONTROL", False))
-            self.disable_light_control_checkbox.setEnabled(True)
         
         # Load tray icon setting
         if hasattr(self, 'tray_icon_dropdown'):
