@@ -169,11 +169,24 @@ class SettingsWindow(QDialog):
         self.setMinimumSize(900, 700)
         self.resize(1000, 800)
         
+        # Set application branding for notifications
+        from PySide6.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app:
+            app.setApplicationName("GlowStatus")
+            app.setApplicationDisplayName("GlowStatus")
+            app.setApplicationVersion("2.0.0")
+            app.setOrganizationName("GlowStatus")
+            app.setOrganizationDomain("glowstatus.com")
+        
         # Try to set window icon
         try:
             icon_path = resource_path("img/GlowStatus.png")
             if os.path.exists(icon_path):
                 self.setWindowIcon(QIcon(icon_path))
+                # Also set as application icon
+                if app:
+                    app.setWindowIcon(QIcon(icon_path))
         except Exception:
             pass
         
@@ -199,6 +212,12 @@ class SettingsWindow(QDialog):
         splitter.setCollapsible(0, False)
         splitter.setCollapsible(1, False)
         
+        # Connect sidebar selection to content switching (after content_stack is created)
+        self.sidebar.currentRowChanged.connect(self.change_page)
+        
+        # Select first item by default
+        self.sidebar.setCurrentRow(0)
+        
         # Apply GlowStatus theme
         self.apply_theme()
         
@@ -207,9 +226,6 @@ class SettingsWindow(QDialog):
         self.sidebar = QListWidget()
         self.sidebar.setFixedWidth(250)
         self.sidebar.setObjectName("sidebar")
-        
-        # Connect selection change
-        self.sidebar.currentRowChanged.connect(self.change_page)
         
         # Add navigation items
         nav_items = [
@@ -228,8 +244,7 @@ class SettingsWindow(QDialog):
             item.setData(Qt.UserRole, title.lower())
             self.sidebar.addItem(item)
         
-        # Select first item by default
-        self.sidebar.setCurrentRow(0)
+        # Note: Signal connection moved to setup_ui after content area is created
         
     def setup_content_area(self):
         """Set up the content area with pages."""
@@ -292,7 +307,7 @@ class SettingsWindow(QDialog):
         scroll.setWidget(page)
         scroll.setWidgetResizable(True)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarNever)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         return scroll, page
         
     def create_about_page(self):
@@ -766,26 +781,54 @@ class SettingsWindow(QDialog):
         
         return scroll
     
+    def show_message(self, message_type, title, text, buttons=QMessageBox.Ok):
+        """Show a properly branded message box."""
+        msg = QMessageBox(self)
+        msg.setWindowTitle(f"GlowStatus - {title}")
+        msg.setText(text)
+        msg.setStandardButtons(buttons)
+        
+        # Set icon based on message type
+        if message_type == "information":
+            msg.setIcon(QMessageBox.Information)
+        elif message_type == "warning":
+            msg.setIcon(QMessageBox.Warning)
+        elif message_type == "error":
+            msg.setIcon(QMessageBox.Critical)
+        elif message_type == "question":
+            msg.setIcon(QMessageBox.Question)
+        
+        # Try to set window icon
+        try:
+            icon_path = resource_path("img/GlowStatus.png")
+            if os.path.exists(icon_path):
+                msg.setWindowIcon(QIcon(icon_path))
+        except Exception:
+            pass
+        
+        return msg.exec()
+    
     def change_page(self, index):
         """Change the current page based on sidebar selection."""
-        if index >= 0:
+        if index >= 0 and hasattr(self, 'content_stack'):
             self.content_stack.setCurrentIndex(index)
             
             # Update page title
-            item = self.sidebar.item(index)
-            if item:
-                title = item.data(Qt.UserRole)
-                display_titles = {
-                    "about": "About GlowStatus",
-                    "wall of glow": "Wall of Glow",
-                    "oauth": "Google Calendar OAuth",
-                    "integrations": "Integrations",
-                    "calendar": "Calendar Settings", 
-                    "status": "Status Configuration",
-                    "options": "Options",
-                    "discord": "Discord Community"
-                }
-                self.page_title.setText(display_titles.get(title, title.title()))
+            if hasattr(self, 'page_title'):
+                item = self.sidebar.item(index)
+                if item:
+                    title = item.data(Qt.UserRole)
+                    display_titles = {
+                        "about": "About GlowStatus",
+                        "wall of glow": "Wall of Glow",
+                        "oauth": "Google Calendar OAuth",
+                        "integrations": "Integrations",
+                        "calendar": "Calendar Settings", 
+                        "status": "Status Configuration",
+                        "options": "Options",
+                        "discord": "Discord Community"
+                    }
+                    self.page_title.setText(display_titles.get(title, title.title()))
     
     def load_settings(self):
         """Load settings from configuration into UI elements."""
