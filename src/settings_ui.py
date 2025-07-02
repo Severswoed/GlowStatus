@@ -435,68 +435,99 @@ class SettingsWindow(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
         
-        title = QLabel("🔐 Google Calendar OAuth")
+        title = QLabel("🔐 Google Calendar Setup")
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         
-        # OAuth status section
-        status_group = QGroupBox("Connection Status")
-        status_layout = QVBoxLayout(status_group)
-        
-        self.oauth_status_label = QLabel("Not connected")
-        status_layout.addWidget(self.oauth_status_label)
-        
-        self.oauth_email_label = QLabel("")
-        status_layout.addWidget(self.oauth_email_label)
-        
-        layout.addWidget(status_group)
-        
-        # OAuth controls
-        controls_group = QGroupBox("Authentication")
-        controls_layout = QVBoxLayout(controls_group)
-        
-        # Add Google logo button
-        oauth_button_layout = QHBoxLayout()
-        
-        try:
-            google_logo_path = resource_path("img/google_logo.png")
-            if os.path.exists(google_logo_path):
-                self.oauth_button = QPushButton()
-                self.oauth_button.setText("  Connect with Google")
-                self.oauth_button.setIcon(QIcon(google_logo_path))
-                self.oauth_button.setIconSize(QSize(24, 24))
-            else:
-                self.oauth_button = QPushButton("🔑 Connect with Google")
-        except Exception:
-            self.oauth_button = QPushButton("🔑 Connect with Google")
-        
-        self.oauth_button.clicked.connect(self.run_oauth_flow)
-        oauth_button_layout.addWidget(self.oauth_button)
-        
-        self.disconnect_button = QPushButton("🔓 Disconnect")
-        self.disconnect_button.clicked.connect(self.disconnect_oauth)
-        oauth_button_layout.addWidget(self.disconnect_button)
-        
-        controls_layout.addLayout(oauth_button_layout)
-        
-        # Progress bar for OAuth process
-        self.oauth_progress = QProgressBar()
-        self.oauth_progress.setVisible(False)
-        controls_layout.addWidget(self.oauth_progress)
-        
-        # Instructions
-        instructions = QLabel(
-            "To connect to Google Calendar:\n\n"
-            "1. Click 'Connect with Google'\n"
-            "2. Sign in to your Google account\n"
-            "3. Grant calendar access permissions\n"
-            "4. Return to this app\n\n"
-            "Your credentials are stored securely on your device."
+        # Privacy notice (required for OAuth compliance) - matching original
+        privacy_notice = QLabel(
+            'By connecting your Google account, you agree to GlowStatus accessing your calendar data '
+            'in read-only mode to determine your meeting status.<br>'
+            '<a href="https://www.glowstatus.app/privacy">Privacy Policy</a> | '
+            '<a href="https://www.glowstatus.app/terms">Terms of Service</a> | '
+            '<a href="https://myaccount.google.com/permissions">Manage Google Permissions</a>'
         )
-        instructions.setWordWrap(True)
-        controls_layout.addWidget(instructions)
+        privacy_notice.setWordWrap(True)
+        privacy_notice.setOpenExternalLinks(True)
+        privacy_notice.setStyleSheet("color: #666; font-size: 11px; margin: 10px 0 15px 0; padding: 8px 0;")
+        privacy_notice.setMinimumHeight(50)
+        layout.addWidget(privacy_notice)
         
-        layout.addWidget(controls_group)
+        # OAuth Status
+        form_layout = QFormLayout()
+        self.oauth_status_label = QLabel("Not configured")
+        form_layout.addRow("OAuth Status:", self.oauth_status_label)
+        
+        # Verification status info - matching original
+        verification_info = QLabel(
+            'ℹ️ This app uses Google\'s Limited Use policy for calendar data. '
+            'Your data is processed securely and never shared with third parties.'
+        )
+        verification_info.setWordWrap(True)
+        verification_info.setStyleSheet("color: #5f6368; font-size: 10px; font-style: italic; margin: 2px 0;")
+        form_layout.addRow(verification_info)
+        
+        # OAuth buttons layout (side by side, centered) - matching original
+        oauth_buttons_layout = QHBoxLayout()
+        oauth_buttons_layout.addStretch()
+        
+        # Google Sign-in Button (following Google branding guidelines) - matching original
+        self.oauth_btn = QPushButton("Sign in with Google")
+        self.oauth_btn.clicked.connect(self.run_oauth_flow)
+        
+        # Apply Google branding styles
+        self.apply_google_button_style(self.oauth_btn)
+        oauth_buttons_layout.addWidget(self.oauth_btn)
+        
+        # Add small spacing between buttons
+        oauth_buttons_layout.addSpacing(10)
+        
+        # Disconnect Button - matching original styling
+        self.disconnect_btn = QPushButton("Disconnect")
+        self.disconnect_btn.clicked.connect(self.disconnect_oauth)
+        
+        # Style disconnect button to be less prominent - matching original
+        self.disconnect_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 4px;
+                color: #3c4043;
+                font-family: 'Google Sans', Roboto, Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 8px 16px;
+                min-height: 20px;
+            }
+            QPushButton:hover {
+                background-color: #f1f3f4;
+                border-color: #dadce0;
+            }
+            QPushButton:pressed {
+                background-color: #e8eaed;
+            }
+            QPushButton:disabled {
+                background-color: #f8f9fa;
+                color: #9aa0a6;
+                border-color: #f8f9fa;
+            }
+        """)
+        oauth_buttons_layout.addWidget(self.disconnect_btn)
+        oauth_buttons_layout.addStretch()
+        
+        form_layout.addRow(oauth_buttons_layout)
+        
+        # Google Calendar ID (display only) - matching original
+        self.google_calendar_id_label = QLabel("Not authenticated")
+        form_layout.addRow("Authenticated as:", self.google_calendar_id_label)
+
+        # Selected Calendar ID (dropdown) - matching original
+        self.selected_calendar_dropdown = QComboBox()
+        self.selected_calendar_dropdown.setEditable(False)
+        self.selected_calendar_dropdown.addItem("Please authenticate first")  # Default state
+        form_layout.addRow("Selected Calendar:", self.selected_calendar_dropdown)
+
+        layout.addLayout(form_layout)
         layout.addStretch()
         
         return scroll
@@ -1149,7 +1180,7 @@ class SettingsWindow(QDialog):
             # Reset to defaults
             self.config["STATUS_COLORS"] = {
                 "Available": "#00FF00",
-                "Busy": "#FF0000", 
+                "Busy": "#FF0000",
                 "Away": "#FFFF00",
                 "Do Not Disturb": "#800080",
                 "Offline": "#808080",
@@ -1613,6 +1644,74 @@ class SettingsWindow(QDialog):
                 border-radius: 4px;
             }
         """)
+
+    def apply_google_button_style(self, button):
+        """Apply Google branding guidelines styling to OAuth button with logo."""
+        # Try to load Google logo, fall back to text if not available
+        google_logo_path = resource_path('img/google_logo.png')
+        
+        if os.path.exists(google_logo_path):
+            # Use Google logo if available
+            from PySide6.QtCore import QSize
+            icon = QIcon(google_logo_path)
+            button.setIcon(icon)
+            size = button.fontMetrics().height()
+            button.setIconSize(QSize(size, size))
+        else:
+            # Create a simple "G" logo as fallback
+            self.create_google_g_icon(button)
+        
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: #4285f4;
+                border: none;
+                border-radius: 4px;
+                color: white;
+                font-family: 'Google Sans', Roboto, Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 10px 24px 10px 20px;
+                min-height: 20px;
+                text-align: left;
+            }
+            QPushButton:hover {
+                background-color: #3367d6;
+            }
+            QPushButton:pressed {
+                background-color: #2d5aa0;
+            }
+            QPushButton:disabled {
+                background-color: #f8f9fa;
+                color: #5f6368;
+                border: 1px solid #f8f9fa;
+            }
+        """)
+
+    def create_google_g_icon(self, button):
+        """Create a simple Google 'G' icon as fallback."""
+        from PySide6.QtGui import QPainter, QPixmap
+        from PySide6.QtCore import QSize
+        
+        size = button.fontMetrics().height()
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor(255, 255, 255, 0))
+        
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        painter.setBrush(QColor(255, 255, 255))
+        painter.setPen(QColor(220, 220, 220))
+        painter.drawEllipse(1, 1, size-2, size-2)
+        
+        font = QFont("Arial", max(8, size//2), QFont.Bold)
+        painter.setFont(font)
+        painter.setPen(QColor(66, 133, 244))
+        painter.drawText(pixmap.rect(), Qt.AlignCenter, "G")
+        painter.end()
+        
+        icon = QIcon(pixmap)
+        button.setIcon(icon)
+        button.setIconSize(QSize(size, size))
 
 # Main function for testing
 if __name__ == "__main__":
