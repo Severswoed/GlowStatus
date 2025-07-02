@@ -261,6 +261,10 @@ class SettingsWindow(QDialog):
         self.sidebar = QListWidget()
         self.sidebar.setObjectName("sidebar")
         
+        # Remove scroll bars from navigation list
+        self.sidebar.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.sidebar.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
         # Add navigation items
         nav_items = [
             ("About", "ℹ️"),
@@ -280,17 +284,17 @@ class SettingsWindow(QDialog):
         
         sidebar_layout.addWidget(self.sidebar)
         
-        # Add spacer
-        sidebar_layout.addSpacing(20)
+        # Add stretch to push buttons to bottom
+        sidebar_layout.addStretch()
         
-        # Static action buttons section
+        # Static action buttons section at bottom
         buttons_container = QWidget()
         buttons_layout = QVBoxLayout(buttons_container)
         buttons_layout.setContentsMargins(12, 0, 12, 12)
         buttons_layout.setSpacing(8)
         
         # Section title
-        buttons_title = QLabel("Quick Links")
+        buttons_title = QLabel("QUICK LINKS")
         buttons_title.setStyleSheet("""
             QLabel {
                 color: #999;
@@ -376,7 +380,6 @@ class SettingsWindow(QDialog):
         buttons_layout.addWidget(self.sponsor_btn)
         
         sidebar_layout.addWidget(buttons_container)
-        sidebar_layout.addStretch()
         
         # Note: Signal connection moved to setup_ui after content area is created
         
@@ -401,18 +404,6 @@ class SettingsWindow(QDialog):
         
         discord_action = links_menu.addAction("💬 Join Discord")
         discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
-        
-        # Create actions menu for About page actions
-        actions_menu = self.menu_bar.addMenu("🎯 Actions")
-        
-        join_discord_action = actions_menu.addAction("🎉 Join Discord Community")
-        join_discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
-        
-        star_github_action = actions_menu.addAction("⭐ Star on GitHub")
-        star_github_action.triggered.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
-        
-        sponsor_action = actions_menu.addAction("❤️ Sponsor on GitHub")
-        sponsor_action.triggered.connect(lambda: self.open_url("https://github.com/sponsors/your-repo"))
         
         # Page title
         self.page_title = QLabel()
