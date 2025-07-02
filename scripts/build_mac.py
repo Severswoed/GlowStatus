@@ -88,6 +88,7 @@ OPTIONS = {
     'optimize': 2,  # Maximum bytecode optimization (-O2)
     'strip': True,  # Strip debug symbols
     'no_chdir': True,  # Don't change working directory
+    'recipes': [],  # Disable all automatic recipes to avoid py2app 0.28.8 bug
     
     # Ultra-minimal includes - only what we actually import
     'includes': [
@@ -95,7 +96,7 @@ OPTIONS = {
         'threading', 'time', 'datetime', 'os', 'sys', 'tempfile', 'atexit',
         'pickle', 're', 'json', 'logging', 'webbrowser',
         
-        # PySide6 modules (only what we actually use)
+        # PySide6 modules (only what we actually use) - explicit since we disabled recipes
         'PySide6.QtCore',
         'PySide6.QtGui', 
         'PySide6.QtWidgets',
