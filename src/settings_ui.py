@@ -852,18 +852,26 @@ class SettingsWindow(QDialog):
         # Create table for status colors
         self.status_colors_table = QTableWidget()
         self.status_colors_table.setColumnCount(3)
-        self.status_colors_table.setHorizontalHeaderLabels(["Status", "Color (R,G,B)", "Power Off"])
+        self.status_colors_table.setHorizontalHeaderLabels(["Power Off", "Color (R,G,B)", "Status"])
         self.status_colors_table.horizontalHeader().setStretchLastSection(True)
         
-        # Set minimum height to accommodate 15-20 rows without scrolling
-        # Row height is typically ~30px + header ~40px + some padding
-        self.status_colors_table.setMinimumHeight(550)  # Enough for ~16-17 rows
+        # Set more reasonable height - enough for ~10-12 rows without being too tall
+        self.status_colors_table.setMinimumHeight(350)  # Reduced from 550
+        self.status_colors_table.setMaximumHeight(400)  # Add max height to prevent it from growing too large
         
         # Configure table behavior
         self.status_colors_table.setAlternatingRowColors(True)
         self.status_colors_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.status_colors_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.status_colors_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Set column widths - Power Off should be narrow, Color medium, Status stretches
+        self.status_colors_table.setColumnWidth(0, 80)   # Power Off column - narrow
+        self.status_colors_table.setColumnWidth(1, 120)  # Color column - medium
+        # Status column will stretch due to setStretchLastSection(True)
+        
+        # Connect double-click to color picker (only once during table creation)
+        self.status_colors_table.cellDoubleClicked.connect(self.open_color_picker)
         
         # Populate table with default statuses
         self.populate_status_colors_table()
@@ -1386,25 +1394,26 @@ class SettingsWindow(QDialog):
         self.status_colors_table.setRowCount(len(status_color_map))
         
         for row, (status, entry) in enumerate(status_color_map.items()):
-            # Status name
-            status_item = QTableWidgetItem(status)
-            status_item.setTextAlignment(Qt.AlignCenter)
-            self.status_colors_table.setItem(row, 0, status_item)
+            # Power off checkbox (column 0) - set directly without wrapper for better click handling
+            power_off_checkbox = QCheckBox()
+            power_off_checkbox.setChecked(entry.get("power_off", False))
+            power_off_checkbox.stateChanged.connect(self.on_form_changed)
+            # Make sure the checkbox is focusable and clickable
+            power_off_checkbox.setEnabled(True)
+            power_off_checkbox.setFocusPolicy(Qt.StrongFocus)
+            # Set the checkbox directly in the cell - no wrapper needed
+            self.status_colors_table.setCellWidget(row, 0, power_off_checkbox)
             
-            # Color (R,G,B format)
+            # Color (R,G,B format) (column 1)
             color = entry.get("color", "255,255,255")
             color_item = QTableWidgetItem(color)
             color_item.setTextAlignment(Qt.AlignCenter)
             self.status_colors_table.setItem(row, 1, color_item)
             
-            # Power off checkbox
-            power_off_checkbox = QCheckBox()
-            power_off_checkbox.setChecked(entry.get("power_off", False))
-            power_off_checkbox.stateChanged.connect(self.on_form_changed)
-            self.status_colors_table.setCellWidget(row, 2, power_off_checkbox)
-            
-        # Connect double-click to color picker
-        self.status_colors_table.cellDoubleClicked.connect(self.open_color_picker)
+            # Status name (column 2)
+            status_item = QTableWidgetItem(status)
+            status_item.setTextAlignment(Qt.AlignCenter)
+            self.status_colors_table.setItem(row, 2, status_item)
     
     def on_form_changed(self):
         """Called when any form field changes."""
@@ -1422,22 +1431,37 @@ class SettingsWindow(QDialog):
     
     def open_color_picker(self, row, col):
         """Open color picker when double-clicking on color column."""
-        if col == 1:  # Color column
-            current_item = self.status_colors_table.item(row, col)
-            current_color = current_item.text() if current_item else "255,255,255"
+        if col != 1:  # Only allow color picking on the Color column (column 1)
+            return
             
-            # Convert R,G,B to QColor
-            try:
-                r, g, b = map(int, current_color.split(","))
-                initial_color = QColor(r, g, b)
-            except:
-                initial_color = QColor(255, 255, 255)
+        current_item = self.status_colors_table.item(row, col)
+        if not current_item:
+            return
             
-            color = QColorDialog.getColor(initial_color, self, "Choose Color")
-            if color.isValid():
-                rgb_str = f"{color.red()},{color.green()},{color.blue()}"
-                self.status_colors_table.setItem(row, col, QTableWidgetItem(rgb_str))
-                self.on_form_changed()
+        current_color = current_item.text()
+        
+        # Convert R,G,B to QColor
+        try:
+            r, g, b = map(int, current_color.split(","))
+            r = max(0, min(255, r))  # Clamp values to valid range
+            g = max(0, min(255, g))
+            b = max(0, min(255, b))
+            initial_color = QColor(r, g, b)
+        except (ValueError, AttributeError):
+            initial_color = QColor(255, 255, 255)  # Default to white on error
+        
+        # Open color dialog
+        color = QColorDialog.getColor(
+            initial_color, 
+            self, 
+            "Choose Status Color",
+            QColorDialog.DontUseNativeDialog  # Prevent native dialog issues
+        )
+        
+        if color.isValid():
+            rgb_str = f"{color.red()},{color.green()},{color.blue()}"
+            current_item.setText(rgb_str)
+            self.on_form_changed()
     
     def change_status_color(self, row):
         """Change the color for a status (legacy method for compatibility)."""
@@ -1448,21 +1472,25 @@ class SettingsWindow(QDialog):
         row = self.status_colors_table.rowCount()
         self.status_colors_table.insertRow(row)
         
-        # Status name
-        status_item = QTableWidgetItem(status)
-        status_item.setTextAlignment(Qt.AlignCenter)
-        self.status_colors_table.setItem(row, 0, status_item)
+        # Power off checkbox (column 0) - set directly without wrapper for better click handling
+        power_off_checkbox = QCheckBox()
+        power_off_checkbox.setChecked(power_off)
+        power_off_checkbox.stateChanged.connect(self.on_form_changed)
+        # Make sure the checkbox is focusable and clickable
+        power_off_checkbox.setEnabled(True)
+        power_off_checkbox.setFocusPolicy(Qt.StrongFocus)
+        # Set the checkbox directly in the cell - no wrapper needed
+        self.status_colors_table.setCellWidget(row, 0, power_off_checkbox)
         
-        # Color (R,G,B)
+        # Color (R,G,B) (column 1)
         color_item = QTableWidgetItem(color)
         color_item.setTextAlignment(Qt.AlignCenter)
         self.status_colors_table.setItem(row, 1, color_item)
         
-        # Power off checkbox
-        power_off_checkbox = QCheckBox()
-        power_off_checkbox.setChecked(power_off)
-        power_off_checkbox.stateChanged.connect(self.on_form_changed)
-        self.status_colors_table.setCellWidget(row, 2, power_off_checkbox)
+        # Status name (column 2)
+        status_item = QTableWidgetItem(status)
+        status_item.setTextAlignment(Qt.AlignCenter)
+        self.status_colors_table.setItem(row, 2, status_item)
     
     def add_custom_status(self):
         """Add a custom status."""
@@ -1661,14 +1689,15 @@ class SettingsWindow(QDialog):
         if hasattr(self, 'status_colors_table'):
             status_color_map = {}
             for row in range(self.status_colors_table.rowCount()):
-                status_item = self.status_colors_table.item(row, 0)
-                color_item = self.status_colors_table.item(row, 1)
-                power_widget = self.status_colors_table.cellWidget(row, 2)
+                power_widget = self.status_colors_table.cellWidget(row, 0)  # Power Off is now column 0
+                color_item = self.status_colors_table.item(row, 1)         # Color is now column 1
+                status_item = self.status_colors_table.item(row, 2)        # Status is now column 2
                 
                 if status_item and color_item and power_widget:
                     status = status_item.text()
                     color = color_item.text()
-                    power_off = power_widget.isChecked()
+                    # power_widget is now the checkbox directly (no wrapper)
+                    power_off = power_widget.isChecked() if isinstance(power_widget, QCheckBox) else False
                     status_color_map[status] = {"color": color, "power_off": power_off}
             
             self.config["STATUS_COLOR_MAP"] = status_color_map
