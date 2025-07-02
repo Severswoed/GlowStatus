@@ -237,6 +237,13 @@ class SettingsWindow(QDialog):
         for widget in self.findChildren(QCheckBox):
             widget.setEnabled(True)
             widget.setCheckable(True)
+            # Add debug info
+            logger.info(f"Enabled checkbox: {widget.text()}, enabled={widget.isEnabled()}, checkable={widget.isCheckable()}")
+        
+        # Also ensure all spinboxes are enabled
+        for widget in self.findChildren(QSpinBox):
+            widget.setEnabled(True)
+            logger.info(f"Enabled spinbox: enabled={widget.isEnabled()}")
         
     def setup_sidebar(self):
         """Set up the navigation sidebar."""
@@ -341,11 +348,13 @@ class SettingsWindow(QDialog):
     def create_scrollable_page(self):
         """Create a scrollable page container."""
         page = QWidget()
+        page.setEnabled(True)  # Explicitly enable the page widget
         scroll = QScrollArea()
         scroll.setWidget(page)
         scroll.setWidgetResizable(True)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setEnabled(True)  # Explicitly enable the scroll area
         return scroll, page
         
     def create_about_page(self):
@@ -780,12 +789,14 @@ class SettingsWindow(QDialog):
         self.disable_sync_checkbox.setCheckable(True)
         self.disable_sync_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.disable_sync_checkbox.setMouseTracking(True)
+        self.disable_sync_checkbox.stateChanged.connect(self.on_form_changed)
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
         self.sync_interval_spinbox.setRange(10, 3600)
         self.sync_interval_spinbox.setSuffix(" seconds")
         self.sync_interval_spinbox.setEnabled(True)
+        self.sync_interval_spinbox.valueChanged.connect(self.on_form_changed)
         sync_layout.addRow("Refresh Interval:", self.sync_interval_spinbox)
         
         layout.addWidget(sync_group)
@@ -799,6 +810,7 @@ class SettingsWindow(QDialog):
         self.power_off_available_checkbox.setCheckable(True)
         self.power_off_available_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.power_off_available_checkbox.setMouseTracking(True)
+        self.power_off_available_checkbox.stateChanged.connect(self.on_form_changed)
         additional_layout.addWidget(self.power_off_available_checkbox)
         
         self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
@@ -806,6 +818,7 @@ class SettingsWindow(QDialog):
         self.off_for_unknown_checkbox.setCheckable(True)
         self.off_for_unknown_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.off_for_unknown_checkbox.setMouseTracking(True)
+        self.off_for_unknown_checkbox.stateChanged.connect(self.on_form_changed)
         additional_layout.addWidget(self.off_for_unknown_checkbox)
         
         self.disable_light_control_checkbox = QCheckBox("Disable light control")
@@ -813,6 +826,7 @@ class SettingsWindow(QDialog):
         self.disable_light_control_checkbox.setCheckable(True)
         self.disable_light_control_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.disable_light_control_checkbox.setMouseTracking(True)
+        self.disable_light_control_checkbox.stateChanged.connect(self.on_form_changed)
         additional_layout.addWidget(self.disable_light_control_checkbox)
         
         layout.addWidget(additional_group)
@@ -840,6 +854,16 @@ class SettingsWindow(QDialog):
         self.status_colors_table.setColumnCount(3)
         self.status_colors_table.setHorizontalHeaderLabels(["Status", "Color (R,G,B)", "Power Off"])
         self.status_colors_table.horizontalHeader().setStretchLastSection(True)
+        
+        # Set minimum height to accommodate 15-20 rows without scrolling
+        # Row height is typically ~30px + header ~40px + some padding
+        self.status_colors_table.setMinimumHeight(550)  # Enough for ~16-17 rows
+        
+        # Configure table behavior
+        self.status_colors_table.setAlternatingRowColors(True)
+        self.status_colors_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.status_colors_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.status_colors_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
         # Populate table with default statuses
         self.populate_status_colors_table()
@@ -1099,6 +1123,9 @@ class SettingsWindow(QDialog):
         
         # Load calendars if OAuth is connected
         self.refresh_calendars()
+        
+        # Ensure calendar checkboxes are interactive
+        self.ensure_calendar_checkboxes_interactive()
     
     def update_oauth_status(self):
         """Update OAuth connection status display."""
@@ -1327,7 +1354,7 @@ class SettingsWindow(QDialog):
         """End the Govee test and turn off the light."""
         try:
             if hasattr(self, '_test_controller') and self._test_controller:
-                self._test_controller.turn_off()
+                self._test_controller.set_power("off")
                 # Clean up the reference
                 self._test_controller = None
         except Exception as e:
@@ -1919,7 +1946,7 @@ class SettingsWindow(QDialog):
             }
             
             /* Tables */
-            QTableWidget {
+                       QTableWidget {
                 gridline-color: rgba(255, 255, 255, 0.04);
                 background-color: rgba(255, 255, 255, 0.015);
                 border: 1px solid rgba(255, 255, 255, 0.06);
@@ -2135,6 +2162,43 @@ class SettingsWindow(QDialog):
             self._end_govee_test()
         
         event.accept()
+
+    def ensure_calendar_checkboxes_interactive(self):
+        """Ensure all calendar page checkboxes are interactive and properly connected."""
+        calendar_checkboxes = [
+            ('disable_sync_checkbox', "Disable calendar synchronization"),
+            ('power_off_available_checkbox', "Turn light off when available"),
+            ('off_for_unknown_checkbox', "Turn light off for unknown status"),
+            ('disable_light_control_checkbox', "Disable light control")
+        ]
+        
+        for checkbox_attr, expected_text in calendar_checkboxes:
+            if hasattr(self, checkbox_attr):
+                checkbox = getattr(self, checkbox_attr)
+                # Force enable and ensure properties are set
+                checkbox.setEnabled(True)
+                checkbox.setCheckable(True)
+                checkbox.setFocusPolicy(Qt.StrongFocus)
+                checkbox.setMouseTracking(True)
+                
+                # Disconnect and reconnect signal to ensure it's connected
+                try:
+                    checkbox.stateChanged.disconnect()
+                except:
+                    pass  # No existing connections
+                checkbox.stateChanged.connect(self.on_form_changed)
+                
+                logger.info(f"Calendar checkbox '{expected_text}': enabled={checkbox.isEnabled()}, checkable={checkbox.isCheckable()}")
+            else:
+                logger.warning(f"Calendar checkbox attribute '{checkbox_attr}' not found")
+    
+    def on_checkbox_debug_click(self):
+        """Debug method to test if checkboxes receive click events."""
+        sender = self.sender()
+        logger.info(f"DEBUG: Checkbox clicked - {sender.text()}, checked={sender.isChecked()}")
+        print(f"DEBUG: Checkbox clicked - {sender.text()}, checked={sender.isChecked()}")
+        self.on_form_changed()
+    
 
 # Main function for testing
 if __name__ == "__main__":
