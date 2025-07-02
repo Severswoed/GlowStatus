@@ -17,7 +17,7 @@ import subprocess
 
 # Import build helper functions from scripts directory
 sys.path.insert(0, os.path.dirname(__file__))
-from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages
+from build_helpers import check_and_install_requirements, verify_critical_modules, fix_google_namespace_packages, get_version_string
 
 def create_custom_glowstatus_recipe():
     """
@@ -276,8 +276,8 @@ OPTIONS = {
         'CFBundleDisplayName': 'GlowStatus',
         'CFBundleExecutable': 'GlowStatus',
         'CFBundleIdentifier': 'com.severswoed.glowstatus',
-        'CFBundleShortVersionString': '2.0.0',
-        'CFBundleVersion': '2.0.0',
+        'CFBundleShortVersionString': get_version_string(),
+        'CFBundleVersion': get_version_string(),
         'LSUIElement': True,  # Run as background app without dock icon
         'NSHighResolutionCapable': True,  # Support retina displays
         'LSMinimumSystemVersion': '10.15',  # Require macOS 10.15+

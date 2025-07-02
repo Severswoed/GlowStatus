@@ -54,7 +54,9 @@ def main():
             'test_settings_ui_headless.py'
         ],
         'Build & Setup Tests': [
-            'test_setup_functions.py'
+            'test_setup_functions.py',
+            'test_version.py',
+            'test_build_helpers.py'
         ],
         'Bug Fix Verification': [
             'test_google_oauth_token_path_bug.py',

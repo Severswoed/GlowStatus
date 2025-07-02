@@ -129,6 +129,7 @@ def load_config():
         "GOVEE_DEVICE_ID": "",
         "GOVEE_DEVICE_MODEL": "",
         "SELECTED_CALENDAR_ID": "",
+        "TRAY_ICON": "GlowStatus_tray_tp.png",  # Fixed tray icon
         "STATUS_COLOR_MAP": {
             "in_meeting": {"color": "255,0,0", "power_off": False},
             "focus": {"color": "0,0,255", "power_off": False},
@@ -162,8 +163,12 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
         self.config = load_config()
         self.oauth_worker = None
+        self._govee_test_active = False  # Track test state
+        self.form_dirty = False  # Track unsaved changes
+        self.original_values = {}  # Store original form values
         self.setup_ui()
         self.load_settings()
+        self.setup_form_change_tracking()
         
     def setup_ui(self):
         """Set up the main UI."""
@@ -177,7 +182,11 @@ class SettingsWindow(QDialog):
         if app:
             app.setApplicationName("GlowStatus")
             app.setApplicationDisplayName("GlowStatus")
-            app.setApplicationVersion("2.0.0")
+            try:
+                from version import get_version_string
+                app.setApplicationVersion(get_version_string())
+            except ImportError:
+                app.setApplicationVersion("2.1.0")
             app.setOrganizationName("GlowStatus")
             app.setOrganizationDomain("glowstatus.com")
         
@@ -269,6 +278,12 @@ class SettingsWindow(QDialog):
         self.content_stack = QStackedWidget()
         layout.addWidget(self.content_stack)
         
+        # Save status label
+        self.save_status_label = QLabel("Ready")
+        self.save_status_label.setAlignment(Qt.AlignCenter)
+        self.save_status_label.setStyleSheet("color: #666; font-size: 12px; margin: 5px 0;")
+        layout.addWidget(self.save_status_label)
+        
         # Bottom buttons
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -279,6 +294,7 @@ class SettingsWindow(QDialog):
         
         self.save_button = QPushButton("Save & Close")
         self.save_button.clicked.connect(self.save_and_close)
+        button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.save_button)
         
         layout.addLayout(button_layout)
@@ -402,7 +418,13 @@ class SettingsWindow(QDialog):
         layout.addSpacing(20)
         
         # Version info with fun emoji
-        version_info = QLabel("🏷️ Version 1.0.0 - The Glow Revolution Begins! ✨")
+        try:
+            from version import get_version_display
+            version_text = f"🏷️ {get_version_display()} - The Glow Revolution Begins! ✨"
+        except ImportError:
+            version_text = "🏷️ Version 2.1.0 - The Glow Revolution Begins! ✨"
+        
+        version_info = QLabel(version_text)
         version_info.setAlignment(Qt.AlignCenter)
         version_info.setObjectName("versionInfo")
         layout.addWidget(version_info)
@@ -677,9 +699,9 @@ class SettingsWindow(QDialog):
         govee_layout.addRow("Device Model:", self.govee_device_model_edit)
         
         # Test connection button
-        test_govee_btn = QPushButton("🔍 Test Connection")
-        test_govee_btn.clicked.connect(self.test_govee_connection)
-        govee_layout.addRow("", test_govee_btn)
+        self.test_govee_btn = QPushButton("🔍 Test Connection")
+        self.test_govee_btn.clicked.connect(self.test_govee_connection)
+        govee_layout.addRow("", self.test_govee_btn)
         
         # Instructions
         govee_instructions = QLabel(
@@ -744,8 +766,6 @@ class SettingsWindow(QDialog):
         self.disable_sync_checkbox.setCheckable(True)
         self.disable_sync_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.disable_sync_checkbox.setMouseTracking(True)
-        # Connect a test signal to ensure it's working
-        self.disable_sync_checkbox.toggled.connect(lambda checked: logger.info(f"Disable sync toggled: {checked}"))
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
@@ -765,7 +785,6 @@ class SettingsWindow(QDialog):
         self.power_off_available_checkbox.setCheckable(True)
         self.power_off_available_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.power_off_available_checkbox.setMouseTracking(True)
-        self.power_off_available_checkbox.toggled.connect(lambda checked: logger.info(f"Power off available toggled: {checked}"))
         additional_layout.addWidget(self.power_off_available_checkbox)
         
         self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
@@ -773,7 +792,6 @@ class SettingsWindow(QDialog):
         self.off_for_unknown_checkbox.setCheckable(True)
         self.off_for_unknown_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.off_for_unknown_checkbox.setMouseTracking(True)
-        self.off_for_unknown_checkbox.toggled.connect(lambda checked: logger.info(f"Off for unknown toggled: {checked}"))
         additional_layout.addWidget(self.off_for_unknown_checkbox)
         
         self.disable_light_control_checkbox = QCheckBox("Disable light control")
@@ -781,7 +799,6 @@ class SettingsWindow(QDialog):
         self.disable_light_control_checkbox.setCheckable(True)
         self.disable_light_control_checkbox.setFocusPolicy(Qt.StrongFocus)
         self.disable_light_control_checkbox.setMouseTracking(True)
-        self.disable_light_control_checkbox.toggled.connect(lambda checked: logger.info(f"Disable light control toggled: {checked}"))
         additional_layout.addWidget(self.disable_light_control_checkbox)
         
         layout.addWidget(additional_group)
@@ -850,21 +867,7 @@ class SettingsWindow(QDialog):
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         
-        # Tray Icon Selection (from original config_ui.py)
-        tray_group = QGroupBox("Tray Icon")
-        tray_layout = QFormLayout(tray_group)
-        
-        self.tray_icon_dropdown = QComboBox()
-        # Load available tray icons
-        img_dir = resource_path('img')
-        if os.path.exists(img_dir):
-            tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f and f.endswith(('.png', '.ico'))]
-            self.tray_icon_dropdown.addItems(tray_icons)
-        
-        tray_layout.addRow("Tray Icon:", self.tray_icon_dropdown)
-        layout.addWidget(tray_group)
-        
-        # Advanced options (minimal, matching original)
+        # Advanced options
         advanced_group = QGroupBox("Advanced")
         advanced_layout = QVBoxLayout(advanced_group)
         
@@ -1077,13 +1080,6 @@ class SettingsWindow(QDialog):
         if hasattr(self, 'disable_light_control_checkbox'):
             self.disable_light_control_checkbox.setChecked(self.config.get("DISABLE_LIGHT_CONTROL", False))
         
-        # Load tray icon setting
-        if hasattr(self, 'tray_icon_dropdown'):
-            current_tray_icon = self.config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-            index = self.tray_icon_dropdown.findText(current_tray_icon)
-            if index >= 0:
-                self.tray_icon_dropdown.setCurrentIndex(index)
-        
         # Load status colors
         self.populate_status_colors_table()
         
@@ -1265,7 +1261,13 @@ class SettingsWindow(QDialog):
             logger.warning(f"Failed to refresh calendars: {e}")
     
     def test_govee_connection(self):
-        """Test Govee API connection."""
+        """Test Govee API connection with toggle behavior."""
+        if self._govee_test_active:
+            # End the test - turn off light and reset button
+            self._end_govee_test()
+            return
+        
+        # Start the test
         api_key = self.govee_api_key_edit.text().strip()
         device_id = self.govee_device_id_edit.text().strip()
         device_model = self.govee_device_model_edit.text().strip() or "H6001"
@@ -1278,21 +1280,22 @@ class SettingsWindow(QDialog):
             )
             return
         
-        # Test connection by attempting to get device state
+        # Test connection by attempting to turn on light
         try:
             from govee_controller import GoveeController
             
             # Create a temporary controller for testing
             controller = GoveeController(api_key, device_id, device_model)
             
-            # Flash green to test connection
+            # Turn on green light to indicate test is active
             controller.set_color(0, 255, 0)  # Green
             
             # Store the controller as an instance variable to prevent garbage collection
             self._test_controller = controller
+            self._govee_test_active = True
             
-            # Use QTimer to turn off the light after 3 seconds without blocking UI
-            QTimer.singleShot(3000, self._turn_off_test_light)
+            # Update button to show "End Test" option
+            self.test_govee_btn.setText("🛑 End Test")
             
         except Exception as e:
             QMessageBox.warning(
@@ -1306,8 +1309,8 @@ class SettingsWindow(QDialog):
                 "• Device is online and connected to WiFi"
             )
     
-    def _turn_off_test_light(self):
-        """Helper method to turn off the test light."""
+    def _end_govee_test(self):
+        """End the Govee test and turn off the light."""
         try:
             if hasattr(self, '_test_controller') and self._test_controller:
                 self._test_controller.turn_off()
@@ -1315,6 +1318,11 @@ class SettingsWindow(QDialog):
                 self._test_controller = None
         except Exception as e:
             logger.warning(f"Failed to turn off test light: {e}")
+        finally:
+            # Reset test state and button text
+            self._govee_test_active = False
+            self.test_govee_btn.setText("🔍 Test Connection")
+
     
     def populate_status_colors_table(self):
         """Populate the status colors table with current settings."""
@@ -1359,8 +1367,17 @@ class SettingsWindow(QDialog):
     
     def on_form_changed(self):
         """Called when any form field changes."""
-        # This can be used to track unsaved changes if needed
-        pass
+        self.form_dirty = True
+        self.update_save_status()
+    
+    def update_save_status(self):
+        """Update the save status label."""
+        if self.form_dirty:
+            self.save_status_label.setText("Unsaved Changes")
+            self.save_status_label.setStyleSheet("color: #d93025; font-size: 12px; font-weight: bold; margin: 5px 0;")
+        else:
+            self.save_status_label.setText("All Changes Saved")
+            self.save_status_label.setStyleSheet("color: #137333; font-size: 12px; font-weight: bold; margin: 5px 0;")
     
     def open_color_picker(self, row, col):
         """Open color picker when double-clicking on color column."""
@@ -1560,6 +1577,8 @@ class SettingsWindow(QDialog):
     def save_and_close(self):
         """Save all settings and close the window."""
         self.save_all_settings()
+        self.form_dirty = False
+        self.update_save_status()
         self.accept()
     
     def save_all_settings(self):
@@ -1613,9 +1632,8 @@ class SettingsWindow(QDialog):
             
             self.config["STATUS_COLOR_MAP"] = status_color_map
         
-        # Save tray icon setting
-        if hasattr(self, 'tray_icon_dropdown'):
-            self.config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
+        # Ensure fixed tray icon is set
+        self.config["TRAY_ICON"] = "GlowStatus_tray_tp.png"
         
         # Save general options (only ones that actually exist)
         # Note: These were not in the original config_ui.py, so we don't save them
@@ -1624,12 +1642,16 @@ class SettingsWindow(QDialog):
         save_config(self.config)
         logger.info("All settings saved successfully")
         
+        # Update form status
+        self.form_dirty = False
+        self.update_save_status()
+        
         # Show success message to user
         QMessageBox.information(
             self, 
             "GlowStatus", 
             "✅ Settings saved successfully!\n\n"
-            "Your Govee settings have been saved and will take effect on the next status change."
+            "Your settings have been saved and will take effect immediately."
         )
     
     def open_url(self, url):
@@ -2072,6 +2094,33 @@ class SettingsWindow(QDialog):
                 color: rgba(255, 255, 255, 0.38);
             }
         """)
+    
+    def closeEvent(self, event):
+        """Handle window close event - check for unsaved changes and clean up any active Govee test."""
+        if self.form_dirty:
+            reply = QMessageBox.question(
+                self,
+                "GlowStatus - Unsaved Changes",
+                "You have unsaved changes. Do you want to save before closing?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+            
+            if reply == QMessageBox.Save:
+                self.save_all_settings()
+                self.form_dirty = False
+                event.accept()
+            elif reply == QMessageBox.Discard:
+                event.accept()
+            else:
+                event.ignore()
+                return
+        
+        # Clean up active Govee test
+        if self._govee_test_active:
+            self._end_govee_test()
+        
+        event.accept()
 
 # Main function for testing
 if __name__ == "__main__":

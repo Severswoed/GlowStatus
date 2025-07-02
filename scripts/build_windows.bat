@@ -2,6 +2,9 @@
 echo GlowStatus Windows Build Script
 echo ================================
 
+REM Get version from version.json for display
+python -c "import sys, os, json; sys.path.insert(0, os.path.join(os.path.dirname(os.getcwd()), 'scripts')); from build_helpers import get_version_string; print('Building GlowStatus version:', get_version_string())"
+
 echo Setting up Google OAuth credentials...
 if defined CLIENT_SECRET_JSON (
     echo Creating client_secret.json from environment variable...

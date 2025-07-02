@@ -8,7 +8,24 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 
 ---
 
-## 🚀 Features
+## � Available Versions
+
+GlowStatus has evolved through multiple versions, each designed for different use cases:
+
+- **`v2.1.0` (Current)** - Modern GUI with enhanced settings UI, comprehensive testing, and improved user experience
+- **`v2.0.0`** - First GUI version with basic settings interface and tray application  
+- **`v1.0-MVP`** - Original CLI-based version for terminal and headless environments
+
+**Choosing Your Version:**
+- **Use v2.1.0** for the best user experience with modern UI and latest features
+- **Use v2.0.0** if you need the previous GUI version for compatibility
+- **Use v1.0-MVP** for server deployments, automation, or if you prefer command-line tools
+
+Each version is maintained on its own branch and can be downloaded from the [Releases](https://github.com/Severswoed/GlowStatus/releases) page.
+
+---
+
+## �🚀 Features
 
 - **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events (case-insensitive, matches anywhere in event title).
 - **Smart Light Control** – Uses Govee API to change light colors based on your calendar status.
