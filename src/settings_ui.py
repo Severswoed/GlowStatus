@@ -375,17 +375,17 @@ class SettingsWindow(QDialog):
         stats_layout.setContentsMargins(0, 0, 0, 0)
         stats_layout.addStretch()
         
-        meetings_stat = QLabel("📅\n1000+\nMeetings\nSynced")
+        meetings_stat = QLabel("📅\n0+\nMeetings\nSynced")
         meetings_stat.setAlignment(Qt.AlignCenter)
         meetings_stat.setStyleSheet("font-size: 12px; font-weight: 500; color: #38bdf8; line-height: 1.4;")
         stats_layout.addWidget(meetings_stat)
         
-        users_stat = QLabel("👥\n500+\nHappy\nUsers")
+        users_stat = QLabel("👥\n0+\nHappy\nUsers")
         users_stat.setAlignment(Qt.AlignCenter)
         users_stat.setStyleSheet("font-size: 12px; font-weight: 500; color: #10b981; line-height: 1.4;")
         stats_layout.addWidget(users_stat)
         
-        lights_stat = QLabel("💡\n2000+\nLights\nControlled")
+        lights_stat = QLabel("💡\n0+\nLights\nControlled")
         lights_stat.setAlignment(Qt.AlignCenter)
         lights_stat.setStyleSheet("font-size: 12px; font-weight: 500; color: #f59e0b; line-height: 1.4;")
         stats_layout.addWidget(lights_stat)
@@ -424,7 +424,7 @@ class SettingsWindow(QDialog):
         
         discord_btn = QPushButton("💬 Join Discord")
         discord_btn.setToolTip("Chat with our amazing community! 🎉")
-        discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
         links_layout.addWidget(discord_btn)
         
         links_layout.addStretch()
@@ -473,22 +473,22 @@ class SettingsWindow(QDialog):
         community_stats_group = QGroupBox("📊 Community Glow Stats")
         community_stats_layout = QHBoxLayout(community_stats_group)
         
-        discord_stat = QLabel("💬\n150+\nDiscord\nMembers")
+        discord_stat = QLabel("💬\n0+\nDiscord\nMembers")
         discord_stat.setAlignment(Qt.AlignCenter)
         discord_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #8b5cf6; line-height: 1.4;")
         community_stats_layout.addWidget(discord_stat)
         
-        github_stat = QLabel("⭐\n87+\nGitHub\nStars")
+        github_stat = QLabel("⭐\n0+\nGitHub\nStars")
         github_stat.setAlignment(Qt.AlignCenter)
         github_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #fbbf24; line-height: 1.4;")
         community_stats_layout.addWidget(github_stat)
         
-        downloads_stat = QLabel("📥\n1.2K+\nTotal\nDownloads")
+        downloads_stat = QLabel("📥\n0+\nTotal\nDownloads")
         downloads_stat.setAlignment(Qt.AlignCenter)
         downloads_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #06b6d4; line-height: 1.4;")
         community_stats_layout.addWidget(downloads_stat)
         
-        contributions_stat = QLabel("🎁\n42+\nCode\nContributions")
+        contributions_stat = QLabel("🎁\n0+\nCode\nContributions")
         contributions_stat.setAlignment(Qt.AlignCenter)
         contributions_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #10b981; line-height: 1.4;")
         community_stats_layout.addWidget(contributions_stat)
@@ -517,7 +517,7 @@ class SettingsWindow(QDialog):
         
         join_btn = QPushButton("🎉 Join Discord Community")
         join_btn.setToolTip("Come chat with us! We have cookies! 🍪")
-        join_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        join_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
         action_buttons_layout.addWidget(join_btn)
         
         github_btn = QPushButton("⭐ Star on GitHub")
@@ -886,8 +886,8 @@ class SettingsWindow(QDialog):
         
         # Big Discord invite button
         big_discord_btn = QPushButton("🎊 JOIN THE DISCORD PARTY! 🎊")
-        big_discord_btn.setToolTip("Click to join 150+ amazing people! 🚀")
-        big_discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        big_discord_btn.setToolTip("Click to join our GlowStatus community! 🚀")
+        big_discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
         big_discord_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
@@ -914,14 +914,18 @@ class SettingsWindow(QDialog):
         channels_layout = QVBoxLayout(channels_group)
         
         channels_text = QLabel(
-            "🎪 **#general-chat** - Casual conversations and lighting show-offs 📸✨\n"
-            "🆘 **#help-and-support** - Stuck? Our community has your back! 🤝\n"
+            "📋 **#welcome** - Get started and see project links 🌟\n"
+            "📜 **#rules** - Community code of conduct and guidelines �\n"
+            "📢 **#announcements** - Latest releases and roadmap updates 🗞️\n"
+            "🆘 **#setup-help** - Troubleshooting and installation questions 🛠️\n"
             "💡 **#feature-requests** - Share your brilliant ideas with the team 🧠⚡\n"
-            "🐛 **#bug-reports** - Help us squash bugs and improve GlowStatus 🔨\n"
-            "🎨 **#show-your-setup** - Flex your amazing lighting configurations! 📷🌈\n"
-            "🔧 **#development** - For the code ninjas among us 👨‍💻👩‍💻\n"
-            "📢 **#announcements** - Stay updated on the latest GlowStatus news 📰\n"
-            "🎮 **#off-topic** - Gaming, memes, and random fun stuff 🎲😄"
+            "� **#integration-requests** - Request support for new device brands �\n"
+            "⚙️ **#dev-updates** - Automatic updates from our GitHub repositories 🤖\n"
+            "🖥️ **#cli-version-v1** - Support for the CLI version �\n"
+            "� **#app-version-v2** - Support for the GUI installer version 🎨\n"
+            "🔌 **#api-dev** - API endpoint discussions for developers �\n"
+            "� **#general** - Casual conversations and community chit-chat �\n"
+            "📸 **#show-your-glow** - Show off your amazing lighting setups! �✨"
         )
         channels_text.setWordWrap(True)
         channels_layout.addWidget(channels_text)
@@ -962,7 +966,7 @@ class SettingsWindow(QDialog):
         # Final call-to-action button
         final_btn = QPushButton("💬 Join Discord Now - Let's Glow! ✨")
         final_btn.setToolTip("Your lighting journey starts here! 🌈")
-        final_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
+        final_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
         action_layout.addWidget(final_btn)
         
         layout.addWidget(action_group)
