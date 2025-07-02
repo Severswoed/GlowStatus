@@ -634,12 +634,6 @@ class SettingsWindow(QDialog):
         self.google_calendar_id_label = QLabel("Not authenticated")
         form_layout.addRow("Authenticated as:", self.google_calendar_id_label)
 
-        # Selected Calendar ID (dropdown) - matching original
-        self.selected_calendar_dropdown = QComboBox()
-        self.selected_calendar_dropdown.setEditable(False)
-        self.selected_calendar_dropdown.addItem("Please authenticate first")  # Default state
-        form_layout.addRow("Selected Calendar:", self.selected_calendar_dropdown)
-
         layout.addLayout(form_layout)
         layout.addStretch()
         
@@ -726,8 +720,8 @@ class SettingsWindow(QDialog):
         calendar_group = QGroupBox("Calendar Selection")
         calendar_layout = QFormLayout(calendar_group)
         
-        self.selected_calendar_dropdown = QComboBox()
-        calendar_layout.addRow("Primary Calendar:", self.selected_calendar_dropdown)
+        self.calendar_dropdown = QComboBox()
+        calendar_layout.addRow("Primary Calendar:", self.calendar_dropdown)
         
         refresh_btn = QPushButton("🔄 Refresh Calendars")
         refresh_btn.clicked.connect(self.refresh_calendars)
@@ -1031,7 +1025,7 @@ class SettingsWindow(QDialog):
         # Load Govee settings
         if hasattr(self, 'govee_api_key_edit'):
             try:
-                api_key = keyring.get_password("GlowStatus", "govee_api_key")
+                api_key = keyring.get_password("GlowStatus", "GOVEE_API_KEY")
                 if api_key:
                     self.govee_api_key_edit.setText(api_key)
             except (NoKeyringError, Exception):
@@ -1138,13 +1132,13 @@ class SettingsWindow(QDialog):
             save_config(self.config)
         
         # Update calendar dropdown
-        if hasattr(self, 'selected_calendar_dropdown'):
-            self.selected_calendar_dropdown.clear()
+        if hasattr(self, 'calendar_dropdown'):
+            self.calendar_dropdown.clear()
             for cal in calendars:
                 summary = cal.get("summary", "")
                 cal_id = cal.get("id", "")
                 display = f"{summary} ({cal_id})" if summary else cal_id
-                self.selected_calendar_dropdown.addItem(display, cal_id)
+                self.calendar_dropdown.addItem(display, cal_id)
         
         self.update_oauth_status()
     
@@ -1189,8 +1183,8 @@ class SettingsWindow(QDialog):
                     os.remove(TOKEN_PATH)
                 
                 # Clear calendar dropdown
-                if hasattr(self, 'selected_calendar_dropdown'):
-                    self.selected_calendar_dropdown.clear()
+                if hasattr(self, 'calendar_dropdown'):
+                    self.calendar_dropdown.clear()
                 
                 self.update_oauth_status()
                 QMessageBox.information(
@@ -1223,21 +1217,21 @@ class SettingsWindow(QDialog):
                 calendar_list = service.calendarList().list().execute()
                 calendars = calendar_list.get("items", [])
                 
-                if hasattr(self, 'selected_calendar_dropdown'):
-                    current_selection = self.selected_calendar_dropdown.currentData()
-                    self.selected_calendar_dropdown.clear()
+                if hasattr(self, 'calendar_dropdown'):
+                    current_selection = self.calendar_dropdown.currentData()
+                    self.calendar_dropdown.clear()
                     
                     for cal in calendars:
                         summary = cal.get("summary", "")
                         cal_id = cal.get("id", "")
                         display = f"{summary} ({cal_id})" if summary else cal_id
-                        self.selected_calendar_dropdown.addItem(display, cal_id)
+                        self.calendar_dropdown.addItem(display, cal_id)
                     
                     # Restore previous selection if possible
                     if current_selection:
-                        index = self.selected_calendar_dropdown.findData(current_selection)
+                        index = self.calendar_dropdown.findData(current_selection)
                         if index >= 0:
-                            self.selected_calendar_dropdown.setCurrentIndex(index)
+                            self.calendar_dropdown.setCurrentIndex(index)
                             
         except Exception as e:
             logger.warning(f"Failed to refresh calendars: {e}")
@@ -1246,6 +1240,7 @@ class SettingsWindow(QDialog):
         """Test Govee API connection."""
         api_key = self.govee_api_key_edit.text().strip()
         device_id = self.govee_device_id_edit.text().strip()
+        device_model = self.govee_device_model_edit.text().strip() or "H6001"
         
         if not api_key or not device_id:
             QMessageBox.warning(
@@ -1255,12 +1250,36 @@ class SettingsWindow(QDialog):
             )
             return
         
-        # Test connection logic would go here
-        QMessageBox.information(
-            self, 
-            "GlowStatus", 
-            "Govee connection test feature coming soon!"
-        )
+        # Test connection by attempting to get device state
+        try:
+            from govee_controller import GoveeController
+            
+            # Create a temporary controller for testing
+            controller = GoveeController(api_key, device_id, device_model)
+            
+            # Try to set a brief test color (green flash)
+            controller.set_color(0, 255, 0)
+            
+            QMessageBox.information(
+                self, 
+                "GlowStatus - Connection Test", 
+                "✅ Successfully connected to Govee device!\n"
+                f"Device ID: {device_id}\n"
+                f"Model: {device_model}\n"
+                "Your light should have briefly flashed green."
+            )
+            
+        except Exception as e:
+            QMessageBox.warning(
+                self, 
+                "GlowStatus - Connection Test Failed", 
+                f"❌ Failed to connect to Govee device:\n{str(e)}\n\n"
+                "Please check:\n"
+                "• API key is correct\n"
+                "• Device ID is correct\n"
+                "• Device model is correct\n"
+                "• Device is online and connected to WiFi"
+            )
     
     def populate_status_colors_table(self):
         """Populate the status colors table with current settings."""
@@ -1285,6 +1304,9 @@ class SettingsWindow(QDialog):
             # Power off checkbox
             power_off_checkbox = QCheckBox()
             power_off_checkbox.setChecked(entry.get("power_off", False))
+            power_off_checkbox.stateChanged.connect(self.on_form_changed)
+            self.status_colors_table.setCellWidget(row, 2, power_off_checkbox)
+            
         # Connect double-click to color picker
         self.status_colors_table.cellDoubleClicked.connect(self.open_color_picker)
     
@@ -1475,7 +1497,7 @@ class SettingsWindow(QDialog):
             
             # Clear keyring entries
             try:
-                keyring.delete_password("GlowStatus", "govee_api_key")
+                keyring.delete_password("GlowStatus", "GOVEE_API_KEY")
             except Exception:
                 pass
             
@@ -1500,7 +1522,7 @@ class SettingsWindow(QDialog):
             api_key = self.govee_api_key_edit.text().strip()
             if api_key:
                 try:
-                    keyring.set_password("GlowStatus", "govee_api_key", api_key)
+                    keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
                 except Exception as e:
                     logger.warning(f"Failed to save Govee API key: {e}")
             
@@ -1523,8 +1545,8 @@ class SettingsWindow(QDialog):
             self.config["DISABLE_LIGHT_CONTROL"] = self.disable_light_control_checkbox.isChecked()
         
         # Save selected calendar
-        if hasattr(self, 'selected_calendar_dropdown'):
-            selected_cal = self.selected_calendar_dropdown.currentData()
+        if hasattr(self, 'calendar_dropdown'):
+            selected_cal = self.calendar_dropdown.currentData()
             if selected_cal:
                 self.config["SELECTED_CALENDAR_ID"] = selected_cal
         
@@ -1554,6 +1576,14 @@ class SettingsWindow(QDialog):
         # Save configuration
         save_config(self.config)
         logger.info("All settings saved successfully")
+        
+        # Show success message to user
+        QMessageBox.information(
+            self, 
+            "GlowStatus", 
+            "✅ Settings saved successfully!\n\n"
+            "Your Govee settings have been saved and will take effect on the next status change."
+        )
     
     def open_url(self, url):
         """Open URL in default browser."""
