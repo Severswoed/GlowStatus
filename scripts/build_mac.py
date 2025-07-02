@@ -61,45 +61,23 @@ def create_custom_glowstatus_recipe():
 Custom minimal PySide6 recipe for GlowStatus - replaces the default bloated one.
 
 Based on py2app recipes documentation at:
-https://py2app.readthedocs.io/en/latest/recipes.html
+https://py2app.readthedocs.io/en/latest/implementation.html
 
-This recipe follows the official pattern and only includes essential Qt components:
-- We only use QtCore, QtGui, QtWidgets  
-- We only need basic platform integration and image support
-- We exclude all the massive Qt modules like WebEngine, 3D, Multimedia, etc.
+This recipe follows the official pattern - just defines a recipe function that returns a dict.
 """
 
 def check(cmd, mf):
     """
     Check if this recipe should be applied.
-    
-    According to py2app docs, this should return True if the recipe
-    should be applied to the current module finder state.
+    Always return True since we want to replace the default PySide6 recipe.
     """
-    # Always apply this recipe if PySide6 is detected anywhere
-    # This ensures our minimal recipe replaces the default bloated one
-    try:
-        modules = mf.flatten()
-        # Convert to strings for easier checking
-        module_names = {str(m) for m in modules}
-        
-        # Check for any PySide6 usage
-        pyside6_found = any(
-            'PySide6' in name for name in module_names
-        )
-        
-        if pyside6_found:
-            print("🎯 PySide6 detected - applying minimal recipe")
-            return True
-        else:
-            # Even if not found, apply it anyway since we know we're using PySide6
-            print("🎯 PySide6 not auto-detected - applying minimal recipe anyway for safety")
-            return True
-            
-    except Exception as e:
-        # If there's any error, still apply the recipe to be safe
-        print(f"🎯 Recipe check error ({e}) - applying minimal recipe anyway")
-        return True
+    modules = mf.flatten()
+    module_names = {str(m) for m in modules}
+    pyside6_found = any('PySide6' in name for name in module_names)
+    
+    if pyside6_found:
+        print("🎯 PySide6 detected - applying minimal recipe")
+    return pyside6_found
 
 def recipe(cmd, mf):
     """
@@ -107,48 +85,37 @@ def recipe(cmd, mf):
     
     According to py2app docs, recipes should use mf.import_hook() to
     explicitly import needed modules and return a dict with configuration.
-    
-    Only includes the essential Qt components needed by GlowStatus:
-    - PySide6.QtCore: Qt, QThread, Signal, QTimer, QSize
-    - PySide6.QtGui: QIcon, QPixmap, QColor, QPalette, QFont
-    - PySide6.QtWidgets: All UI widgets and layouts used in settings_ui.py
     """
     
     print("🎯 GlowStatus: Applying minimal PySide6 recipe")
     
-    try:
-        # Use mf.import_hook() as recommended in py2app docs
-        # This ensures proper module discovery and dependency resolution
-        mf.import_hook('PySide6')
-        mf.import_hook('PySide6.QtCore') 
-        mf.import_hook('PySide6.QtGui')
-        mf.import_hook('PySide6.QtWidgets')
-        mf.import_hook('shiboken6')
-        
-        # Import specific Qt modules that we know we need
-        # This helps py2app understand the exact dependencies
-        try:
-            mf.import_hook('PySide6.QtCore', fromlist=['Qt', 'QThread', 'Signal', 'QSize', 'QTimer'])
-            mf.import_hook('PySide6.QtGui', fromlist=['QIcon', 'QPixmap', 'QColor', 'QPalette', 'QFont'])
-            mf.import_hook('PySide6.QtWidgets', fromlist=[
-                'QWidget', 'QDialog', 'QVBoxLayout', 'QHBoxLayout', 'QFormLayout',
-                'QLabel', 'QPushButton', 'QLineEdit', 'QComboBox', 'QCheckBox',
-                'QSpinBox', 'QTableWidget', 'QScrollArea', 'QListWidget', 
-                'QStackedWidget', 'QSplitter', 'QGroupBox', 'QMessageBox'
-            ])
-        except ImportError:
-            # Fallback if specific imports fail
-            pass
-        
-        print(f"🎯 Imported essential PySide6 modules with minimal Qt footprint")
-        
-    except Exception as e:
-        print(f"🎯 Recipe import error ({e}) - continuing with basic configuration")
+    # Use mf.import_hook() as recommended in py2app docs
+    mf.import_hook('PySide6')
+    mf.import_hook('PySide6.QtCore') 
+    mf.import_hook('PySide6.QtGui')
+    mf.import_hook('PySide6.QtWidgets')
+    mf.import_hook('shiboken6')
     
-    # Always return a valid recipe configuration dict
-    # The 'packages' key tells py2app which packages to include
-    # The 'includes' key specifies modules to force include
-    # The 'expected_missing_imports' key tells py2app it's OK if these are missing
+    # Import specific Qt widgets we actually use
+    mf.import_hook('PySide6.QtCore', fromlist=[
+        'Qt', 'QThread', 'Signal', 'QSize', 'QTimer', 'QObject'
+    ])
+    mf.import_hook('PySide6.QtGui', fromlist=[
+        'QIcon', 'QPixmap', 'QColor', 'QPalette', 'QFont', 'QAction'
+    ])
+    mf.import_hook('PySide6.QtWidgets', fromlist=[
+        'QApplication', 'QWidget', 'QDialog', 'QMainWindow', 'QSystemTrayIcon',
+        'QVBoxLayout', 'QHBoxLayout', 'QFormLayout', 'QGridLayout',
+        'QLabel', 'QPushButton', 'QLineEdit', 'QComboBox', 'QCheckBox',
+        'QSpinBox', 'QTableWidget', 'QTableWidgetItem', 'QHeaderView',
+        'QScrollArea', 'QListWidget', 'QListWidgetItem',
+        'QStackedWidget', 'QSplitter', 'QGroupBox', 'QMessageBox',
+        'QTabWidget', 'QFrame', 'QSizePolicy', 'QMenu'
+    ])
+    
+    print("🎯 Imported essential PySide6 modules with minimal Qt footprint")
+    
+    # Return the recipe configuration dict as per py2app docs
     return {
         'packages': ['PySide6', 'shiboken6'],
         'includes': [
@@ -171,8 +138,7 @@ def recipe(cmd, mf):
             'PySide6.QtPositioning', 'PySide6.QtLocation', 'PySide6.QtSensors',
             'PySide6.QtRemoteObjects', 'PySide6.QtScxml', 'PySide6.QtStateMachine',
             'PySide6.QtTextToSpeech', 'PySide6.QtHelp', 'PySide6.QtDesigner',
-            # Additional Qt modules that may be auto-detected but not needed
-            'PySide6.QtSvg', 'PySide6.QtSvgWidgets',  # We handle SVG via plugins
+            'PySide6.QtSvg', 'PySide6.QtSvgWidgets',
             'PySide6.QtPdf', 'PySide6.QtPdfWidgets',
             'PySide6.QtSpellChecker', 'PySide6.QtVirtualKeyboard',
         ]
