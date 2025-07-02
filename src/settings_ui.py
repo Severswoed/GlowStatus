@@ -13,6 +13,7 @@ from PySide6.QtGui import QIcon, QFont, QPixmap, QPainter, QColor
 from logger import get_logger
 from utils import resource_path
 from config_ui import OAuthWorker, load_config, save_config, TEMPLATE_CONFIG_PATH, CONFIG_PATH
+from constants import TOKEN_PATH, CLIENT_SECRET_PATH
 
 logger = get_logger()
 
@@ -26,6 +27,15 @@ class SettingsWindow(QWidget):
         super().__init__()
         self.setWindowIcon(QIcon(resource_path("img/GlowStatus_tray_tp_tight.png")))
         self.setWindowTitle("GlowStatus Settings")
+        
+        # Set application-wide branding
+        from PySide6.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app:
+            app.setApplicationName("GlowStatus")
+            app.setApplicationDisplayName("GlowStatus")
+            app.setApplicationVersion("2.0.0")
+            app.setWindowIcon(QIcon(resource_path("img/GlowStatus_tray_tp_tight.png")))
         
         # Set window size for optimal layout
         self.setMinimumSize(900, 700)
@@ -442,10 +452,11 @@ class SettingsWindow(QWidget):
         
         # Logo and basic info
         logo_label = QLabel()
-        logo_path = resource_path("img/GlowStatus.png")
+        logo_path = resource_path("img/GlowStatus_TagLine_tight.png")
         if os.path.exists(logo_path):
             pixmap = QPixmap(logo_path)
-            scaled_pixmap = pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            # Scale to fit proportionally in window (max 400px wide, maintain aspect ratio)
+            scaled_pixmap = pixmap.scaled(400, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             logo_label.setPixmap(scaled_pixmap)
         logo_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(logo_label)
@@ -462,37 +473,31 @@ class SettingsWindow(QWidget):
         """)
         layout.addWidget(version_label)
         
-        description = QTextBrowser()
-        description.setMaximumHeight(250)
+        description = QLabel()
+        description.setWordWrap(True)
         description.setStyleSheet("""
-            QTextBrowser {
+            QLabel {
                 background-color: #2d2d2d;
                 border: 2px solid #00d4ff;
                 border-radius: 8px;
                 color: #f8f9fa;
-                padding: 15px;
+                padding: 20px;
                 font-size: 14px;
                 line-height: 1.5;
             }
         """)
-        description.setHtml("""
-        <div style="color: #f8f9fa; line-height: 1.6;">
-        <p style="color: #00d4ff; font-weight: bold; font-size: 16px;">🌟 Light up your availability with smart LED integration</p>
-        
-        <p><strong style="color: #bf40ff;">GlowStatus</strong> is an intelligent status light controller that automatically adjusts your smart lights based on your calendar status, perfect for remote workers and streamers.</p>
-        
-        <p style="color: #00d4ff; font-weight: bold;">✨ Key Features:</p>
-        <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 8px;">🔗 <span style="color: #00ff7f;">Google Calendar integration</span> - Real-time meeting status</li>
-        <li style="margin-bottom: 8px;">💡 <span style="color: #ff6b35;">Govee smart light control</span> - Professional lighting automation</li>
-        <li style="margin-bottom: 8px;">🎨 <span style="color: #bf40ff;">Customizable status colors</span> - Match your workflow</li>
-        <li style="margin-bottom: 8px;">⚙️ <span style="color: #00d4ff;">Flexible configuration</span> - Tailored to your needs</li>
-        <li style="margin-bottom: 8px;">🔒 <span style="color: #00ff7f;">Secure credential storage</span> - Privacy-first design</li>
-        </ul>
-        
-        <p style="color: #bf40ff; font-style: italic;">Transform your workspace with intelligent lighting that reflects your availability status!</p>
-        </div>
-        """)
+        description.setText("""🌟 Light up your availability with smart LED integration
+
+GlowStatus is an intelligent status light controller that automatically adjusts your smart lights based on your calendar status, perfect for remote workers and streamers.
+
+✨ Key Features:
+• 🔗 Google Calendar integration - Real-time meeting status
+• 💡 Govee smart light control - Professional lighting automation  
+• 🎨 Customizable status colors - Match your workflow
+• ⚙️ Flexible configuration - Tailored to your needs
+• 🔒 Secure credential storage - Privacy-first design
+
+Transform your workspace with intelligent lighting that reflects your availability status!""")
         layout.addWidget(description)
         
         # Links section with GlowStatus styling
@@ -1179,35 +1184,29 @@ Every bit of support helps make GlowStatus better for everyone! 🚀
         welcome_layout.setSpacing(15)
         
         # Community description
-        description = QTextBrowser()
-        description.setMaximumHeight(200)
+        description = QLabel()
+        description.setWordWrap(True)
         description.setStyleSheet("""
-            QTextBrowser {
+            QLabel {
                 background-color: #2d2d2d;
                 border: 2px solid #5865f2;
                 border-radius: 8px;
                 color: #f8f9fa;
-                padding: 15px;
+                padding: 20px;
                 font-size: 14px;
                 line-height: 1.5;
             }
         """)
-        description.setHtml("""
-        <div style="color: #f8f9fa; line-height: 1.6;">
-        <p style="color: #5865f2; font-weight: bold; font-size: 16px;">💬 Connect with fellow GlowStatus users!</p>
-        
-        <p>Join our vibrant Discord community to get help, share setups, discuss features, and connect with other smart lighting enthusiasts.</p>
-        
-        <p style="color: #5865f2; font-weight: bold;">What you'll find:</p>
-        <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 8px;">💡 <span style="color: #00ff7f;">Setup assistance</span> - Get help with configuration and troubleshooting</li>
-        <li style="margin-bottom: 8px;">🎨 <span style="color: #bf40ff;">Show off your setups</span> - Share your lighting configurations</li>
-        <li style="margin-bottom: 8px;">🚀 <span style="color: #00d4ff;">Feature discussions</span> - Suggest and discuss new features</li>
-        <li style="margin-bottom: 8px;">🔧 <span style="color: #ff6b35;">Beta testing</span> - Test new features before release</li>
-        <li style="margin-bottom: 8px;">📢 <span style="color: #00ff7f;">Updates & announcements</span> - Stay informed about releases</li>
-        </ul>
-        </div>
-        """)
+        description.setText("""💬 Connect with fellow GlowStatus users!
+
+Join our vibrant Discord community to get help, share setups, discuss features, and connect with other smart lighting enthusiasts.
+
+What you'll find:
+• 💡 Setup assistance - Get help with configuration and troubleshooting
+• 🎨 Show off your setups - Share your lighting configurations  
+• 🚀 Feature discussions - Suggest and discuss new features
+• 🔧 Beta testing - Test new features before release
+• 📢 Updates & announcements - Stay informed about releases""")
         welcome_layout.addWidget(description)
         
         layout.addWidget(welcome_group)
@@ -1264,31 +1263,26 @@ Every bit of support helps make GlowStatus better for everyone! 🚀
         """)
         guidelines_layout = QVBoxLayout(guidelines_group)
         
-        guidelines_text = QTextBrowser()
-        guidelines_text.setMaximumHeight(150)
+        guidelines_text = QLabel()
+        guidelines_text.setWordWrap(True)
         guidelines_text.setStyleSheet("""
-            QTextBrowser {
+            QLabel {
                 background-color: #2d2d2d;
                 border: 2px solid #00ff7f;
                 border-radius: 8px;
                 color: #f8f9fa;
-                padding: 15px;
+                padding: 20px;
                 font-size: 13px;
                 line-height: 1.4;
             }
         """)
-        guidelines_text.setHtml("""
-        <div style="color: #f8f9fa; line-height: 1.5;">
-        <p style="color: #00ff7f; font-weight: bold;">Please follow these guidelines to keep our community welcoming:</p>
-        <ul style="margin-left: 15px;">
-        <li style="margin-bottom: 6px;">✅ Be respectful and helpful to all members</li>
-        <li style="margin-bottom: 6px;">✅ Use appropriate channels for your questions</li>
-        <li style="margin-bottom: 6px;">✅ Search previous messages before asking duplicate questions</li>
-        <li style="margin-bottom: 6px;">✅ Share screenshots/logs when asking for technical help</li>
-        <li style="margin-bottom: 6px;">❌ No spam, self-promotion, or off-topic content</li>
-        </ul>
-        </div>
-        """)
+        guidelines_text.setText("""Please follow these guidelines to keep our community welcoming:
+
+✅ Be respectful and helpful to all members
+✅ Use appropriate channels for your questions  
+✅ Search previous messages before asking duplicate questions
+✅ Share screenshots/logs when asking for technical help
+❌ No spam, self-promotion, or off-topic content""")
         guidelines_layout.addWidget(guidelines_text)
         
         layout.addWidget(guidelines_group)
@@ -1492,8 +1486,6 @@ If you're experiencing issues or need immediate help:
     def update_oauth_status(self):
         """Update OAuth status display."""
         try:
-            from constants import CLIENT_SECRET_PATH, TOKEN_PATH
-            
             client_secret_exists = os.path.exists(CLIENT_SECRET_PATH)
             token_exists = os.path.exists(TOKEN_PATH)
             
@@ -1503,6 +1495,9 @@ If you're experiencing issues or need immediate help:
                 self.oauth_btn.setEnabled(False)
                 self.disconnect_btn.setEnabled(False)
                 return
+            
+            # Enable OAuth button if client secret exists
+            self.oauth_btn.setEnabled(True)
                 
             if token_exists:
                 try:
@@ -1528,12 +1523,41 @@ If you're experiencing issues or need immediate help:
                 self.oauth_status_label.setText("⚠ Not authenticated")
                 self.oauth_status_label.setStyleSheet("color: orange;")
                 self.disconnect_btn.setEnabled(False)
+                self.oauth_btn.setEnabled(True)  # Enable OAuth button for authentication
                 
         except ImportError:
             self.oauth_status_label.setText("⚠ OAuth not available")
             self.oauth_status_label.setStyleSheet("color: red;")
             self.oauth_btn.setEnabled(False)
             self.disconnect_btn.setEnabled(False)
+
+    def show_branded_message(self, message_type, title, text, parent=None):
+        """Show a properly branded message box with GlowStatus icon."""
+        if parent is None:
+            parent = self
+            
+        msg_box = QMessageBox(parent)
+        msg_box.setWindowTitle(f"GlowStatus - {title}")
+        msg_box.setWindowIcon(QIcon(resource_path("img/GlowStatus_tray_tp_tight.png")))
+        msg_box.setText(text)
+        
+        # Set icon based on message type
+        if message_type == "information":
+            msg_box.setIcon(QMessageBox.Information)
+        elif message_type == "warning":
+            msg_box.setIcon(QMessageBox.Warning)
+        elif message_type == "critical":
+            msg_box.setIcon(QMessageBox.Critical)
+        elif message_type == "question":
+            msg_box.setIcon(QMessageBox.Question)
+            msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msg_box.setDefaultButton(QMessageBox.No)
+            return msg_box.exec() == QMessageBox.Yes
+        else:
+            msg_box.setIcon(QMessageBox.Information)
+        
+        msg_box.exec()
+        return True
 
     def run_oauth_flow(self):
         """Run Google OAuth authentication flow."""
@@ -1597,7 +1621,7 @@ If you're experiencing issues or need immediate help:
                     self.selected_calendar_dropdown.setCurrentIndex(idx)
         
         self.update_oauth_status()
-        QMessageBox.information(self, "Success", f"Successfully connected to Google Calendar as {user_email}")
+        self.show_branded_message("information", "Success", f"Successfully connected to Google Calendar as {user_email}")
 
     def on_oauth_error(self, error_message):
         """Handle errors during OAuth authentication."""
@@ -1612,7 +1636,7 @@ If you're experiencing issues or need immediate help:
         self.update_oauth_status()
         
         logger.error(f"OAuth Error: {error_message}")
-        QMessageBox.critical(self, "Authentication Error", f"Failed to connect Google account:\n\n{error_message}")
+        QMessageBox.critical(self, "GlowStatus - Authentication Error", f"Failed to connect Google account:\n\n{error_message}")
 
     def on_oauth_no_calendars(self):
         """Handle case where no calendars are found after OAuth authentication."""
@@ -1624,7 +1648,7 @@ If you're experiencing issues or need immediate help:
         logger.info("OAuth Success: Google account connected, but no calendars found.")
         self.update_oauth_status()
         
-        QMessageBox.information(self, "Connected", "Google account connected successfully, but no calendars were found.")
+        self.show_branded_message("information", "Connected", "Google account connected successfully, but no calendars were found.")
 
     def on_oauth_finished(self):
         """Called when the OAuth worker thread finishes (regardless of success/error)."""
@@ -1642,7 +1666,6 @@ If you're experiencing issues or need immediate help:
 
     def disconnect_oauth(self):
         """Disconnect Google OAuth by removing stored tokens."""
-        from constants import TOKEN_PATH
         
         # Confirm disconnect
         reply = QMessageBox.question(
@@ -1689,7 +1712,6 @@ If you're experiencing issues or need immediate help:
         
         # Check if we have valid authentication first
         try:
-            from constants import TOKEN_PATH
             if not os.path.exists(TOKEN_PATH):
                 self.selected_calendar_dropdown.addItem("Please authenticate first")
                 return
@@ -1925,7 +1947,7 @@ If you're experiencing issues or need immediate help:
                 self.save_status_label.setText("✅ All changes saved")
                 self.save_status_label.setStyleSheet("color: #00ff7f; font-weight: 500; font-size: 14px;")
             
-            QMessageBox.information(self, "Settings Saved", "Configuration saved successfully!")
+            self.show_branded_message("information", "Settings Saved", "Configuration saved successfully!")
             
         except Exception as e:
             logger.error(f"Error saving settings: {e}")
