@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QPushButton, QComboBox, QColorDialog, QCheckBox, QFrame, QSpinBox, 
     QFormLayout, QLineEdit, QDialog, QTextEdit, QMessageBox, QFileDialog, 
     QScrollArea, QListWidget, QListWidgetItem, QStackedWidget, QSplitter,
-    QGroupBox, QProgressBar, QSlider, QTabWidget, QSizePolicy
+    QGroupBox, QProgressBar, QSlider, QTabWidget, QSizePolicy, QMenuBar, QMenu
 )
 from PySide6.QtCore import Qt, QThread, Signal, QSize, QTimer
 from PySide6.QtGui import QIcon, QPixmap, QFont, QColor, QPalette
@@ -276,6 +276,22 @@ class SettingsWindow(QDialog):
         layout = QVBoxLayout(self.content_area)
         layout.setContentsMargins(0, 0, 0, 0)
         
+        # Menu bar
+        self.menu_bar = QMenuBar()
+        layout.addWidget(self.menu_bar)
+        
+        # Create links menu
+        links_menu = self.menu_bar.addMenu("🔗 Links")
+        
+        website_action = links_menu.addAction("🌐 Visit Website")
+        website_action.triggered.connect(lambda: self.open_url("https://glowstatus.com"))
+        
+        github_action = links_menu.addAction("🐙 Star on GitHub")
+        github_action.triggered.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
+        
+        discord_action = links_menu.addAction("💬 Join Discord")
+        discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
+        
         # Page title
         self.page_title = QLabel()
         self.page_title.setObjectName("pageTitle")
@@ -361,41 +377,44 @@ class SettingsWindow(QDialog):
         """Create the About page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(40, 40, 40, 40)
-        layout.setSpacing(32)
+        layout.setContentsMargins(40, 20, 40, 40)  # Reduced top margin
+        layout.setSpacing(20)  # Reduced spacing
         
-        # Add some top spacing for visual balance
-        layout.addSpacing(20)
-        
-        # GlowStatus logo and title - more elegant and smaller
+        # GlowStatus tray icon logo - compact and elegant
         try:
-            logo_path = resource_path("img/GlowStatus_TagLine_tight.png")
+            logo_path = resource_path("img/GlowStatus_tray_tp.png")
             if os.path.exists(logo_path):
                 logo_label = QLabel()
                 pixmap = QPixmap(logo_path)
-                # Scale to smaller, more elegant size for better visual balance
-                scaled_pixmap = pixmap.scaledToWidth(280, Qt.SmoothTransformation)
+                # Scale to appropriate size for tray icon display
+                scaled_pixmap = pixmap.scaledToWidth(120, Qt.SmoothTransformation)
                 logo_label.setPixmap(scaled_pixmap)
                 logo_label.setAlignment(Qt.AlignCenter)
-                # Add elegant styling with subtle shadow effect
+                # Add subtle styling
                 logo_label.setStyleSheet("""
                     QLabel {
                         background-color: rgba(255, 255, 255, 0.01);
                         border: 1px solid rgba(255, 255, 255, 0.03);
-                        border-radius: 12px;
-                        padding: 20px 24px;
-                        margin: 8px 0;
+                        border-radius: 8px;
+                        padding: 12px;
+                        margin: 4px 0;
                     }
                 """)
                 layout.addWidget(logo_label)
-                layout.addSpacing(12)
+                layout.addSpacing(8)  # Reduced spacing after logo
         except Exception as e:
-            logger.warning(f"Could not load logo: {e}")
+            logger.warning(f"Could not load tray icon: {e}")
             title = QLabel("GlowStatus")
             title.setAlignment(Qt.AlignCenter)
             title.setObjectName("aboutTitle")
             layout.addWidget(title)
-            layout.addSpacing(20)
+            layout.addSpacing(12)
+        
+        # App title
+        app_title = QLabel("GlowStatus")
+        app_title.setAlignment(Qt.AlignCenter)
+        app_title.setStyleSheet("font-size: 24px; font-weight: 600; color: #38bdf8; margin: 4px 0;")
+        layout.addWidget(app_title)
         
         # Description with emojis
         description = QLabel(
@@ -452,35 +471,36 @@ class SettingsWindow(QDialog):
         version_info.setObjectName("versionInfo")
         layout.addWidget(version_info)
         
-        layout.addSpacing(32)
+        layout.addSpacing(20)
         
-        # Links section with enhanced buttons
-        links_frame = QFrame()
-        links_layout = QHBoxLayout(links_frame)
-        links_layout.setSpacing(16)
-        links_layout.setContentsMargins(0, 0, 0, 0)
+        # GitHub Sponsor button at the bottom
+        sponsor_layout = QHBoxLayout()
+        sponsor_layout.addStretch()
         
-        # Center the buttons
-        links_layout.addStretch()
+        sponsor_btn = QPushButton("❤️ Sponsor on GitHub")
+        sponsor_btn.setToolTip("Support GlowStatus development! �")
+        sponsor_btn.clicked.connect(lambda: self.open_url("https://github.com/sponsors/your-repo"))
+        sponsor_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ea4aaa;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 600;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #c026d3;
+            }
+            QPushButton:pressed {
+                background-color: #a21caf;
+            }
+        """)
+        sponsor_layout.addWidget(sponsor_btn)
+        sponsor_layout.addStretch()
         
-        website_btn = QPushButton("🌐 Visit Website")
-        website_btn.setToolTip("Check out our awesome website! 🚀")
-        website_btn.clicked.connect(lambda: self.open_url("https://glowstatus.com"))
-        links_layout.addWidget(website_btn)
-        
-        github_btn = QPushButton("🐙 Star on GitHub")
-        github_btn.setToolTip("Give us a star and contribute! ⭐")
-        github_btn.clicked.connect(lambda: self.open_url("https://github.com/your-repo/glowstatus"))
-        links_layout.addWidget(github_btn)
-        
-        discord_btn = QPushButton("💬 Join Discord")
-        discord_btn.setToolTip("Chat with our amazing community! 🎉")
-        discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
-        links_layout.addWidget(discord_btn)
-        
-        links_layout.addStretch()
-        
-        layout.addWidget(links_frame)
+        layout.addLayout(sponsor_layout)
         layout.addStretch()
         
         return scroll
@@ -489,11 +509,12 @@ class SettingsWindow(QDialog):
         """Create the Wall of Glow page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setContentsMargins(30, 20, 30, 30)  # Reduced top margin
+        layout.setSpacing(16)  # Tighter spacing for more room
         
         title = QLabel("✨ Wall of Glow - Our Amazing Community! ✨")
         title.setObjectName("sectionTitle")
+        title.setStyleSheet("font-size: 22px; font-weight: 600; color: #38bdf8; margin-bottom: 16px;")
         layout.addWidget(title)
         
         description = QLabel(
@@ -502,10 +523,11 @@ class SettingsWindow(QDialog):
             "around the world. Together, we're revolutionizing how people communicate their status! 🚀💫"
         )
         description.setWordWrap(True)
+        description.setStyleSheet("font-size: 15px; line-height: 1.6; color: #ebebeb; margin-bottom: 8px;")
         layout.addWidget(description)
         
         # Hall of Fame section
-        hall_of_fame_group = QGroupBox("� Hall of Fame - Legendary Contributors")
+        hall_of_fame_group = QGroupBox("🏆 Hall of Fame - Legendary Contributors")
         hall_of_fame_layout = QVBoxLayout(hall_of_fame_group)
         
         hall_of_fame_text = QLabel(
@@ -516,6 +538,7 @@ class SettingsWindow(QDialog):
             "🌟 **Community Ambassadors** - Awesome people spreading the GlowStatus love! 💖📢"
         )
         hall_of_fame_text.setWordWrap(True)
+        hall_of_fame_text.setStyleSheet("font-size: 14px; line-height: 1.6; color: #ebebeb;")
         hall_of_fame_layout.addWidget(hall_of_fame_text)
         
         layout.addWidget(hall_of_fame_group)
@@ -526,22 +549,22 @@ class SettingsWindow(QDialog):
         
         discord_stat = QLabel("💬\n0+\nDiscord\nMembers")
         discord_stat.setAlignment(Qt.AlignCenter)
-        discord_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #8b5cf6; line-height: 1.4;")
+        discord_stat.setStyleSheet("font-size: 14px; font-weight: 600; color: #8b5cf6; line-height: 1.4;")
         community_stats_layout.addWidget(discord_stat)
         
         github_stat = QLabel("⭐\n0+\nGitHub\nStars")
         github_stat.setAlignment(Qt.AlignCenter)
-        github_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #fbbf24; line-height: 1.4;")
+        github_stat.setStyleSheet("font-size: 14px; font-weight: 600; color: #fbbf24; line-height: 1.4;")
         community_stats_layout.addWidget(github_stat)
         
         downloads_stat = QLabel("📥\n0+\nTotal\nDownloads")
         downloads_stat.setAlignment(Qt.AlignCenter)
-        downloads_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #06b6d4; line-height: 1.4;")
+        downloads_stat.setStyleSheet("font-size: 14px; font-weight: 600; color: #06b6d4; line-height: 1.4;")
         community_stats_layout.addWidget(downloads_stat)
         
         contributions_stat = QLabel("🎁\n0+\nCode\nContributions")
         contributions_stat.setAlignment(Qt.AlignCenter)
-        contributions_stat.setStyleSheet("font-size: 12px; font-weight: 600; color: #10b981; line-height: 1.4;")
+        contributions_stat.setStyleSheet("font-size: 14px; font-weight: 600; color: #10b981; line-height: 1.4;")
         community_stats_layout.addWidget(contributions_stat)
         
         layout.addWidget(community_stats_group)
@@ -560,6 +583,7 @@ class SettingsWindow(QDialog):
             "⭐ **Star Us** - A simple GitHub star means the world to us!"
         )
         support_text.setWordWrap(True)
+        support_text.setStyleSheet("font-size: 14px; line-height: 1.6; color: #ebebeb;")
         support_layout.addWidget(support_text)
         
         # Action buttons
@@ -934,11 +958,12 @@ class SettingsWindow(QDialog):
         """Create the Discord information page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setContentsMargins(30, 20, 30, 30)  # Reduced top margin
+        layout.setSpacing(16)  # Tighter spacing for more room
         
         title = QLabel("💬 Discord Community - Where the Magic Happens! ✨")
         title.setObjectName("sectionTitle")
+        title.setStyleSheet("font-size: 22px; font-weight: 600; color: #38bdf8; margin-bottom: 16px;")
         layout.addWidget(title)
         
         # Welcome section with fun intro
@@ -953,6 +978,7 @@ class SettingsWindow(QDialog):
             "you'll find your tribe here. We're all about helping each other glow brighter! ✨"
         )
         welcome_description.setWordWrap(True)
+        welcome_description.setStyleSheet("font-size: 15px; line-height: 1.6; color: #ebebeb;")
         welcome_layout.addWidget(welcome_description)
         
         # Big Discord invite button
@@ -986,19 +1012,20 @@ class SettingsWindow(QDialog):
         
         channels_text = QLabel(
             "📋 **#welcome** - Get started and see project links 🌟\n"
-            "📜 **#rules** - Community code of conduct and guidelines �\n"
+            "📜 **#rules** - Community code of conduct and guidelines 📏\n"
             "📢 **#announcements** - Latest releases and roadmap updates 🗞️\n"
             "🆘 **#setup-help** - Troubleshooting and installation questions 🛠️\n"
             "💡 **#feature-requests** - Share your brilliant ideas with the team 🧠⚡\n"
-            "� **#integration-requests** - Request support for new device brands �\n"
+            "🔌 **#integration-requests** - Request support for new device brands 💡\n"
             "⚙️ **#dev-updates** - Automatic updates from our GitHub repositories 🤖\n"
-            "🖥️ **#cli-version-v1** - Support for the CLI version �\n"
-            "� **#app-version-v2** - Support for the GUI installer version 🎨\n"
-            "🔌 **#api-dev** - API endpoint discussions for developers �\n"
-            "� **#general** - Casual conversations and community chit-chat �\n"
-            "📸 **#show-your-glow** - Show off your amazing lighting setups! �✨"
+            "🖥️ **#cli-version-v1** - Support for the CLI version 💻\n"
+            "🎨 **#app-version-v2** - Support for the GUI installer version 🎨\n"
+            "🔌 **#api-dev** - API endpoint discussions for developers 👨‍💻\n"
+            "💬 **#general** - Casual conversations and community chit-chat 😄\n"
+            "📸 **#show-your-glow** - Show off your amazing lighting setups! 💡✨"
         )
         channels_text.setWordWrap(True)
+        channels_text.setStyleSheet("font-size: 14px; line-height: 1.6; color: #ebebeb;")
         channels_layout.addWidget(channels_text)
         
         layout.addWidget(channels_group)
@@ -1017,6 +1044,7 @@ class SettingsWindow(QDialog):
             "💖 **Make lasting friendships** - Connect with like-minded remote workers! 👥"
         )
         perks_text.setWordWrap(True)
+        perks_text.setStyleSheet("font-size: 14px; line-height: 1.6; color: #ebebeb;")
         perks_layout.addWidget(perks_text)
         
         layout.addWidget(perks_group)
@@ -1032,6 +1060,7 @@ class SettingsWindow(QDialog):
         )
         action_text.setWordWrap(True)
         action_text.setAlignment(Qt.AlignCenter)
+        action_text.setStyleSheet("font-size: 15px; line-height: 1.6; color: #ebebeb;")
         action_layout.addWidget(action_text)
         
         # Final call-to-action button
