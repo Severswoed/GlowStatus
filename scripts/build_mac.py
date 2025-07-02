@@ -80,16 +80,22 @@ def check(cmd, mf):
     # This ensures our minimal recipe replaces the default bloated one
     try:
         modules = mf.flatten()
-        pyside6_modules = {
-            'PySide6',
-            'PySide6.QtCore', 
-            'PySide6.QtGui',
-            'PySide6.QtWidgets',
-        }
-        found = bool(pyside6_modules.intersection(modules))
-        if found:
+        # Convert to strings for easier checking
+        module_names = {str(m) for m in modules}
+        
+        # Check for any PySide6 usage
+        pyside6_found = any(
+            'PySide6' in name for name in module_names
+        )
+        
+        if pyside6_found:
             print("🎯 PySide6 detected - applying minimal recipe")
-        return found
+            return True
+        else:
+            # Even if not found, apply it anyway since we know we're using PySide6
+            print("🎯 PySide6 not auto-detected - applying minimal recipe anyway for safety")
+            return True
+            
     except Exception as e:
         # If there's any error, still apply the recipe to be safe
         print(f"🎯 Recipe check error ({e}) - applying minimal recipe anyway")
