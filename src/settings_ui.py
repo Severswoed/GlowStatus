@@ -734,11 +734,13 @@ class SettingsWindow(QDialog):
         sync_layout = QFormLayout(sync_group)
         
         self.disable_sync_checkbox = QCheckBox("Disable calendar synchronization")
+        self.disable_sync_checkbox.setEnabled(True)
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
         self.sync_interval_spinbox.setRange(10, 3600)
         self.sync_interval_spinbox.setSuffix(" seconds")
+        self.sync_interval_spinbox.setEnabled(True)
         sync_layout.addRow("Refresh Interval:", self.sync_interval_spinbox)
         
         layout.addWidget(sync_group)
@@ -748,12 +750,15 @@ class SettingsWindow(QDialog):
         additional_layout = QVBoxLayout(additional_group)
         
         self.power_off_available_checkbox = QCheckBox("Turn light off when available")
+        self.power_off_available_checkbox.setEnabled(True)
         additional_layout.addWidget(self.power_off_available_checkbox)
         
         self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
+        self.off_for_unknown_checkbox.setEnabled(True)
         additional_layout.addWidget(self.off_for_unknown_checkbox)
         
         self.disable_light_control_checkbox = QCheckBox("Disable light control")
+        self.disable_light_control_checkbox.setEnabled(True)
         additional_layout.addWidget(self.disable_light_control_checkbox)
         
         layout.addWidget(additional_group)
@@ -1265,8 +1270,11 @@ class SettingsWindow(QDialog):
             # Flash green to test connection
             controller.set_color(0, 255, 0)  # Green
             
+            # Store the controller as an instance variable to prevent garbage collection
+            self._test_controller = controller
+            
             # Use QTimer to turn off the light after 3 seconds without blocking UI
-            QTimer.singleShot(3000, lambda: self._turn_off_test_light(controller))
+            QTimer.singleShot(3000, self._turn_off_test_light)
             
         except Exception as e:
             QMessageBox.warning(
@@ -1280,10 +1288,13 @@ class SettingsWindow(QDialog):
                 "• Device is online and connected to WiFi"
             )
     
-    def _turn_off_test_light(self, controller):
+    def _turn_off_test_light(self):
         """Helper method to turn off the test light."""
         try:
-            controller.turn_off()
+            if hasattr(self, '_test_controller') and self._test_controller:
+                self._test_controller.turn_off()
+                # Clean up the reference
+                self._test_controller = None
         except Exception as e:
             logger.warning(f"Failed to turn off test light: {e}")
     
