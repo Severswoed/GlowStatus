@@ -7,3 +7,4 @@ google-auth-httplib2
 PySide6
 keyring
 keyrings.alt
+packaging
