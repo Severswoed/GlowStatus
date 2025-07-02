@@ -265,6 +265,10 @@ class SettingsWindow(QDialog):
         self.sidebar.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.sidebar.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
+        # Set minimum height to ensure all navigation items are visible
+        # 8 items * ~32px per item (12px padding top+bottom + margins) = ~260px minimum
+        self.sidebar.setMinimumHeight(280)
+        
         # Add navigation items
         nav_items = [
             ("About", "ℹ️"),
@@ -491,17 +495,24 @@ class SettingsWindow(QDialog):
         """Create the About page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(40, 20, 40, 40)  # Reduced top margin
-        layout.setSpacing(20)  # Reduced spacing
+        layout.setContentsMargins(40, 5, 40, 40)  # Much reduced top margin
+        layout.setSpacing(15)  # Reduced spacing
         
-        # GlowStatus tray icon logo - compact and elegant
+        # Header section with icon and title - inline layout
+        header_frame = QFrame()
+        header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(15)
+        header_layout.addStretch()
+        
+        # GlowStatus tray icon logo - smaller for header
         try:
             logo_path = resource_path("img/GlowStatus_tray_tp.png")
             if os.path.exists(logo_path):
                 logo_label = QLabel()
                 pixmap = QPixmap(logo_path)
-                # Scale to appropriate size for tray icon display
-                scaled_pixmap = pixmap.scaledToWidth(120, Qt.SmoothTransformation)
+                # Scale to smaller size for header
+                scaled_pixmap = pixmap.scaledToWidth(80, Qt.SmoothTransformation)
                 logo_label.setPixmap(scaled_pixmap)
                 logo_label.setAlignment(Qt.AlignCenter)
                 # Add subtle styling
@@ -509,26 +520,33 @@ class SettingsWindow(QDialog):
                     QLabel {
                         background-color: rgba(255, 255, 255, 0.01);
                         border: 1px solid rgba(255, 255, 255, 0.03);
-                        border-radius: 8px;
-                        padding: 12px;
-                        margin: 4px 0;
+                        border-radius: 6px;
+                        padding: 8px;
+                        margin: 2px 0;
                     }
                 """)
-                layout.addWidget(logo_label)
-                layout.addSpacing(8)  # Reduced spacing after logo
+                header_layout.addWidget(logo_label)
         except Exception as e:
             logger.warning(f"Could not load tray icon: {e}")
-            title = QLabel("GlowStatus")
-            title.setAlignment(Qt.AlignCenter)
-            title.setObjectName("aboutTitle")
-            layout.addWidget(title)
-            layout.addSpacing(12)
         
-        # App title
+        # Header title to match page title
+        header_title = QLabel("About GlowStatus")
+        header_title.setAlignment(Qt.AlignCenter)
+        header_title.setStyleSheet("font-size: 22px; font-weight: 300; color: #ffffff; margin: 8px 0;")
+        header_layout.addWidget(header_title)
+        
+        header_layout.addStretch()
+        layout.addWidget(header_frame)
+        
+        layout.addSpacing(30)  # Space before main title
+        
+        # App title - centered and prominent
         app_title = QLabel("GlowStatus")
         app_title.setAlignment(Qt.AlignCenter)
-        app_title.setStyleSheet("font-size: 24px; font-weight: 600; color: #38bdf8; margin: 4px 0;")
+        app_title.setStyleSheet("font-size: 32px; font-weight: 600; color: #38bdf8; margin: 8px 0;")
         layout.addWidget(app_title)
+        
+        layout.addSpacing(10)  # Reduced spacing after title
         
         # Description with emojis
         description = QLabel(
@@ -544,7 +562,7 @@ class SettingsWindow(QDialog):
         description.setObjectName("aboutDescription")
         layout.addWidget(description)
         
-        layout.addSpacing(20)
+        layout.addSpacing(15)  # Reduced spacing before stats
         
         # Fun stats section
         stats_frame = QFrame()
@@ -571,7 +589,7 @@ class SettingsWindow(QDialog):
         stats_layout.addStretch()
         layout.addWidget(stats_frame)
         
-        layout.addSpacing(20)
+        layout.addSpacing(15)  # Reduced spacing before version
         
         # Version info with fun emoji
         try:
@@ -585,7 +603,7 @@ class SettingsWindow(QDialog):
         version_info.setObjectName("versionInfo")
         layout.addWidget(version_info)
         
-        layout.addSpacing(20)
+        layout.addSpacing(15)  # Reduced final spacing
         
         layout.addStretch()
         
@@ -864,8 +882,7 @@ class SettingsWindow(QDialog):
         self.disable_sync_checkbox.setEnabled(True)
         self.disable_sync_checkbox.setCheckable(True)
         self.disable_sync_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.disable_sync_checkbox.setMouseTracking(True)
-        self.disable_sync_checkbox.stateChanged.connect(self.on_form_changed)
+        self.disable_sync_checkbox.clicked.connect(self.on_checkbox_clicked)
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
@@ -885,24 +902,21 @@ class SettingsWindow(QDialog):
         self.power_off_available_checkbox.setEnabled(True)
         self.power_off_available_checkbox.setCheckable(True)
         self.power_off_available_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.power_off_available_checkbox.setMouseTracking(True)
-        self.power_off_available_checkbox.stateChanged.connect(self.on_form_changed)
+        self.power_off_available_checkbox.clicked.connect(self.on_checkbox_clicked)
         additional_layout.addWidget(self.power_off_available_checkbox)
         
         self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
         self.off_for_unknown_checkbox.setEnabled(True)
         self.off_for_unknown_checkbox.setCheckable(True)
         self.off_for_unknown_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.off_for_unknown_checkbox.setMouseTracking(True)
-        self.off_for_unknown_checkbox.stateChanged.connect(self.on_form_changed)
+        self.off_for_unknown_checkbox.clicked.connect(self.on_checkbox_clicked)
         additional_layout.addWidget(self.off_for_unknown_checkbox)
         
         self.disable_light_control_checkbox = QCheckBox("Disable light control")
         self.disable_light_control_checkbox.setEnabled(True)
         self.disable_light_control_checkbox.setCheckable(True)
         self.disable_light_control_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.disable_light_control_checkbox.setMouseTracking(True)
-        self.disable_light_control_checkbox.stateChanged.connect(self.on_form_changed)
+        self.disable_light_control_checkbox.clicked.connect(self.on_checkbox_clicked)
         additional_layout.addWidget(self.disable_light_control_checkbox)
         
         layout.addWidget(additional_group)
@@ -1183,9 +1197,7 @@ class SettingsWindow(QDialog):
         if hasattr(self, 'disable_sync_checkbox'):
             checked_value = self.config.get("DISABLE_CALENDAR_SYNC", False)
             self.disable_sync_checkbox.setChecked(checked_value)
-            # Force visual update
-            self.disable_sync_checkbox.repaint()
-            logger.info(f"Loaded disable_sync_checkbox: {checked_value}, actual state: {self.disable_sync_checkbox.isChecked()}")
+            logger.info(f"Loaded disable_sync_checkbox: {checked_value}")
             
             self.sync_interval_spinbox.setValue(self.config.get("REFRESH_INTERVAL", 15))
             
@@ -1193,32 +1205,23 @@ class SettingsWindow(QDialog):
         if hasattr(self, 'power_off_available_checkbox'):
             checked_value = self.config.get("POWER_OFF_WHEN_AVAILABLE", True)
             self.power_off_available_checkbox.setChecked(checked_value)
-            self.power_off_available_checkbox.repaint()
-            logger.info(f"Loaded power_off_available_checkbox: {checked_value}, actual state: {self.power_off_available_checkbox.isChecked()}")
+            logger.info(f"Loaded power_off_available_checkbox: {checked_value}")
             
         if hasattr(self, 'off_for_unknown_checkbox'):
             checked_value = self.config.get("OFF_FOR_UNKNOWN_STATUS", True)
             self.off_for_unknown_checkbox.setChecked(checked_value)
-            self.off_for_unknown_checkbox.repaint()
-            logger.info(f"Loaded off_for_unknown_checkbox: {checked_value}, actual state: {self.off_for_unknown_checkbox.isChecked()}")
+            logger.info(f"Loaded off_for_unknown_checkbox: {checked_value}")
             
         if hasattr(self, 'disable_light_control_checkbox'):
             checked_value = self.config.get("DISABLE_LIGHT_CONTROL", False)
             self.disable_light_control_checkbox.setChecked(checked_value)
-            self.disable_light_control_checkbox.repaint()
-            logger.info(f"Loaded disable_light_control_checkbox: {checked_value}, actual state: {self.disable_light_control_checkbox.isChecked()}")
+            logger.info(f"Loaded disable_light_control_checkbox: {checked_value}")
         
         # Load status colors
         self.populate_status_colors_table()
         
         # Load calendars if OAuth is connected
         self.refresh_calendars()
-        
-        # Ensure calendar checkboxes are interactive
-        self.ensure_calendar_checkboxes_interactive()
-        
-        # Force refresh of checkbox visual states
-        self.refresh_checkbox_states()
     
     def update_oauth_status(self):
         """Update OAuth connection status display."""
@@ -1851,9 +1854,9 @@ class SettingsWindow(QDialog):
             }
             
             QListWidget#sidebar::item {
-                padding: 18px 24px;
+                padding: 12px 20px;
                 border-radius: 12px;
-                margin: 3px 6px;
+                margin: 2px 6px;
                 color: #b5b5b5;
                 border: none;
                 background-color: transparent;
@@ -2327,6 +2330,18 @@ class SettingsWindow(QDialog):
                 checkbox.setChecked(current_state)
                 checkbox.repaint()
                 logger.debug(f"Refreshed checkbox {checkbox.text()}: {current_state}")
+    
+    def on_checkbox_clicked(self):
+        """Handle checkbox clicks with proper visual state updates."""
+        checkbox = self.sender()
+        if checkbox:
+            # Force a visual update
+            checkbox.update()
+            checkbox.repaint()
+            # Log the state for debugging
+            logger.info(f"Checkbox '{checkbox.text()}' clicked: {checkbox.isChecked()}")
+            # Mark form as dirty
+            self.on_form_changed()
     
 
 # Main function for testing
