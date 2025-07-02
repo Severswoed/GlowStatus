@@ -324,6 +324,20 @@ class SettingsWindow(QDialog):
         self.content_stack.addWidget(self.options_page)
         self.content_stack.addWidget(self.discord_page)
         
+    def setup_form_change_tracking(self):
+        """Set up form change tracking for unsaved changes detection."""
+        # Store original values for comparison
+        self.original_values = {}
+        
+        # This method is called after load_settings() so we can capture initial state
+        # The actual tracking is handled by connecting signals in individual form elements
+        # which call self.on_form_changed() when values change
+        
+        # Initialize save status
+        self.form_dirty = False
+        if hasattr(self, 'save_status_label'):
+            self.update_save_status()
+    
     def create_scrollable_page(self):
         """Create a scrollable page container."""
         page = QWidget()
@@ -1917,7 +1931,7 @@ class SettingsWindow(QDialog):
             
             QTableWidget::item {
                 padding: 14px 10px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+                border-bottom: 1px solid rgba(255, 255, 255,  0.03);
                 background-color: transparent;
             }
             
