@@ -1,8 +1,6 @@
 import os
 import json
-import pickle
 import keyring
-import webbrowser
 from keyring.errors import NoKeyringError
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, 
@@ -122,19 +120,19 @@ def load_config():
     # Set sensible defaults for new configurations
     defaults = {
         "DISABLE_CALENDAR_SYNC": False,
-        "DISABLE_LIGHT_CONTROL": True,  # Default to disabled until credentials are set
-        "REFRESH_INTERVAL": 15,
-        "POWER_OFF_WHEN_AVAILABLE": True,
-        "OFF_FOR_UNKNOWN_STATUS": True,
+        "SYNC_INTERVAL": 30,
+        "DEFAULT_STATUS": "Available",
         "GOVEE_DEVICE_ID": "",
-        "GOVEE_DEVICE_MODEL": "",
-        "SELECTED_CALENDAR_ID": "",
-        "STATUS_COLOR_MAP": {
-            "in_meeting": {"color": "255,0,0", "power_off": False},
-            "focus": {"color": "0,0,255", "power_off": False},
-            "available": {"color": "0,255,0", "power_off": True},
-            "lunch": {"color": "0,255,0", "power_off": True},
-            "offline": {"color": "128,128,128", "power_off": False}
+        "STATUS_COLORS": {
+            "Available": "#00FF00",
+            "Busy": "#FF0000",
+            "Away": "#FFFF00",
+            "Do Not Disturb": "#800080",
+            "Offline": "#808080",
+            "Meeting": "#FF4500",
+            "Presenting": "#FF69B4",
+            "Tentative": "#FFA500",
+            "Out of Office": "#000080"
         }
     }
     
@@ -171,24 +169,11 @@ class SettingsWindow(QDialog):
         self.setMinimumSize(900, 700)
         self.resize(1000, 800)
         
-        # Set application branding for notifications
-        from PySide6.QtWidgets import QApplication
-        app = QApplication.instance()
-        if app:
-            app.setApplicationName("GlowStatus")
-            app.setApplicationDisplayName("GlowStatus")
-            app.setApplicationVersion("2.0.0")
-            app.setOrganizationName("GlowStatus")
-            app.setOrganizationDomain("glowstatus.com")
-        
         # Try to set window icon
         try:
             icon_path = resource_path("img/GlowStatus.png")
             if os.path.exists(icon_path):
                 self.setWindowIcon(QIcon(icon_path))
-                # Also set as application icon
-                if app:
-                    app.setWindowIcon(QIcon(icon_path))
         except Exception:
             pass
         
@@ -214,12 +199,6 @@ class SettingsWindow(QDialog):
         splitter.setCollapsible(0, False)
         splitter.setCollapsible(1, False)
         
-        # Connect sidebar selection to content switching (after content_stack is created)
-        self.sidebar.currentRowChanged.connect(self.change_page)
-        
-        # Select first item by default
-        self.sidebar.setCurrentRow(0)
-        
         # Apply GlowStatus theme
         self.apply_theme()
         
@@ -228,6 +207,9 @@ class SettingsWindow(QDialog):
         self.sidebar = QListWidget()
         self.sidebar.setFixedWidth(250)
         self.sidebar.setObjectName("sidebar")
+        
+        # Connect selection change
+        self.sidebar.currentRowChanged.connect(self.change_page)
         
         # Add navigation items
         nav_items = [
@@ -246,7 +228,8 @@ class SettingsWindow(QDialog):
             item.setData(Qt.UserRole, title.lower())
             self.sidebar.addItem(item)
         
-        # Note: Signal connection moved to setup_ui after content area is created
+        # Select first item by default
+        self.sidebar.setCurrentRow(0)
         
     def setup_content_area(self):
         """Set up the content area with pages."""
@@ -309,7 +292,7 @@ class SettingsWindow(QDialog):
         scroll.setWidget(page)
         scroll.setWidgetResizable(True)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarNever)
         return scroll, page
         
     def create_about_page(self):
@@ -436,99 +419,68 @@ class SettingsWindow(QDialog):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
         
-        title = QLabel("🔐 Google Calendar Setup")
+        title = QLabel("🔐 Google Calendar OAuth")
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         
-        # Privacy notice (required for OAuth compliance) - matching original
-        privacy_notice = QLabel(
-            'By connecting your Google account, you agree to GlowStatus accessing your calendar data '
-            'in read-only mode to determine your meeting status.<br>'
-            '<a href="https://www.glowstatus.app/privacy">Privacy Policy</a> | '
-            '<a href="https://www.glowstatus.app/terms">Terms of Service</a> | '
-            '<a href="https://myaccount.google.com/permissions">Manage Google Permissions</a>'
+        # OAuth status section
+        status_group = QGroupBox("Connection Status")
+        status_layout = QVBoxLayout(status_group)
+        
+        self.oauth_status_label = QLabel("Not connected")
+        status_layout.addWidget(self.oauth_status_label)
+        
+        self.oauth_email_label = QLabel("")
+        status_layout.addWidget(self.oauth_email_label)
+        
+        layout.addWidget(status_group)
+        
+        # OAuth controls
+        controls_group = QGroupBox("Authentication")
+        controls_layout = QVBoxLayout(controls_group)
+        
+        # Add Google logo button
+        oauth_button_layout = QHBoxLayout()
+        
+        try:
+            google_logo_path = resource_path("img/google_logo.png")
+            if os.path.exists(google_logo_path):
+                self.oauth_button = QPushButton()
+                self.oauth_button.setText("  Connect with Google")
+                self.oauth_button.setIcon(QIcon(google_logo_path))
+                self.oauth_button.setIconSize(QSize(24, 24))
+            else:
+                self.oauth_button = QPushButton("🔑 Connect with Google")
+        except Exception:
+            self.oauth_button = QPushButton("🔑 Connect with Google")
+        
+        self.oauth_button.clicked.connect(self.run_oauth_flow)
+        oauth_button_layout.addWidget(self.oauth_button)
+        
+        self.disconnect_button = QPushButton("🔓 Disconnect")
+        self.disconnect_button.clicked.connect(self.disconnect_oauth)
+        oauth_button_layout.addWidget(self.disconnect_button)
+        
+        controls_layout.addLayout(oauth_button_layout)
+        
+        # Progress bar for OAuth process
+        self.oauth_progress = QProgressBar()
+        self.oauth_progress.setVisible(False)
+        controls_layout.addWidget(self.oauth_progress)
+        
+        # Instructions
+        instructions = QLabel(
+            "To connect to Google Calendar:\n\n"
+            "1. Click 'Connect with Google'\n"
+            "2. Sign in to your Google account\n"
+            "3. Grant calendar access permissions\n"
+            "4. Return to this app\n\n"
+            "Your credentials are stored securely on your device."
         )
-        privacy_notice.setWordWrap(True)
-        privacy_notice.setOpenExternalLinks(True)
-        privacy_notice.setStyleSheet("color: #666; font-size: 11px; margin: 10px 0 15px 0; padding: 8px 0;")
-        privacy_notice.setMinimumHeight(50)
-        layout.addWidget(privacy_notice)
+        instructions.setWordWrap(True)
+        controls_layout.addWidget(instructions)
         
-        # OAuth Status
-        form_layout = QFormLayout()
-        self.oauth_status_label = QLabel("Not configured")
-        form_layout.addRow("OAuth Status:", self.oauth_status_label)
-        
-        # Verification status info - matching original
-        verification_info = QLabel(
-            'ℹ️ This app uses Google\'s Limited Use policy for calendar data. '
-            'Your data is processed securely and never shared with third parties.'
-        )
-        verification_info.setWordWrap(True)
-        verification_info.setStyleSheet("color: #5f6368; font-size: 10px; font-style: italic; margin: 2px 0;")
-        form_layout.addRow(verification_info)
-        
-        # OAuth buttons layout (side by side, centered) - matching original
-        oauth_buttons_layout = QHBoxLayout()
-        oauth_buttons_layout.addStretch()
-        
-        # Google Sign-in Button (following Google branding guidelines) - matching original
-        self.oauth_btn = QPushButton("Sign in with Google")
-        self.oauth_btn.clicked.connect(self.run_oauth_flow)
-        
-        # Apply Google branding styles
-        self.apply_google_button_style(self.oauth_btn)
-        oauth_buttons_layout.addWidget(self.oauth_btn)
-        
-        # Add small spacing between buttons
-        oauth_buttons_layout.addSpacing(10)
-        
-        # Disconnect Button - matching original styling
-        self.disconnect_btn = QPushButton("Disconnect")
-        self.disconnect_btn.clicked.connect(self.disconnect_oauth)
-        
-        # Style disconnect button to be less prominent - matching original
-        self.disconnect_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #f8f9fa;
-                border: 1px solid #dadce0;
-                border-radius: 4px;
-                color: #3c4043;
-                font-family: 'Google Sans', Roboto, Arial, sans-serif;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 8px 16px;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #f1f3f4;
-                border-color: #dadce0;
-            }
-            QPushButton:pressed {
-                background-color: #e8eaed;
-            }
-            QPushButton:disabled {
-                background-color: #f8f9fa;
-                color: #9aa0a6;
-                border-color: #f8f9fa;
-            }
-        """)
-        oauth_buttons_layout.addWidget(self.disconnect_btn)
-        oauth_buttons_layout.addStretch()
-        
-        form_layout.addRow(oauth_buttons_layout)
-        
-        # Google Calendar ID (display only) - matching original
-        self.google_calendar_id_label = QLabel("Not authenticated")
-        form_layout.addRow("Authenticated as:", self.google_calendar_id_label)
-
-        # Selected Calendar ID (dropdown) - matching original
-        self.selected_calendar_dropdown = QComboBox()
-        self.selected_calendar_dropdown.setEditable(False)
-        self.selected_calendar_dropdown.addItem("Please authenticate first")  # Default state
-        form_layout.addRow("Selected Calendar:", self.selected_calendar_dropdown)
-
-        layout.addLayout(form_layout)
+        layout.addWidget(controls_group)
         layout.addStretch()
         
         return scroll
@@ -626,26 +578,23 @@ class SettingsWindow(QDialog):
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
-        self.sync_interval_spinbox.setRange(10, 3600)
+        self.sync_interval_spinbox.setRange(5, 300)
         self.sync_interval_spinbox.setSuffix(" seconds")
-        sync_layout.addRow("Refresh Interval:", self.sync_interval_spinbox)
+        sync_layout.addRow("Sync Interval:", self.sync_interval_spinbox)
         
         layout.addWidget(sync_group)
         
-        # Additional settings
-        additional_group = QGroupBox("Additional Settings")
-        additional_layout = QVBoxLayout(additional_group)
+        # Meeting detection
+        detection_group = QGroupBox("Meeting Detection")
+        detection_layout = QVBoxLayout(detection_group)
         
-        self.power_off_available_checkbox = QCheckBox("Turn light off when available")
-        additional_layout.addWidget(self.power_off_available_checkbox)
+        self.detect_all_day_checkbox = QCheckBox("Include all-day events")
+        detection_layout.addWidget(self.detect_all_day_checkbox)
         
-        self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
-        additional_layout.addWidget(self.off_for_unknown_checkbox)
+        self.detect_declined_checkbox = QCheckBox("Include declined meetings")
+        detection_layout.addWidget(self.detect_declined_checkbox)
         
-        self.disable_light_control_checkbox = QCheckBox("Disable light control")
-        additional_layout.addWidget(self.disable_light_control_checkbox)
-        
-        layout.addWidget(additional_group)
+        layout.addWidget(detection_group)
         layout.addStretch()
         
         return scroll
@@ -668,7 +617,7 @@ class SettingsWindow(QDialog):
         # Create table for status colors
         self.status_colors_table = QTableWidget()
         self.status_colors_table.setColumnCount(3)
-        self.status_colors_table.setHorizontalHeaderLabels(["Status", "Color (R,G,B)", "Power Off"])
+        self.status_colors_table.setHorizontalHeaderLabels(["Status", "Color", "Actions"])
         self.status_colors_table.horizontalHeader().setStretchLastSection(True)
         
         # Populate table with default statuses
@@ -696,6 +645,15 @@ class SettingsWindow(QDialog):
         colors_layout.addLayout(table_buttons)
         
         layout.addWidget(colors_group)
+        
+        # Default status
+        default_group = QGroupBox("Default Settings")
+        default_layout = QFormLayout(default_group)
+        
+        self.default_status_combo = QComboBox()
+        default_layout.addRow("Default Status:", self.default_status_combo)
+        
+        layout.addWidget(default_group)
         layout.addStretch()
         
         return scroll
@@ -808,54 +766,26 @@ class SettingsWindow(QDialog):
         
         return scroll
     
-    def show_message(self, message_type, title, text, buttons=QMessageBox.Ok):
-        """Show a properly branded message box."""
-        msg = QMessageBox(self)
-        msg.setWindowTitle(f"GlowStatus - {title}")
-        msg.setText(text)
-        msg.setStandardButtons(buttons)
-        
-        # Set icon based on message type
-        if message_type == "information":
-            msg.setIcon(QMessageBox.Information)
-        elif message_type == "warning":
-            msg.setIcon(QMessageBox.Warning)
-        elif message_type == "error":
-            msg.setIcon(QMessageBox.Critical)
-        elif message_type == "question":
-            msg.setIcon(QMessageBox.Question)
-        
-        # Try to set window icon
-        try:
-            icon_path = resource_path("img/GlowStatus.png")
-            if os.path.exists(icon_path):
-                msg.setWindowIcon(QIcon(icon_path))
-        except Exception:
-            pass
-        
-        return msg.exec()
-    
     def change_page(self, index):
         """Change the current page based on sidebar selection."""
-        if index >= 0 and hasattr(self, 'content_stack'):
+        if index >= 0:
             self.content_stack.setCurrentIndex(index)
             
             # Update page title
-            if hasattr(self, 'page_title'):
-                item = self.sidebar.item(index)
-                if item:
-                    title = item.data(Qt.UserRole)
-                    display_titles = {
-                        "about": "About GlowStatus",
-                        "wall of glow": "Wall of Glow",
-                        "oauth": "Google Calendar OAuth",
-                        "integrations": "Integrations",
-                        "calendar": "Calendar Settings", 
-                        "status": "Status Configuration",
-                        "options": "Options",
-                        "discord": "Discord Community"
-                    }
-                    self.page_title.setText(display_titles.get(title, title.title()))
+            item = self.sidebar.item(index)
+            if item:
+                title = item.data(Qt.UserRole)
+                display_titles = {
+                    "about": "About GlowStatus",
+                    "wall of glow": "Wall of Glow",
+                    "oauth": "Google Calendar OAuth",
+                    "integrations": "Integrations",
+                    "calendar": "Calendar Settings", 
+                    "status": "Status Configuration",
+                    "options": "Options",
+                    "discord": "Discord Community"
+                }
+                self.page_title.setText(display_titles.get(title, title.title()))
     
     def load_settings(self):
         """Load settings from configuration into UI elements."""
@@ -876,20 +806,20 @@ class SettingsWindow(QDialog):
         # Load calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
             self.disable_sync_checkbox.setChecked(self.config.get("DISABLE_CALENDAR_SYNC", False))
-            self.sync_interval_spinbox.setValue(self.config.get("REFRESH_INTERVAL", 15))
-            
-        # Load additional settings
-        if hasattr(self, 'power_off_available_checkbox'):
-            self.power_off_available_checkbox.setChecked(self.config.get("POWER_OFF_WHEN_AVAILABLE", True))
-            
-        if hasattr(self, 'off_for_unknown_checkbox'):
-            self.off_for_unknown_checkbox.setChecked(self.config.get("OFF_FOR_UNKNOWN_STATUS", True))
-            
-        if hasattr(self, 'disable_light_control_checkbox'):
-            self.disable_light_control_checkbox.setChecked(self.config.get("DISABLE_LIGHT_CONTROL", False))
+            self.sync_interval_spinbox.setValue(self.config.get("SYNC_INTERVAL", 30))
         
         # Load status colors
         self.populate_status_colors_table()
+        
+        # Load default status
+        if hasattr(self, 'default_status_combo'):
+            self.default_status_combo.clear()
+            statuses = list(self.config.get("STATUS_COLORS", {}).keys())
+            self.default_status_combo.addItems(statuses)
+            default_status = self.config.get("DEFAULT_STATUS", "Available")
+            index = self.default_status_combo.findText(default_status)
+            if index >= 0:
+                self.default_status_combo.setCurrentIndex(index)
         
         # Load calendars if OAuth is connected
         self.refresh_calendars()
@@ -900,8 +830,8 @@ class SettingsWindow(QDialog):
             if os.path.exists(TOKEN_PATH):
                 self.oauth_status_label.setText("✅ Connected to Google Calendar")
                 self.oauth_status_label.setStyleSheet("color: green;")
-                self.oauth_btn.setText("🔄 Reconnect")
-                self.disconnect_btn.setEnabled(True)
+                self.oauth_button.setText("🔄 Reconnect")
+                self.disconnect_button.setEnabled(True)
                 
                 # Try to get user email
                 try:
@@ -918,16 +848,16 @@ class SettingsWindow(QDialog):
                             for cal in calendars:
                                 if cal.get("primary"):
                                     email = cal.get("id", "")
-                                    self.google_calendar_id_label.setText(f"Account: {email}")
+                                    self.oauth_email_label.setText(f"Account: {email}")
                                     break
                 except Exception:
-                    self.google_calendar_id_label.setText("Account: Connected")
+                    self.oauth_email_label.setText("Account: Connected")
             else:
                 self.oauth_status_label.setText("❌ Not connected")
                 self.oauth_status_label.setStyleSheet("color: red;")
-                self.oauth_btn.setText("🔑 Connect with Google")
-                self.disconnect_btn.setEnabled(False)
-                self.google_calendar_id_label.setText("")
+                self.oauth_button.setText("🔑 Connect with Google")
+                self.disconnect_button.setEnabled(False)
+                self.oauth_email_label.setText("")
     
     def run_oauth_flow(self):
         """Start the OAuth authentication flow."""
@@ -936,11 +866,10 @@ class SettingsWindow(QDialog):
             return
         
         # Show progress and disable button
-        if hasattr(self, 'oauth_progress'):
-            self.oauth_progress.setVisible(True)
-            self.oauth_progress.setRange(0, 0)  # Indeterminate progress
-        self.oauth_btn.setEnabled(False)
-        self.oauth_btn.setText("Connecting...")
+        self.oauth_progress.setVisible(True)
+        self.oauth_progress.setRange(0, 0)  # Indeterminate progress
+        self.oauth_button.setEnabled(False)
+        self.oauth_button.setText("Connecting...")
         
         # Create and start worker thread
         self.oauth_worker = OAuthWorker()
@@ -993,9 +922,8 @@ class SettingsWindow(QDialog):
     
     def on_oauth_finished(self):
         """Handle OAuth process completion."""
-        if hasattr(self, 'oauth_progress'):
-            self.oauth_progress.setVisible(False)
-        self.oauth_btn.setEnabled(True)
+        self.oauth_progress.setVisible(False)
+        self.oauth_button.setEnabled(True)
         self.update_oauth_status()
     
     def disconnect_oauth(self):
@@ -1093,85 +1021,55 @@ class SettingsWindow(QDialog):
         if not hasattr(self, 'status_colors_table'):
             return
         
-        status_color_map = self.config.get("STATUS_COLOR_MAP", {})
-        self.status_colors_table.setRowCount(len(status_color_map))
+        status_colors = self.config.get("STATUS_COLORS", {})
+        self.status_colors_table.setRowCount(len(status_colors))
         
-        for row, (status, entry) in enumerate(status_color_map.items()):
+        for row, (status, color) in enumerate(status_colors.items()):
             # Status name
             status_item = QTableWidgetItem(status)
-            status_item.setTextAlignment(Qt.AlignCenter)
             self.status_colors_table.setItem(row, 0, status_item)
             
-            # Color (R,G,B format)
-            color = entry.get("color", "255,255,255")
+            # Color display
             color_item = QTableWidgetItem(color)
-            color_item.setTextAlignment(Qt.AlignCenter)
+            color_item.setBackground(QColor(color))
             self.status_colors_table.setItem(row, 1, color_item)
             
-            # Power off checkbox
-            power_off_checkbox = QCheckBox()
-            power_off_checkbox.setChecked(entry.get("power_off", False))
-        # Connect double-click to color picker
-        self.status_colors_table.cellDoubleClicked.connect(self.open_color_picker)
-    
-    def on_form_changed(self):
-        """Called when any form field changes."""
-        # This can be used to track unsaved changes if needed
-        pass
-    
-    def open_color_picker(self, row, col):
-        """Open color picker when double-clicking on color column."""
-        if col == 1:  # Color column
-            current_item = self.status_colors_table.item(row, col)
-            current_color = current_item.text() if current_item else "255,255,255"
-            
-            # Convert R,G,B to QColor
-            try:
-                r, g, b = map(int, current_color.split(","))
-                initial_color = QColor(r, g, b)
-            except:
-                initial_color = QColor(255, 255, 255)
-            
-            color = QColorDialog.getColor(initial_color, self, "Choose Color")
-            if color.isValid():
-                rgb_str = f"{color.red()},{color.green()},{color.blue()}"
-                self.status_colors_table.setItem(row, col, QTableWidgetItem(rgb_str))
-                self.on_form_changed()
+            # Change color button
+            change_btn = QPushButton("🎨 Change")
+            change_btn.clicked.connect(lambda checked, r=row: self.change_status_color(r))
+            self.status_colors_table.setCellWidget(row, 2, change_btn)
     
     def change_status_color(self, row):
-        """Change the color for a status (legacy method for compatibility)."""
-        self.open_color_picker(row, 1)
-    
-    def add_status_row(self, status="", color="255,255,255", power_off=False):
-        """Add a new status row to the table."""
-        row = self.status_colors_table.rowCount()
-        self.status_colors_table.insertRow(row)
+        """Change the color for a status."""
+        status_item = self.status_colors_table.item(row, 0)
+        if not status_item:
+            return
         
-        # Status name
-        status_item = QTableWidgetItem(status)
-        status_item.setTextAlignment(Qt.AlignCenter)
-        self.status_colors_table.setItem(row, 0, status_item)
+        status = status_item.text()
+        current_color = self.config.get("STATUS_COLORS", {}).get(status, "#FFFFFF")
         
-        # Color (R,G,B)
-        color_item = QTableWidgetItem(color)
-        color_item.setTextAlignment(Qt.AlignCenter)
-        self.status_colors_table.setItem(row, 1, color_item)
-        
-        # Power off checkbox
-        power_off_checkbox = QCheckBox()
-        power_off_checkbox.setChecked(power_off)
-        power_off_checkbox.stateChanged.connect(self.on_form_changed)
-        self.status_colors_table.setCellWidget(row, 2, power_off_checkbox)
+        color = QColorDialog.getColor(QColor(current_color), self, f"Choose color for {status}")
+        if color.isValid():
+            color_hex = color.name()
+            
+            # Update config
+            if "STATUS_COLORS" not in self.config:
+                self.config["STATUS_COLORS"] = {}
+            self.config["STATUS_COLORS"][status] = color_hex
+            
+            # Update table
+            color_item = self.status_colors_table.item(row, 1)
+            color_item.setText(color_hex)
+            color_item.setBackground(color)
     
     def add_custom_status(self):
         """Add a custom status."""
-        # Add a new empty row for user to fill in
-        self.add_status_row("new_status", "255,255,255", False)
-        
-        # Select the new row for editing
-        new_row = self.status_colors_table.rowCount() - 1
-        self.status_colors_table.setCurrentCell(new_row, 0)
-        self.status_colors_table.editItem(self.status_colors_table.item(new_row, 0))
+        # This would open a dialog to add a new status
+        QMessageBox.information(
+            self, 
+            "GlowStatus", 
+            "Custom status feature coming soon!"
+        )
     
     def remove_selected_status(self):
         """Remove the selected status."""
@@ -1189,8 +1087,9 @@ class SettingsWindow(QDialog):
                 )
                 
                 if reply == QMessageBox.Yes:
-                    self.status_colors_table.removeRow(current_row)
-                    self.on_form_changed()
+                    if "STATUS_COLORS" in self.config and status in self.config["STATUS_COLORS"]:
+                        del self.config["STATUS_COLORS"][status]
+                        self.populate_status_colors_table()
     
     def reset_status_colors(self):
         """Reset status colors to defaults."""
@@ -1204,12 +1103,16 @@ class SettingsWindow(QDialog):
         
         if reply == QMessageBox.Yes:
             # Reset to defaults
-            self.config["STATUS_COLOR_MAP"] = {
-                "in_meeting": {"color": "255,0,0", "power_off": False},
-                "focus": {"color": "0,0,255", "power_off": False},
-                "available": {"color": "0,255,0", "power_off": True},
-                "lunch": {"color": "0,255,0", "power_off": True},
-                "offline": {"color": "128,128,128", "power_off": False}
+            self.config["STATUS_COLORS"] = {
+                "Available": "#00FF00",
+                "Busy": "#FF0000", 
+                "Away": "#FFFF00",
+                "Do Not Disturb": "#800080",
+                "Offline": "#808080",
+                "Meeting": "#FF4500",
+                "Presenting": "#FF69B4",
+                "Tentative": "#FFA500",
+                "Out of Office": "#000080"
             }
             self.populate_status_colors_table()
     
@@ -1335,17 +1238,7 @@ class SettingsWindow(QDialog):
         # Save calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
             self.config["DISABLE_CALENDAR_SYNC"] = self.disable_sync_checkbox.isChecked()
-            self.config["REFRESH_INTERVAL"] = self.sync_interval_spinbox.value()
-            
-        # Save additional settings
-        if hasattr(self, 'power_off_available_checkbox'):
-            self.config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_checkbox.isChecked()
-            
-        if hasattr(self, 'off_for_unknown_checkbox'):
-            self.config["OFF_FOR_UNKNOWN_STATUS"] = self.off_for_unknown_checkbox.isChecked()
-            
-        if hasattr(self, 'disable_light_control_checkbox'):
-            self.config["DISABLE_LIGHT_CONTROL"] = self.disable_light_control_checkbox.isChecked()
+            self.config["SYNC_INTERVAL"] = self.sync_interval_spinbox.value()
         
         # Save selected calendar
         if hasattr(self, 'selected_calendar_dropdown'):
@@ -1353,21 +1246,9 @@ class SettingsWindow(QDialog):
             if selected_cal:
                 self.config["SELECTED_CALENDAR_ID"] = selected_cal
         
-        # Save status color map
-        if hasattr(self, 'status_colors_table'):
-            status_color_map = {}
-            for row in range(self.status_colors_table.rowCount()):
-                status_item = self.status_colors_table.item(row, 0)
-                color_item = self.status_colors_table.item(row, 1)
-                power_widget = self.status_colors_table.cellWidget(row, 2)
-                
-                if status_item and color_item and power_widget:
-                    status = status_item.text()
-                    color = color_item.text()
-                    power_off = power_widget.isChecked()
-                    status_color_map[status] = {"color": color, "power_off": power_off}
-            
-            self.config["STATUS_COLOR_MAP"] = status_color_map
+        # Save default status
+        if hasattr(self, 'default_status_combo'):
+            self.config["DEFAULT_STATUS"] = self.default_status_combo.currentText()
         
         # Save general options
         if hasattr(self, 'start_with_system_checkbox'):
@@ -1404,24 +1285,17 @@ class SettingsWindow(QDialog):
             )
     
     def apply_theme(self):
-        """Apply GlowStatus dark theme to the window."""
+        """Apply GlowStatus theme to the window."""
         self.setStyleSheet("""
             QDialog {
-                background-color: #1a1a1a;
-                color: #f8f9fa;
+                background-color: #f0f0f0;
                 font-family: 'Segoe UI', Arial, sans-serif;
             }
             
-            QWidget {
-                background-color: #1a1a1a;
-                color: #f8f9fa;
-            }
-            
             QListWidget#sidebar {
-                background-color: #2d2d2d;
+                background-color: #2d3748;
                 color: white;
-                border: 2px solid #00d4ff;
-                border-radius: 8px;
+                border: none;
                 font-size: 14px;
                 padding: 5px;
             }
@@ -1430,292 +1304,153 @@ class SettingsWindow(QDialog):
                 padding: 12px;
                 border-radius: 6px;
                 margin: 2px;
-                color: #f8f9fa;
             }
             
             QListWidget#sidebar::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #00d4ff, stop:1 #bf40ff);
-                color: #1a1a1a;
-                font-weight: bold;
+                background-color: #4a90e2;
             }
             
             QListWidget#sidebar::item:hover {
-                background-color: #3d3d3d;
-                color: #00d4ff;
+                background-color: #4a5568;
             }
             
             QLabel#pageTitle {
                 font-size: 24px;
                 font-weight: bold;
-                color: #00d4ff;
+                color: #2d3748;
                 padding: 20px;
-                background-color: #2d2d2d;
-                border-bottom: 2px solid #00d4ff;
+                background-color: white;
+                border-bottom: 1px solid #e2e8f0;
             }
             
             QLabel#sectionTitle {
                 font-size: 18px;
                 font-weight: bold;
-                color: #00d4ff;
+                color: #2d3748;
                 margin-bottom: 10px;
             }
             
             QLabel#aboutTitle {
                 font-size: 28px;
                 font-weight: bold;
-                color: #00d4ff;
+                color: #4a90e2;
                 margin: 20px 0;
             }
             
             QLabel#aboutDescription {
                 font-size: 14px;
-                color: #f8f9fa;
+                color: #4a5568;
                 line-height: 1.5;
                 margin: 20px 0;
-                background-color: #2d2d2d;
-                padding: 20px;
-                border: 2px solid #00d4ff;
-                border-radius: 8px;
             }
             
             QLabel#versionInfo {
                 font-size: 12px;
-                color: #bf40ff;
+                color: #a0aec0;
                 margin: 10px 0;
             }
             
             QGroupBox {
                 font-weight: bold;
-                border: 2px solid #00d4ff;
+                border: 2px solid #e2e8f0;
                 border-radius: 8px;
                 margin-top: 10px;
                 padding-top: 15px;
-                background-color: #2d2d2d;
-                color: #00d4ff;
+                background-color: white;
             }
             
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 10px 0 10px;
-                color: #00d4ff;
+                color: #4a90e2;
             }
             
             QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #00d4ff, stop:1 #bf40ff);
+                background-color: #4a90e2;
                 color: white;
-                border: 2px solid #00d4ff;
+                border: none;
                 padding: 8px 16px;
                 border-radius: 6px;
                 font-weight: bold;
                 min-width: 100px;
-                font-size: 13px;
             }
             
             QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #bf40ff, stop:1 #00d4ff);
-                border: 2px solid #bf40ff;
+                background-color: #357abd;
             }
             
             QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #9932cc, stop:1 #0099cc);
+                background-color: #2c5aa0;
             }
             
             QPushButton:disabled {
-                background-color: #3d3d3d;
-                color: #666;
-                border: 2px solid #666;
+                background-color: #a0aec0;
+                color: #e2e8f0;
             }
             
             QLineEdit, QSpinBox, QComboBox {
                 padding: 8px;
-                border: 2px solid #0099cc;
+                border: 2px solid #e2e8f0;
                 border-radius: 6px;
-                background-color: #2d2d2d;
-                color: #f8f9fa;
+                background-color: white;
                 font-size: 13px;
-                selection-background-color: #bf40ff;
             }
             
             QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
-                border-color: #00d4ff;
-                background-color: #3d3d3d;
-            }
-            
-            QComboBox::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: top right;
-                width: 20px;
-                border-left: 1px solid #0099cc;
-            }
-            
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 4px solid transparent;
-                border-right: 4px solid transparent;
-                border-top: 6px solid #00d4ff;
-                margin-right: 6px;
-            }
-            
-            QComboBox QAbstractItemView {
-                background-color: #2d2d2d;
-                border: 2px solid #00d4ff;
-                selection-background-color: #bf40ff;
-                color: #f8f9fa;
+                border-color: #4a90e2;
             }
             
             QTableWidget {
-                gridline-color: #0099cc;
-                background-color: #2d2d2d;
-                border: 2px solid #00d4ff;
+                gridline-color: #e2e8f0;
+                background-color: white;
+                border: 1px solid #e2e8f0;
                 border-radius: 6px;
-                color: #f8f9fa;
             }
             
             QTableWidget::item {
                 padding: 8px;
-                border-bottom: 1px solid #3d3d3d;
-                background-color: #2d2d2d;
+                border-bottom: 1px solid #e2e8f0;
             }
             
             QTableWidget::item:selected {
-                background-color: #bf40ff;
-                color: #f8f9fa;
-            }
-            
-            QHeaderView::section {
-                background-color: #3d3d3d;
-                color: #00d4ff;
-                padding: 8px;
-                border: 1px solid #0099cc;
-                font-weight: bold;
+                background-color: #ebf8ff;
+                color: #2d3748;
             }
             
             QCheckBox {
-                color: #f8f9fa;
+                color: #2d3748;
                 font-size: 13px;
-                spacing: 8px;
             }
             
             QCheckBox::indicator {
                 width: 18px;
                 height: 18px;
                 border-radius: 3px;
-                border: 2px solid #0099cc;
-                background-color: #2d2d2d;
+                border: 2px solid #e2e8f0;
+                background-color: white;
             }
             
             QCheckBox::indicator:checked {
-                background-color: #00d4ff;
-                border-color: #00d4ff;
+                background-color: #4a90e2;
+                border-color: #4a90e2;
             }
             
             QScrollArea {
                 border: none;
-                background-color: #1a1a1a;
-            }
-            
-            QScrollBar:vertical {
-                background-color: #2d2d2d;
-                width: 16px;
-                border-radius: 8px;
-            }
-            
-            QScrollBar::handle:vertical {
-                background-color: #00d4ff;
-                border-radius: 6px;
-                min-height: 20px;
-                margin: 2px;
-            }
-            
-            QScrollBar::handle:vertical:hover {
-                background-color: #bf40ff;
-            }
-            
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                height: 0px;
-            }
-            
-            QScrollBar:horizontal {
-                background-color: #2d2d2d;
-                height: 16px;
-                border-radius: 8px;
-            }
-            
-            QScrollBar::handle:horizontal {
-                background-color: #00d4ff;
-                border-radius: 6px;
-                min-width: 20px;
-                margin: 2px;
-            }
-            
-            QScrollBar::handle:horizontal:hover {
-                background-color: #bf40ff;
-            }
-            
-            QProgressBar {
-                border: 2px solid #0099cc;
-                border-radius: 6px;
-                text-align: center;
-                background-color: #2d2d2d;
-                color: #f8f9fa;
-            }
-            
-            QProgressBar::chunk {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #00d4ff, stop:1 #bf40ff);
-                border-radius: 4px;
-            }
-            
-            QLabel {
-                color: #f8f9fa;
                 background-color: transparent;
             }
             
-            QFrame {
-                background-color: #2d2d2d;
-                border: 1px solid #3d3d3d;
+            QProgressBar {
+                border: 2px solid #e2e8f0;
+                border-radius: 6px;
+                text-align: center;
+                background-color: #f7fafc;
+            }
+            
+            QProgressBar::chunk {
+                background-color: #4a90e2;
                 border-radius: 4px;
-            }
-        """)
-
-    def apply_google_button_style(self, button):
-        """Apply Google branding to OAuth button."""
-        try:
-            google_logo_path = resource_path("img/google_logo.png")
-            if os.path.exists(google_logo_path):
-                button.setIcon(QIcon(google_logo_path))
-                button.setIconSize(QSize(20, 20))
-        except Exception:
-            pass
-        
-        button.setStyleSheet("""
-            QPushButton {
-                background-color: #4285f4;
-                border: 1px solid #4285f4;
-                border-radius: 4px;
-                color: white;
-                font-family: 'Roboto', sans-serif;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 10px 24px;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background-color: #357ae8;
-                border-color: #357ae8;
-            }
-            QPushButton:pressed {
-                background-color: #2d5aa0;
-            }
-            QPushButton:disabled {
-                background-color: #9aa0a6;
-                border-color: #9aa0a6;
-                color: #f8f9fa;
             }
         """)
 
