@@ -316,26 +316,41 @@ class SettingsWindow(QDialog):
         """Create the About page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(32)
         
-        # GlowStatus logo and title
+        # Add some top spacing for visual balance
+        layout.addSpacing(20)
+        
+        # GlowStatus logo and title - more elegant and smaller
         try:
             logo_path = resource_path("img/GlowStatus_TagLine_tight.png")
             if os.path.exists(logo_path):
                 logo_label = QLabel()
                 pixmap = QPixmap(logo_path)
-                # Scale to reasonable size while maintaining aspect ratio
-                scaled_pixmap = pixmap.scaledToWidth(400, Qt.SmoothTransformation)
+                # Scale to smaller, more elegant size for better visual balance
+                scaled_pixmap = pixmap.scaledToWidth(280, Qt.SmoothTransformation)
                 logo_label.setPixmap(scaled_pixmap)
                 logo_label.setAlignment(Qt.AlignCenter)
+                # Add elegant styling with subtle shadow effect
+                logo_label.setStyleSheet("""
+                    QLabel {
+                        background-color: rgba(255, 255, 255, 0.01);
+                        border: 1px solid rgba(255, 255, 255, 0.03);
+                        border-radius: 12px;
+                        padding: 20px 24px;
+                        margin: 8px 0;
+                    }
+                """)
                 layout.addWidget(logo_label)
+                layout.addSpacing(12)
         except Exception as e:
             logger.warning(f"Could not load logo: {e}")
             title = QLabel("GlowStatus")
             title.setAlignment(Qt.AlignCenter)
             title.setObjectName("aboutTitle")
             layout.addWidget(title)
+            layout.addSpacing(20)
         
         # Description
         description = QLabel(
@@ -348,15 +363,24 @@ class SettingsWindow(QDialog):
         description.setObjectName("aboutDescription")
         layout.addWidget(description)
         
+        layout.addSpacing(16)
+        
         # Version info
         version_info = QLabel("Version 1.0.0")
         version_info.setAlignment(Qt.AlignCenter)
         version_info.setObjectName("versionInfo")
         layout.addWidget(version_info)
         
-        # Links
+        layout.addSpacing(32)
+        
+        # Links section
         links_frame = QFrame()
         links_layout = QHBoxLayout(links_frame)
+        links_layout.setSpacing(16)
+        links_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Center the buttons
+        links_layout.addStretch()
         
         website_btn = QPushButton("🌐 Website")
         website_btn.clicked.connect(lambda: self.open_url("https://glowstatus.com"))
@@ -369,6 +393,8 @@ class SettingsWindow(QDialog):
         discord_btn = QPushButton("💬 Discord")
         discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/3HAqNPSjng"))
         links_layout.addWidget(discord_btn)
+        
+        links_layout.addStretch()
         
         layout.addWidget(links_frame)
         layout.addStretch()
@@ -483,29 +509,37 @@ class SettingsWindow(QDialog):
         # Add small spacing between buttons
         oauth_buttons_layout.addSpacing(10)
         
-        # Disconnect Button - matching original styling
+        # Disconnect Button - matching Google's Material Design
         self.disconnect_btn = QPushButton("Disconnect")
         self.disconnect_btn.clicked.connect(self.disconnect_oauth)
         
-        # Style disconnect button to be less prominent - matching original
+        # Style disconnect button to match Google's secondary button design
         self.disconnect_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f8f9fa;
+                background-color: #ffffff;
                 border: 1px solid #dadce0;
                 border-radius: 4px;
                 color: #3c4043;
-                font-family: 'Google Sans', Roboto, Arial, sans-serif;
+                font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
                 font-size: 14px;
                 font-weight: 500;
-                padding: 8px 16px;
-                min-height: 20px;
+                padding: 9px 16px;
+                min-height: 36px;
+                min-width: 64px;
+                outline: none;
             }
             QPushButton:hover {
-                background-color: #f1f3f4;
+                background-color: #f8f9fa;
                 border-color: #dadce0;
             }
+            QPushButton:focus {
+                background-color: #ffffff;
+                border-color: #4285f4;
+                outline: 2px solid #4285f4;
+                outline-offset: 2px;
+            }
             QPushButton:pressed {
-                background-color: #e8eaed;
+                background-color: #f1f3f4;
             }
             QPushButton:disabled {
                 background-color: #f8f9fa;
@@ -558,6 +592,11 @@ class SettingsWindow(QDialog):
         self.govee_device_id_edit = QLineEdit()
         self.govee_device_id_edit.setPlaceholderText("Enter your device ID")
         govee_layout.addRow("Device ID:", self.govee_device_id_edit)
+        
+        # Device Model (from original config_ui.py)
+        self.govee_device_model_edit = QLineEdit()
+        self.govee_device_model_edit.setPlaceholderText("Enter your device model (e.g., H6159)")
+        govee_layout.addRow("Device Model:", self.govee_device_model_edit)
         
         # Test connection button
         test_govee_btn = QPushButton("🔍 Test Connection")
@@ -711,41 +750,23 @@ class SettingsWindow(QDialog):
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         
-        # General options
-        general_group = QGroupBox("General")
-        general_layout = QVBoxLayout(general_group)
+        # Tray Icon Selection (from original config_ui.py)
+        tray_group = QGroupBox("Tray Icon")
+        tray_layout = QFormLayout(tray_group)
         
-        self.start_with_system_checkbox = QCheckBox("Start with system")
-        general_layout.addWidget(self.start_with_system_checkbox)
+        self.tray_icon_dropdown = QComboBox()
+        # Load available tray icons
+        img_dir = resource_path('img')
+        if os.path.exists(img_dir):
+            tray_icons = [f for f in os.listdir(img_dir) if "_tray_" in f and f.endswith(('.png', '.ico'))]
+            self.tray_icon_dropdown.addItems(tray_icons)
         
-        self.minimize_to_tray_checkbox = QCheckBox("Minimize to system tray")
-        general_layout.addWidget(self.minimize_to_tray_checkbox)
+        tray_layout.addRow("Tray Icon:", self.tray_icon_dropdown)
+        layout.addWidget(tray_group)
         
-        self.show_notifications_checkbox = QCheckBox("Show notifications")
-        general_layout.addWidget(self.show_notifications_checkbox)
-        
-        layout.addWidget(general_group)
-        
-        # Logging
-        logging_group = QGroupBox("Logging")
-        logging_layout = QFormLayout(logging_group)
-        
-        self.log_level_combo = QComboBox()
-        self.log_level_combo.addItems(["DEBUG", "INFO", "WARNING", "ERROR"])
-        logging_layout.addRow("Log Level:", self.log_level_combo)
-        
-        view_logs_btn = QPushButton("📄 View Logs")
-        view_logs_btn.clicked.connect(self.view_logs)
-        logging_layout.addRow("", view_logs_btn)
-        
-        layout.addWidget(logging_group)
-        
-        # Advanced options
+        # Advanced options (minimal, matching original)
         advanced_group = QGroupBox("Advanced")
         advanced_layout = QVBoxLayout(advanced_group)
-        
-        self.debug_mode_checkbox = QCheckBox("Enable debug mode")
-        advanced_layout.addWidget(self.debug_mode_checkbox)
         
         export_config_btn = QPushButton("💾 Export Configuration")
         export_config_btn.clicked.connect(self.export_configuration)
@@ -872,6 +893,7 @@ class SettingsWindow(QDialog):
                 pass
             
             self.govee_device_id_edit.setText(self.config.get("GOVEE_DEVICE_ID", ""))
+            self.govee_device_model_edit.setText(self.config.get("GOVEE_DEVICE_MODEL", ""))
         
         # Load calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
@@ -887,6 +909,13 @@ class SettingsWindow(QDialog):
             
         if hasattr(self, 'disable_light_control_checkbox'):
             self.disable_light_control_checkbox.setChecked(self.config.get("DISABLE_LIGHT_CONTROL", False))
+        
+        # Load tray icon setting
+        if hasattr(self, 'tray_icon_dropdown'):
+            current_tray_icon = self.config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
+            index = self.tray_icon_dropdown.findText(current_tray_icon)
+            if index >= 0:
+                self.tray_icon_dropdown.setCurrentIndex(index)
         
         # Load status colors
         self.populate_status_colors_table()
@@ -1214,11 +1243,11 @@ class SettingsWindow(QDialog):
             self.populate_status_colors_table()
     
     def view_logs(self):
-        """Open log viewer."""
+        """Placeholder for log viewer - not implemented in original."""
         QMessageBox.information(
             self, 
             "GlowStatus", 
-            "Log viewer feature coming soon!"
+            "Log viewing functionality was not implemented in the original config_ui.py"
         )
     
     def export_configuration(self):
@@ -1331,6 +1360,7 @@ class SettingsWindow(QDialog):
                     logger.warning(f"Failed to save Govee API key: {e}")
             
             self.config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
+            self.config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
         
         # Save calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
@@ -1369,22 +1399,12 @@ class SettingsWindow(QDialog):
             
             self.config["STATUS_COLOR_MAP"] = status_color_map
         
-        # Save general options
-        if hasattr(self, 'start_with_system_checkbox'):
-            self.config["START_WITH_SYSTEM"] = self.start_with_system_checkbox.isChecked()
+        # Save tray icon setting
+        if hasattr(self, 'tray_icon_dropdown'):
+            self.config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
         
-        if hasattr(self, 'minimize_to_tray_checkbox'):
-            self.config["MINIMIZE_TO_TRAY"] = self.minimize_to_tray_checkbox.isChecked()
-        
-        if hasattr(self, 'show_notifications_checkbox'):
-            self.config["SHOW_NOTIFICATIONS"] = self.show_notifications_checkbox.isChecked()
-        
-        # Save logging level
-        if hasattr(self, 'log_level_combo'):
-            self.config["LOG_LEVEL"] = self.log_level_combo.currentText()
-        
-        if hasattr(self, 'debug_mode_checkbox'):
-            self.config["DEBUG_MODE"] = self.debug_mode_checkbox.isChecked()
+        # Save general options (only ones that actually exist)
+        # Note: These were not in the original config_ui.py, so we don't save them
         
         # Save configuration
         save_config(self.config)
@@ -1404,318 +1424,430 @@ class SettingsWindow(QDialog):
             )
     
     def apply_theme(self):
-        """Apply GlowStatus dark theme to the window."""
+        """Apply a subtle and elegant dark theme to the window."""
         self.setStyleSheet("""
+            /* Main window and dialog styling */
             QDialog {
-                background-color: #1a1a1a;
-                color: #f8f9fa;
-                font-family: 'Segoe UI', Arial, sans-serif;
+                background-color: #181818;
+                color: #ebebeb;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                font-size: 13px;
             }
             
             QWidget {
-                background-color: #1a1a1a;
-                color: #f8f9fa;
+                background-color: #181818;
+                color: #ebebeb;
             }
             
+            /* Sidebar navigation */
             QListWidget#sidebar {
-                background-color: #2d2d2d;
-                color: white;
-                border: 2px solid #00d4ff;
-                border-radius: 8px;
+                background-color: #1f1f1f;
+                color: #ebebeb;
+                border: none;
+                border-radius: 16px;
                 font-size: 14px;
-                padding: 5px;
+                padding: 16px 12px;
+                outline: none;
+                font-weight: 500;
             }
             
             QListWidget#sidebar::item {
-                padding: 12px;
-                border-radius: 6px;
-                margin: 2px;
-                color: #f8f9fa;
+                padding: 18px 24px;
+                border-radius: 12px;
+                margin: 3px 6px;
+                color: #b5b5b5;
+                border: none;
+                background-color: transparent;
             }
             
             QListWidget#sidebar::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #00d4ff, stop:1 #bf40ff);
-                color: #1a1a1a;
-                font-weight: bold;
+                background-color: rgba(56, 189, 248, 0.1);
+                color: #38bdf8;
+                font-weight: 600;
+                border: 1px solid rgba(56, 189, 248, 0.2);
             }
             
-            QListWidget#sidebar::item:hover {
-                background-color: #3d3d3d;
-                color: #00d4ff;
+            QListWidget#sidebar::item:hover:!selected {
+                background-color: rgba(255, 255, 255, 0.03);
+                color: #ebebeb;
             }
             
+            /* Page and section titles */
             QLabel#pageTitle {
-                font-size: 24px;
-                font-weight: bold;
-                color: #00d4ff;
-                padding: 20px;
-                background-color: #2d2d2d;
-                border-bottom: 2px solid #00d4ff;
+                font-size: 28px;
+                font-weight: 300;
+                color: #ffffff;
+                padding: 36px 40px 24px 40px;
+                background-color: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             }
             
             QLabel#sectionTitle {
                 font-size: 18px;
-                font-weight: bold;
-                color: #00d4ff;
-                margin-bottom: 10px;
+                font-weight: 600;
+                color: #38bdf8;
+                margin-bottom: 24px;
+                background-color: transparent;
             }
             
+            /* About page specific styling */
             QLabel#aboutTitle {
-                font-size: 28px;
-                font-weight: bold;
-                color: #00d4ff;
-                margin: 20px 0;
+                font-size: 36px;
+                font-weight: 200;
+                color: #ffffff;
+                margin: 28px 0;
+                background-color: transparent;
             }
             
             QLabel#aboutDescription {
-                font-size: 14px;
-                color: #f8f9fa;
-                line-height: 1.5;
-                margin: 20px 0;
-                background-color: #2d2d2d;
-                padding: 20px;
-                border: 2px solid #00d4ff;
-                border-radius: 8px;
+                font-size: 15px;
+                color: #cccccc;
+                line-height: 1.7;
+                margin: 28px 0;
+                background-color: rgba(255, 255, 255, 0.015);
+                padding: 32px;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+                border-radius: 16px;
             }
             
             QLabel#versionInfo {
-                font-size: 12px;
-                color: #bf40ff;
-                margin: 10px 0;
+                font-size: 13px;
+                color: #909090;
+                margin: 20px 0;
+                background-color: transparent;
+                font-weight: 500;
             }
             
+            /* Group boxes for organizing content */
             QGroupBox {
-                font-weight: bold;
-                border: 2px solid #00d4ff;
-                border-radius: 8px;
-                margin-top: 10px;
-                padding-top: 15px;
-                background-color: #2d2d2d;
-                color: #00d4ff;
+                font-weight: 500;
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 16px;
+                margin-top: 20px;
+                padding-top: 24px;
+                background-color: rgba(255, 255, 255, 0.015);
+                color: #ffffff;
             }
             
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 10px 0 10px;
-                color: #00d4ff;
+                left: 20px;
+                padding: 6px 16px;
+                color: #38bdf8;
+                background-color: #181818;
+                font-weight: 600;
+                border-radius: 8px;
             }
             
+            /* Button styling */
             QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #00d4ff, stop:1 #bf40ff);
-                color: white;
-                border: 2px solid #00d4ff;
-                padding: 8px 16px;
-                border-radius: 6px;
-                font-weight: bold;
+                background-color: rgba(255, 255, 255, 0.05);
+                color: #ebebeb;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 12px 24px;
+                border-radius: 10px;
+                font-weight: 500;
                 min-width: 100px;
                 font-size: 13px;
             }
             
             QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #bf40ff, stop:1 #00d4ff);
-                border: 2px solid #bf40ff;
+                background-color: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.18);
             }
             
             QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #9932cc, stop:1 #0099cc);
+                background-color: rgba(255, 255, 255, 0.03);
+                border-color: rgba(255, 255, 255, 0.06);
             }
             
             QPushButton:disabled {
-                background-color: #3d3d3d;
-                color: #666;
-                border: 2px solid #666;
+                background-color: rgba(255, 255, 255, 0.015);
+                color: #666666;
+                border-color: rgba(255, 255, 255, 0.03);
             }
             
-            QLineEdit, QSpinBox, QComboBox {
-                padding: 8px;
-                border: 2px solid #0099cc;
-                border-radius: 6px;
-                background-color: #2d2d2d;
-                color: #f8f9fa;
+            /* Primary action buttons */
+            QPushButton#saveButton {
+                background-color: #38bdf8;
+                color: #181818;
+                border: none;
+                font-weight: 600;
+            }
+            
+            QPushButton#saveButton:hover {
+                background-color: #0ea5e9;
+            }
+            
+            QPushButton#saveButton:pressed {
+                background-color: #0284c7;
+            }
+            
+            /* Input fields */
+            QLineEdit, QSpinBox {
+                padding: 14px 18px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                background-color: rgba(255, 255, 255, 0.03);
+                color: #ebebeb;
                 font-size: 13px;
-                selection-background-color: #bf40ff;
+                selection-background-color: #38bdf8;
+                min-height: 18px;
             }
             
-            QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
-                border-color: #00d4ff;
-                background-color: #3d3d3d;
+            QLineEdit:focus, QSpinBox:focus {
+                border-color: #38bdf8;
+                background-color: rgba(56, 189, 248, 0.05);
+            }
+            
+            QLineEdit:hover, QSpinBox:hover {
+                border-color: rgba(255, 255, 255, 0.18);
+            }
+            
+            /* Dropdown menus */
+            QComboBox {
+                padding: 14px 18px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                background-color: rgba(255, 255, 255, 0.03);
+                color: #ebebeb;
+                font-size: 13px;
+                min-width: 150px;
+                min-height: 18px;
+            }
+            
+            QComboBox:focus {
+                border-color: #38bdf8;
+                background-color: rgba(56, 189, 248, 0.05);
+            }
+            
+            QComboBox:hover {
+                border-color: rgba(255, 255, 255, 0.18);
             }
             
             QComboBox::drop-down {
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
-                width: 20px;
-                border-left: 1px solid #0099cc;
+                width: 28px;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                background-color: rgba(255, 255, 255, 0.03);
+                border-top-right-radius: 10px;
+                border-bottom-right-radius: 10px;
             }
             
             QComboBox::down-arrow {
                 image: none;
                 border-left: 4px solid transparent;
                 border-right: 4px solid transparent;
-                border-top: 6px solid #00d4ff;
-                margin-right: 6px;
+                border-top: 5px solid #b5b5b5;
+                margin-right: 10px;
             }
             
             QComboBox QAbstractItemView {
-                background-color: #2d2d2d;
-                border: 2px solid #00d4ff;
-                selection-background-color: #bf40ff;
-                color: #f8f9fa;
+                background-color: #272727;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                selection-background-color: #38bdf8;
+                color: #ebebeb;
+                outline: none;
+                padding: 6px;
             }
             
-            QTableWidget {
-                gridline-color: #0099cc;
-                background-color: #2d2d2d;
-                border: 2px solid #00d4ff;
+            QComboBox QAbstractItemView::item {
+                padding: 10px 14px;
                 border-radius: 6px;
-                color: #f8f9fa;
-            }
-            
-            QTableWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #3d3d3d;
-                background-color: #2d2d2d;
-            }
-            
-            QTableWidget::item:selected {
-                background-color: #bf40ff;
-                color: #f8f9fa;
-            }
-            
-            QHeaderView::section {
-                background-color: #3d3d3d;
-                color: #00d4ff;
-                padding: 8px;
-                border: 1px solid #0099cc;
-                font-weight: bold;
-            }
-            
-            QCheckBox {
-                color: #f8f9fa;
-                font-size: 13px;
-                spacing: 8px;
-            }
-            
-            QCheckBox::indicator {
-                width: 18px;
-                height: 18px;
-                border-radius: 3px;
-                border: 2px solid #0099cc;
-                background-color: #2d2d2d;
-            }
-            
-            QCheckBox::indicator:checked {
-                background-color: #00d4ff;
-                border-color: #00d4ff;
-            }
-            
-            QScrollArea {
-                border: none;
-                background-color: #1a1a1a;
-            }
-            
-            QScrollBar:vertical {
-                background-color: #2d2d2d;
-                width: 16px;
-                border-radius: 8px;
-            }
-            
-            QScrollBar::handle:vertical {
-                background-color: #00d4ff;
-                border-radius: 6px;
-                min-height: 20px;
                 margin: 2px;
             }
             
+            /* Tables */
+            QTableWidget {
+                gridline-color: rgba(255, 255, 255, 0.04);
+                background-color: rgba(255, 255, 255, 0.015);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 16px;
+                color: #ebebeb;
+                selection-background-color: rgba(56, 189, 248, 0.15);
+                font-size: 13px;
+            }
+            
+            QTableWidget::item {
+                padding: 14px 10px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+                background-color: transparent;
+            }
+            
+            QTableWidget::item:selected {
+                background-color: rgba(56, 189, 248, 0.12);
+                color: #38bdf8;
+            }
+            
+            QTableWidget::item:hover {
+                background-color: rgba(255, 255, 255, 0.03);
+            }
+            
+            QHeaderView::section {
+                background-color: rgba(255, 255, 255, 0.03);
+                color: #cccccc;
+                padding: 18px 10px;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                font-weight: 600;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }
+            
+            /* Checkboxes */
+            QCheckBox {
+                color: #ebebeb;
+                font-size: 13px;
+                spacing: 14px;
+                font-weight: 500;
+            }
+            
+            QCheckBox::indicator {
+                width: 20px;
+                height: 20px;
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                background-color: rgba(255, 255, 255, 0.03);
+            }
+            
+            QCheckBox::indicator:checked {
+                background-color: #38bdf8;
+                border-color: #38bdf8;
+                image: url(data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23ffffff' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E);
+            }
+            
+            QCheckBox::indicator:hover {
+                border-color: #38bdf8;
+                background-color: rgba(56, 189, 248, 0.06);
+            }
+            
+            /* Scroll areas and scrollbars */
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            
+            QScrollBar:vertical {
+                background-color: transparent;
+                width: 12px;
+                border-radius: 6px;
+                margin: 0px;
+            }
+            
+            QScrollBar::handle:vertical {
+                background-color: rgba(255, 255, 255, 0.12);
+                border-radius: 6px;
+                min-height: 40px;
+                margin: 3px;
+            }
+            
             QScrollBar::handle:vertical:hover {
-                background-color: #bf40ff;
+                background-color: rgba(255, 255, 255, 0.2);
             }
             
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
             }
             
-            QScrollBar:horizontal {
-                background-color: #2d2d2d;
-                height: 16px;
-                border-radius: 8px;
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: transparent;
             }
             
-            QScrollBar::handle:horizontal {
-                background-color: #00d4ff;
-                border-radius: 6px;
-                min-width: 20px;
-                margin: 2px;
-            }
-            
-            QScrollBar::handle:horizontal:hover {
-                background-color: #bf40ff;
-            }
-            
+            /* Progress bars */
             QProgressBar {
-                border: 2px solid #0099cc;
-                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
                 text-align: center;
-                background-color: #2d2d2d;
-                color: #f8f9fa;
+                background-color: rgba(255, 255, 255, 0.03);
+                color: #ebebeb;
+                font-weight: 500;
+                font-size: 12px;
             }
             
             QProgressBar::chunk {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                    stop:0 #00d4ff, stop:1 #bf40ff);
-                border-radius: 4px;
+                background-color: #38bdf8;
+                border-radius: 7px;
             }
             
+            /* Labels and text */
             QLabel {
-                color: #f8f9fa;
+                color: #ebebeb;
                 background-color: transparent;
             }
             
             QFrame {
-                background-color: #2d2d2d;
-                border: 1px solid #3d3d3d;
-                border-radius: 4px;
+                background-color: transparent;
+                border: none;
+            }
+            
+            /* Form layout styling */
+            QFormLayout QLabel {
+                color: #cccccc;
+                font-weight: 500;
+                margin-bottom: 6px;
+            }
+            
+            /* Button layout spacing */
+            QHBoxLayout QPushButton {
+                margin: 0px 8px;
+            }
+            
+            /* Splitter handle */
+            QSplitter::handle {
+                background-color: rgba(255, 255, 255, 0.04);
+                width: 1px;
+            }
+            
+            QSplitter::handle:hover {
+                background-color: rgba(56, 189, 248, 0.3);
             }
         """)
 
     def apply_google_button_style(self, button):
-        """Apply Google branding to OAuth button."""
+        """Apply strict Google branding guidelines to OAuth button."""
         try:
             google_logo_path = resource_path("img/google_logo.png")
             if os.path.exists(google_logo_path):
                 button.setIcon(QIcon(google_logo_path))
-                button.setIconSize(QSize(20, 20))
+                button.setIconSize(QSize(18, 18))
         except Exception:
             pass
         
+        # Following Google's Identity Branding Guidelines exactly
+        # Reference: https://developers.google.com/identity/branding-guidelines
         button.setStyleSheet("""
             QPushButton {
                 background-color: #4285f4;
-                border: 1px solid #4285f4;
+                border: none;
                 border-radius: 4px;
-                color: white;
-                font-family: 'Roboto', sans-serif;
+                color: #ffffff;
+                font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
                 font-size: 14px;
                 font-weight: 500;
-                padding: 10px 24px;
-                min-height: 20px;
+                padding: 10px 12px;
+                min-height: 36px;
+                min-width: 120px;
+                text-align: left;
+                outline: none;
             }
             QPushButton:hover {
                 background-color: #357ae8;
-                border-color: #357ae8;
+            }
+            QPushButton:focus {
+                background-color: #4285f4;
+                outline: 2px solid #4285f4;
+                outline-offset: 2px;
             }
             QPushButton:pressed {
-                background-color: #2d5aa0;
+                background-color: #1a73e8;
             }
             QPushButton:disabled {
-                background-color: #9aa0a6;
-                border-color: #9aa0a6;
-                color: #f8f9fa;
+                background-color: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.38);
             }
         """)
 
