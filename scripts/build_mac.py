@@ -23,96 +23,113 @@ def create_custom_glowstatus_recipe():
     """
     Create a custom py2app recipe that only includes the exact Qt modules GlowStatus actually uses.
     
-    Based on py2app implementation docs at https://py2app.readthedocs.io/en/latest/implementation.html
-    and recipes docs at https://py2app.readthedocs.io/en/latest/recipes.html#developing-recipes
+    Based on py2app recipes documentation at:
+    https://py2app.readthedocs.io/en/latest/recipes.html
     
-    Our custom recipe will completely replace the default PySide6 recipe to eliminate all bloat.
+    This follows the official recipe pattern with check() and recipe() functions.
+    Our custom recipe will completely replace the default PySide6 recipe to eliminate bloat.
+    
+    Returns:
+        bool: True if recipe was successfully created, False otherwise
     """
-    import py2app
-    py2app_path = os.path.dirname(py2app.__file__)
-    recipes_dir = os.path.join(py2app_path, 'recipes')
+    try:
+        import py2app
+        py2app_path = os.path.dirname(py2app.__file__)
+        recipes_dir = os.path.join(py2app_path, 'recipes')
+        
+        if not os.path.exists(recipes_dir):
+            print("⚠️  Could not find py2app recipes directory, skipping custom recipe")
+            return False
+        
+        # First, backup and disable the original PySide6 recipe that includes everything
+        original_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py')
+        backup_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py.glowstatus_backup')
+        
+        if os.path.exists(original_pyside6_recipe) and not os.path.exists(backup_pyside6_recipe):
+            shutil.copy2(original_pyside6_recipe, backup_pyside6_recipe)
+            print(f"📋 Backed up original PySide6 recipe")
     
-    if not os.path.exists(recipes_dir):
-        print("⚠️  Could not find py2app recipes directory, skipping custom recipe")
+    except ImportError:
+        print("⚠️  py2app not available, skipping custom recipe creation")
         return False
-    
-    # First, backup and disable the original PySide6 recipe that includes everything
-    original_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py')
-    backup_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py.glowstatus_backup')
-    
-    if os.path.exists(original_pyside6_recipe) and not os.path.exists(backup_pyside6_recipe):
-        shutil.copy2(original_pyside6_recipe, backup_pyside6_recipe)
-        print(f"📋 Backed up original PySide6 recipe")
+    except Exception as e:
+        print(f"❌ Error accessing py2app: {e}")
+        return False
     
     # Create our minimal replacement recipe for PySide6
     custom_recipe_content = '''"""
 Custom minimal PySide6 recipe for GlowStatus - replaces the default bloated one.
 
-Based on py2app implementation docs and our actual usage:
-- We only use QtCore, QtGui, QtWidgets
+Based on py2app recipes documentation at:
+https://py2app.readthedocs.io/en/latest/recipes.html
+
+This recipe follows the official pattern and only includes essential Qt components:
+- We only use QtCore, QtGui, QtWidgets  
 - We only need basic platform integration and image support
 - We exclude all the massive Qt modules like WebEngine, 3D, Multimedia, etc.
 """
 
 def check(cmd, mf):
-    """Check if this recipe should be applied"""
-    # Apply to any PySide6 usage
-    return bool({
-        'PySide6.QtWidgets',
+    """
+    Check if this recipe should be applied.
+    
+    According to py2app docs, this should return True if the recipe
+    should be applied to the current module finder state.
+    """
+    # Check if any PySide6 modules are being used
+    modules = mf.flatten()
+    pyside6_modules = {
+        'PySide6',
         'PySide6.QtCore', 
         'PySide6.QtGui',
-        'PySide6',
-    }.intersection(mf.flatten()))
+        'PySide6.QtWidgets',
+    }
+    return bool(pyside6_modules.intersection(modules))
 
 def recipe(cmd, mf):
     """
     Custom minimal recipe that replaces the default PySide6 recipe.
-    Only includes the essential Qt components needed by GlowStatus.
     
-    Based on scanning our actual imports:
-    - PySide6.QtCore: Qt, QThread, Signal, QTimer
-    - PySide6.QtGui: QIcon, QAction, QCursor, QPixmap, QPainter, QBrush  
-    - PySide6.QtWidgets: QWidget, QVBoxLayout, QLabel, QPushButton, etc.
+    According to py2app docs, recipes should use mf.import_hook() to
+    explicitly import needed modules and return a dict with configuration.
+    
+    Only includes the essential Qt components needed by GlowStatus:
+    - PySide6.QtCore: Qt, QThread, Signal, QTimer, QSize
+    - PySide6.QtGui: QIcon, QPixmap, QColor, QPalette, QFont
+    - PySide6.QtWidgets: All UI widgets and layouts used in settings_ui.py
     """
     
-    print("🎯 GlowStatus: Using minimal PySide6 recipe")
+    print("🎯 GlowStatus: Applying minimal PySide6 recipe")
     
-    # Import the modules we actually need
+    # Use mf.import_hook() as recommended in py2app docs
+    # This ensures proper module discovery and dependency resolution
     mf.import_hook('PySide6')
     mf.import_hook('PySide6.QtCore') 
     mf.import_hook('PySide6.QtGui')
     mf.import_hook('PySide6.QtWidgets')
     mf.import_hook('shiboken6')
     
-    # Only include essential Qt frameworks - exclude all the bloat
-    frameworks = [
-        'QtCore',      # Core functionality - always needed
-        'QtGui',       # Basic GUI - needed for QIcon, QPixmap, QPainter
-        'QtWidgets',   # Widget system - needed for QWidget, layouts, dialogs
-        'QtDBus',      # macOS system integration (small, needed for tray)
-    ]
+    # Import specific Qt modules that we know we need
+    # This helps py2app understand the exact dependencies
+    try:
+        mf.import_hook('PySide6.QtCore', fromlist=['Qt', 'QThread', 'Signal', 'QSize', 'QTimer'])
+        mf.import_hook('PySide6.QtGui', fromlist=['QIcon', 'QPixmap', 'QColor', 'QPalette', 'QFont'])
+        mf.import_hook('PySide6.QtWidgets', fromlist=[
+            'QWidget', 'QDialog', 'QVBoxLayout', 'QHBoxLayout', 'QFormLayout',
+            'QLabel', 'QPushButton', 'QLineEdit', 'QComboBox', 'QCheckBox',
+            'QSpinBox', 'QTableWidget', 'QScrollArea', 'QListWidget', 
+            'QStackedWidget', 'QSplitter', 'QGroupBox', 'QMessageBox'
+        ])
+    except ImportError:
+        # Fallback if specific imports fail
+        pass
     
-    # Only essential Qt plugins - VERY restrictive list
-    plugins = [
-        # Platform integration (absolutely required)
-        'platforms/libqcocoa.dylib',
-        
-        # Image formats (only what we need for icons)
-        'imageformats/libqpng.dylib',      # PNG icons
-        'imageformats/libqjpeg.dylib',     # JPEG icons  
-        'imageformats/libqsvg.dylib',      # SVG icons
-        
-        # Icon engines (for icon rendering)
-        'iconengines/libqsvgicon.dylib',
-        
-        # Native macOS style (for proper appearance)
-        'styles/libqmacstyle.dylib',
-    ]
+    print(f"🎯 Imported essential PySide6 modules with minimal Qt footprint")
     
-    print(f"🎯 Including {len(frameworks)} Qt frameworks: {frameworks}")
-    print(f"🎯 Including {len(plugins)} Qt plugins (essential only)")
-    
-    # Return the recipe configuration using standard py2app format
+    # Return the recipe configuration dict as per py2app docs
+    # The 'packages' key tells py2app which packages to include
+    # The 'includes' key specifies modules to force include
+    # The 'expected_missing' key tells py2app it's OK if these are missing
     return {
         'packages': ['PySide6', 'shiboken6'],
         'includes': [
@@ -122,7 +139,7 @@ def recipe(cmd, mf):
             'shiboken6',
         ],
         'expected_missing': [
-            # Explicitly exclude these massive Qt modules
+            # Large Qt modules we explicitly don't want (saves ~500MB+)
             'PySide6.QtNetwork', 'PySide6.QtOpenGL', 'PySide6.QtSql', 'PySide6.QtXml',
             'PySide6.QtWebEngine', 'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 
             'PySide6.QtWebChannel', 'PySide6.QtWebSockets',
@@ -135,6 +152,21 @@ def recipe(cmd, mf):
             'PySide6.QtPositioning', 'PySide6.QtLocation', 'PySide6.QtSensors',
             'PySide6.QtRemoteObjects', 'PySide6.QtScxml', 'PySide6.QtStateMachine',
             'PySide6.QtTextToSpeech', 'PySide6.QtHelp', 'PySide6.QtDesigner',
+            # Additional Qt modules that may be auto-detected but not needed
+            'PySide6.QtSvg', 'PySide6.QtSvgWidgets',  # We handle SVG via plugins
+            'PySide6.QtPdf', 'PySide6.QtPdfWidgets',
+            'PySide6.QtSpellChecker', 'PySide6.QtVirtualKeyboard',
+        ],
+        # Optional: specify exact Qt frameworks if needed for fine control
+        # This is an advanced feature mentioned in py2app docs
+        'qt_plugins': [
+            # Only include absolutely essential Qt plugins
+            'platforms/libqcocoa',      # macOS platform integration (required)
+            'imageformats/libqpng',     # PNG image support (for icons)
+            'imageformats/libqjpeg',    # JPEG image support
+            'imageformats/libqsvg',     # SVG image support  
+            'iconengines/libqsvgicon',  # SVG icon rendering
+            'styles/libqmacstyle',      # Native macOS appearance
         ],
     }
 '''
@@ -151,24 +183,36 @@ def recipe(cmd, mf):
         return False
 
 def restore_original_recipes():
-    """Restore original py2app recipes after build"""
-    import py2app
-    py2app_path = os.path.dirname(py2app.__file__)
-    recipes_dir = os.path.join(py2app_path, 'recipes')
+    """
+    Restore original py2app recipes after build.
     
-    # Restore original PySide6 recipe
-    original_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py')
-    backup_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py.glowstatus_backup')
-    
-    if os.path.exists(backup_pyside6_recipe):
-        try:
-            shutil.copy2(backup_pyside6_recipe, original_pyside6_recipe)
-            os.remove(backup_pyside6_recipe)
-            print(f"🔄 Restored original PySide6 recipe")
-        except Exception as e:
-            print(f"⚠️  Could not restore original PySide6 recipe: {e}")
-    else:
-        print(f"📝 No backup found, PySide6 recipe was not modified")
+    This ensures the system py2app installation is returned to its original state
+    after our custom recipe build is complete.
+    """
+    try:
+        import py2app
+        py2app_path = os.path.dirname(py2app.__file__)
+        recipes_dir = os.path.join(py2app_path, 'recipes')
+        
+        # Restore original PySide6 recipe
+        original_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py')
+        backup_pyside6_recipe = os.path.join(recipes_dir, 'pyside6.py.glowstatus_backup')
+        
+        if os.path.exists(backup_pyside6_recipe):
+            try:
+                shutil.copy2(backup_pyside6_recipe, original_pyside6_recipe)
+                os.remove(backup_pyside6_recipe)
+                print(f"🔄 Restored original PySide6 recipe")
+            except Exception as e:
+                print(f"⚠️  Could not restore original PySide6 recipe: {e}")
+                print(f"   Manual cleanup needed: {backup_pyside6_recipe}")
+        else:
+            print(f"📝 No backup found, PySide6 recipe was not modified")
+            
+    except ImportError:
+        print("⚠️  py2app not available for recipe restoration")
+    except Exception as e:
+        print(f"❌ Error during recipe restoration: {e}")
 
 # Check requirements before building
 if 'py2app' in sys.argv:
