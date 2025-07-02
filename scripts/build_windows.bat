@@ -2,6 +2,21 @@
 echo GlowStatus Windows Build Script
 echo ================================
 
+echo Setting up Google OAuth credentials...
+if defined CLIENT_SECRET_JSON (
+    echo Creating client_secret.json from environment variable...
+    echo %CLIENT_SECRET_JSON% > resources\client_secret.json
+    echo ✓ client_secret.json created from CLIENT_SECRET_JSON
+) else (
+    if exist "resources\client_secret.json" (
+        echo ✓ Using existing client_secret.json
+    ) else (
+        echo ⚠️  Warning: No client_secret.json found
+        echo   Application may not work without Google OAuth credentials
+        echo   See resources\client_secret.json.template for format
+    )
+)
+
 echo Cleaning previous builds...
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist

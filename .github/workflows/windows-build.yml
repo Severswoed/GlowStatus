@@ -2,10 +2,11 @@ name: Windows Build and Chocolatey Package
 
 # Security Features:
 # - Only repository owner/maintainers can trigger builds
-# - No sensitive API keys or credentials used
-# - Manual approval required for publishing
+# - Google OAuth credentials stored securely in GitHub Secrets
+# - Chocolatey API key stored securely in GitHub Secrets
+# - Manual approval required for publishing (via environment protection)
 # - Artifacts auto-expire to control storage costs
-# - All operations are read-only except for GitHub releases
+# - All operations are authenticated and audited
 
 on:
   push:
@@ -41,6 +42,34 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+        
+    - name: Create Google OAuth credentials from secret
+      run: |
+        if (-not $env:CLIENT_SECRET_JSON) {
+          echo "✗ CLIENT_SECRET_JSON secret not found"
+          echo "Please add your Google OAuth client_secret.json as a GitHub secret named 'CLIENT_SECRET_JSON'"
+          exit 1
+        }
+        
+        echo "✓ Creating client_secret.json from GitHub secret"
+        $env:CLIENT_SECRET_JSON | Out-File -FilePath "resources/client_secret.json" -Encoding UTF8
+        
+        # Verify the file was created and contains valid JSON
+        if (Test-Path "resources/client_secret.json") {
+          try {
+            $json = Get-Content "resources/client_secret.json" | ConvertFrom-Json
+            echo "✓ client_secret.json created successfully"
+            echo "✓ Project ID: $($json.installed.project_id)"
+          } catch {
+            echo "✗ Invalid JSON in CLIENT_SECRET_JSON secret"
+            exit 1
+          }
+        } else {
+          echo "✗ Failed to create client_secret.json"
+          exit 1
+        }
+      env:
+        CLIENT_SECRET_JSON: ${{ secrets.CLIENT_SECRET_JSON }}
         
     - name: Set version from tag or input
       id: version
@@ -243,6 +272,16 @@ jobs:
         path: chocolatey/glowstatus/*.nupkg
         retention-days: 90  # Keep Chocolatey packages longer for publishing
         
+    - name: Cleanup sensitive files
+      if: always()  # Run even if previous steps failed
+      run: |
+        echo "🧹 Cleaning up sensitive files..."
+        if (Test-Path "resources/client_secret.json") {
+          Remove-Item "resources/client_secret.json" -Force
+          echo "✓ Removed client_secret.json"
+        }
+        echo "✓ Cleanup complete"
+        
     - name: Create GitHub Release
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
@@ -258,9 +297,10 @@ jobs:
           ```
           choco install glowstatus
           ```
+          *Note: Chocolatey package is automatically published and will be available after community review (usually within 24-48 hours).*
           
           **Option 2: Direct Download**
-          Download the executable from the Assets section below.
+          Download the executable from the Assets section below for immediate use.
           
           ### Features in this Release
           - Smart Presence Indicator with Govee + Google Calendar
@@ -306,24 +346,49 @@ jobs:
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
         iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
         
-    - name: Chocolatey Publishing Instructions (No Auto-Publish)
+    - name: Validate Chocolatey API Key
       run: |
-        echo "📦 Chocolatey Package Ready for Manual Publishing"
-        echo "=================================================="
+        if (-not $env:CHOCO_APIKEY) {
+          echo "✗ CHOCO_APIKEY secret not found"
+          echo "Please add your Chocolatey API key as a GitHub secret named 'CHOCO_APIKEY'"
+          exit 1
+        }
+        echo "✓ Chocolatey API key is configured"
+      env:
+        CHOCO_APIKEY: ${{ secrets.CHOCO_APIKEY }}
+        
+    - name: Publish to Chocolatey Community Repository
+      run: |
+        echo "📦 Publishing GlowStatus to Chocolatey Community Repository..."
         echo ""
-        echo "🛡️  SECURITY NOTE: This workflow does NOT automatically publish to Chocolatey."
-        echo "    No API keys are used, and no charges are incurred without manual action."
+        echo "🔑 Using API key from GitHub Secrets"
+        echo "� Package location: ./chocolatey-package/"
+        
+        # List available packages
+        $packages = Get-ChildItem ./chocolatey-package/ -Name "*.nupkg"
+        echo "Found packages: $packages"
+        
+        # Publish each package
+        foreach ($package in $packages) {
+          $packagePath = "./chocolatey-package/$package"
+          echo "Publishing: $package"
+          
+          try {
+            choco push $packagePath --source https://push.chocolatey.org/ --api-key $env:CHOCO_APIKEY
+            echo "✓ Successfully published: $package"
+          } catch {
+            echo "✗ Failed to publish: $package"
+            echo "Error: $_"
+            exit 1
+          }
+        }
+        
         echo ""
-        echo "📋 Manual Publishing Steps:"
-        echo "1. Download the .nupkg file from the GitHub Release Assets"
-        echo "2. Visit https://push.chocolatey.org/"
-        echo "3. Upload the package for community review"
-        echo "4. Package will be available after community moderation approval"
-        echo ""
-        echo "🔧 For Future Automation (Optional - Requires API Key Setup):"
-        echo "   choco push glowstatus.*.nupkg --source https://push.chocolatey.org/ --api-key [YOUR_API_KEY]"
-        echo ""
-        echo "📂 Package file location: ./chocolatey-package/"
-        Get-ChildItem ./chocolatey-package/ -Name
-        echo ""
-        echo "💰 Cost Impact: $0 - This workflow only creates packages, publishing is manual"
+        echo "🎉 Package published successfully!"
+        echo "📋 Next steps:"
+        echo "1. Package is now in Chocolatey community review queue"
+        echo "2. Community moderators will review for security and quality"
+        echo "3. Package will be available via 'choco install glowstatus' after approval"
+        echo "4. Future updates can be auto-published using this workflow"
+      env:
+        CHOCO_APIKEY: ${{ secrets.CHOCO_APIKEY }}
