@@ -1,14 +1,27 @@
 # -*- mode: python ; coding: utf-8 -*-
 import sys
 import os
+import json
 
-# Add scripts directory to path to import version utilities
-sys.path.insert(0, os.path.join(os.path.dirname(SPECPATH), 'scripts'))
-from build_helpers import get_version_string, get_version_info
+# Get version from version.json directly
+def get_version_from_json():
+    try:
+        # SPECPATH is the path to this .spec file, so the version.json is in the same directory
+        version_file = os.path.join(os.path.dirname(SPECPATH) if 'SPECPATH' in globals() else os.getcwd(), 'version.json')
+        with open(version_file, 'r') as f:
+            version_data = json.load(f)
+        
+        version_str = f"{version_data['major']}.{version_data['minor']}.{version_data['patch']}"
+        if version_data.get('pre'):
+            version_str += f"-{version_data['pre']}"
+        
+        return version_data, version_str
+    except Exception as e:
+        print(f"Warning: Could not read version.json: {e}")
+        return {"major": 2, "minor": 1, "patch": 0, "pre": ""}, "2.1.0"
 
 # Get version information
-version_info = get_version_info()
-version_string = get_version_string()
+version_info, version_string = get_version_from_json()
 
 a = Analysis(
     ['src/tray_app.py'],

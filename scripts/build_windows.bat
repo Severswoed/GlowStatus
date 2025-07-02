@@ -3,7 +3,7 @@ echo GlowStatus Windows Build Script
 echo ================================
 
 REM Get version from version.json for display
-python -c "import sys, os, json; sys.path.insert(0, os.path.join(os.path.dirname(os.getcwd()), 'scripts')); from build_helpers import get_version_string; print('Building GlowStatus version:', get_version_string())"
+python -c "import json; import os; version_file = os.path.join(os.getcwd(), 'version.json'); data = json.load(open(version_file)); version = f'{data[\"major\"]}.{data[\"minor\"]}.{data[\"patch\"]}' + (f'-{data[\"pre\"]}' if data.get('pre') else ''); print('Building GlowStatus version:', version)" 2>nul || echo Building GlowStatus...
 
 echo Setting up Google OAuth credentials...
 if defined CLIENT_SECRET_JSON (
