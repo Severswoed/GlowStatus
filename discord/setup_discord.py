@@ -17,24 +17,24 @@ CONFIG = {
     "bot_token": os.getenv("DISCORD_BOT_TOKEN"),  # Set this in your environment
     "channels": {
         "info": [
-            {"name": "welcome", "description": "🌟 Welcome to GlowStatus! React with 👋 to get verified and access all channels. Your journey to smart lighting starts here!"},
-            {"name": "rules", "description": "📋 Community guidelines and code of conduct. Be awesome, be respectful, and help us build an amazing community together."},
-            {"name": "announcements", "description": "📢 Official updates, new releases, feature announcements, and roadmap reveals. Stay in the loop with GlowStatus development!"}
+            {"name": "welcome", "description": "Quick intro + project links"},
+            {"name": "rules", "description": "Code of conduct"},
+            {"name": "announcements", "description": "Releases, roadmap updates"}
         ],
         "support": [
-            {"name": "setup-help", "description": "🔧 Stuck with installation, configuration, or API setup? Get help from the community and maintainers. No question is too basic!"},
-            {"name": "feature-requests", "description": "💡 Got ideas to make GlowStatus even better? Share your feature requests, vote on others, and shape the future of the project!"},
-            {"name": "integration-requests", "description": "🔗 Want support for your favorite smart light brand? Request integrations for Philips Hue, LIFX, Nanoleaf, and more!"}
+            {"name": "setup-help", "description": "Troubleshooting and questions"},
+            {"name": "feature-requests", "description": "Community ideas and feedback"},
+            {"name": "integration-requests", "description": "Ask for brand support"}
         ],
         "development": [
-            {"name": "dev-updates", "description": "🤖 Automated GitHub notifications for commits, PRs, releases, and issues. Watch GlowStatus development in real-time!"},
-            {"name": "cli-version-v1", "description": "💻 Discussion and support for the original CLI version of GlowStatus. Legacy users welcome!"},
-            {"name": "app-version-v2", "description": "🖥️ GUI installer, settings interface, and v2 app discussions. The future of GlowStatus user experience!"},
-            {"name": "api-dev", "description": "⚙️ API development, integrations, webhooks, and technical architecture discussions. For developers and power users."}
+            {"name": "dev-updates", "description": "Auto post from GitHub"},
+            {"name": "cli-version-v1", "description": "v1 CLI questions/support"},
+            {"name": "app-version-v2", "description": "v2 GUI installer questions/support"},
+            {"name": "api-dev", "description": "Endpoint discussion"}
         ],
         "lounge": [
-            {"name": "general", "description": "☕ Casual conversations, introductions, and off-topic discussions. Get to know the GlowStatus community!"},
-            {"name": "show-your-glow", "description": "📸 Show off your GlowStatus setup! Share photos, videos, and creative uses of your smart lighting system. Inspiration central!"}
+            {"name": "general", "description": "Chit-chat"},
+            {"name": "show-your-glow", "description": "Users post pics of their setup"}
         ]
     },
     "roles": {
@@ -68,13 +68,6 @@ CONFIG = {
         "user_id": None,  # Will be set automatically when found
         "auto_assign_admin": True
     },
-    "additional_admins": [
-        {
-            "username": "unkai.gaming_62749",  # Discord username (without @)
-            "user_id": None,  # Will be set automatically when found
-            "auto_assign_admin": True
-        }
-    ],
     "github_webhooks": {
         "enabled": True,
         "repositories": [
@@ -101,7 +94,6 @@ class GlowStatusSetup(commands.Bot):
         intents.members = True  # For member join/leave events
         intents.message_content = True  # For content filtering
         intents.moderation = True  # For auto-mod features
-        intents.reactions = True  # For reaction events
         super().__init__(command_prefix='!', intents=intents)
 
     async def on_ready(self):
@@ -149,9 +141,6 @@ class GlowStatusSetup(commands.Bot):
         
         # Setup GitHub webhooks
         await self.setup_github_webhooks(guild)
-        
-        # Send server invite to additional admins
-        await self.send_admin_invites(guild)
         
         print("Server setup complete!")
 
@@ -559,19 +548,13 @@ class GlowStatusSetup(commands.Bot):
         await ctx.send(embed=embed)
 
     async def assign_owner_privileges(self, guild):
-        """Assign admin privileges to the server owner and additional admins"""
+        """Assign admin privileges to the server owner"""
         if not CONFIG["owner"]["auto_assign_admin"]:
             return
             
-        print("Assigning owner and admin privileges...")
+        print("Assigning owner privileges...")
         
-        # Get admin role
-        admin_role = discord.utils.get(guild.roles, name=CONFIG["roles"]["admin"]["name"])
-        if not admin_role:
-            print("❌ Admin role not found!")
-            return
-        
-        # Find and assign admin to the owner
+        # Find the owner by username
         owner_member = None
         for member in guild.members:
             if member.name.lower() == CONFIG["owner"]["username"].lower():
@@ -579,35 +562,22 @@ class GlowStatusSetup(commands.Bot):
                 CONFIG["owner"]["user_id"] = member.id
                 break
         
-        if owner_member:
-            if admin_role not in owner_member.roles:
-                await owner_member.add_roles(admin_role, reason="Server owner - auto-assigned admin")
-                print(f"👑 Assigned admin privileges to {owner_member.name} (owner)")
-            else:
-                print(f"✅ {owner_member.name} (owner) already has admin privileges")
-        else:
+        if not owner_member:
             print(f"⚠️ Owner '{CONFIG['owner']['username']}' not found in server!")
+            return
         
-        # Find and assign admin to additional admins
-        for admin_config in CONFIG.get("additional_admins", []):
-            if not admin_config.get("auto_assign_admin", True):
-                continue
-                
-            admin_member = None
-            for member in guild.members:
-                if member.name.lower() == admin_config["username"].lower():
-                    admin_member = member
-                    admin_config["user_id"] = member.id
-                    break
-            
-            if admin_member:
-                if admin_role not in admin_member.roles:
-                    await admin_member.add_roles(admin_role, reason="Additional admin - auto-assigned")
-                    print(f"👑 Assigned admin privileges to {admin_member.name} (additional admin)")
-                else:
-                    print(f"✅ {admin_member.name} (additional admin) already has admin privileges")
-            else:
-                print(f"⚠️ Additional admin '{admin_config['username']}' not found in server!")
+        # Get admin role
+        admin_role = discord.utils.get(guild.roles, name=CONFIG["roles"]["admin"]["name"])
+        if not admin_role:
+            print("❌ Admin role not found!")
+            return
+        
+        # Assign admin role to owner
+        if admin_role not in owner_member.roles:
+            await owner_member.add_roles(admin_role, reason="Server owner - auto-assigned admin")
+            print(f"👑 Assigned admin privileges to {owner_member.name}")
+        else:
+            print(f"✅ {owner_member.name} already has admin privileges")
 
     async def setup_github_webhooks(self, guild):
         """Setup GitHub webhook integration"""
@@ -615,21 +585,6 @@ class GlowStatusSetup(commands.Bot):
             return
             
         print("Setting up GitHub webhooks...")
-        
-        # Load existing webhook data if it exists
-        webhook_file_path = os.path.join(os.path.dirname(__file__), "active_webhooks.json")
-        existing_webhooks = {}
-        
-        try:
-            if os.path.exists(webhook_file_path):
-                with open(webhook_file_path, 'r') as f:
-                    existing_data = json.load(f)
-                    for webhook in existing_data.get("webhooks", []):
-                        key = (webhook["repository"], webhook["channel"])
-                        existing_webhooks[key] = webhook
-                print(f"📄 Loaded {len(existing_webhooks)} existing webhooks")
-        except Exception as e:
-            print(f"⚠️ Could not load existing webhooks: {e}")
         
         # Create webhook information file
         webhook_data = {
@@ -650,45 +605,7 @@ class GlowStatusSetup(commands.Bot):
                 print(f"❌ Channel #{repo_config['channel']} not found for {repo_config['name']} webhook")
                 continue
             
-            repo_full_name = f"{repo_config['owner']}/{repo_config['name']}"
-            webhook_key = (repo_full_name, repo_config["channel"])
-            
-            # Check if webhook already exists for this repo/channel combination
-            if webhook_key in existing_webhooks:
-                existing_webhook = existing_webhooks[webhook_key]
-                
-                # Verify the webhook still exists on Discord
-                try:
-                    # Try to fetch webhooks for the channel
-                    channel_webhooks = await channel.webhooks()
-                    webhook_exists = False
-                    
-                    for webhook in channel_webhooks:
-                        if webhook.name == f"GitHub-{repo_config['name']}":
-                            # Update with current webhook info
-                            webhook_info = {
-                                "repository": repo_full_name,
-                                "channel": repo_config["channel"],
-                                "webhook_url": webhook.url,
-                                "events": repo_config["events"],
-                                "setup_date": existing_webhook.get("setup_date", datetime.now().isoformat()),
-                                "last_verified": datetime.now().isoformat()
-                            }
-                            webhook_data["webhooks"].append(webhook_info)
-                            webhook_exists = True
-                            print(f"♻️ Reusing existing webhook for {repo_full_name} -> #{repo_config['channel']}")
-                            break
-                    
-                    if webhook_exists:
-                        continue
-                    else:
-                        print(f"🔄 Existing webhook for {repo_full_name} not found in channel, creating new one...")
-                        
-                except Exception as e:
-                    print(f"⚠️ Could not verify existing webhook for {repo_full_name}: {e}")
-                    print(f"🔄 Creating new webhook...")
-            
-            # Create new webhook for the channel
+            # Create webhook for the channel
             try:
                 webhook = await channel.create_webhook(
                     name=f"GitHub-{repo_config['name']}",
@@ -696,7 +613,7 @@ class GlowStatusSetup(commands.Bot):
                 )
                 
                 webhook_info = {
-                    "repository": repo_full_name,
+                    "repository": f"{repo_config['owner']}/{repo_config['name']}",
                     "channel": repo_config["channel"],
                     "webhook_url": webhook.url,
                     "events": repo_config["events"],
@@ -704,13 +621,14 @@ class GlowStatusSetup(commands.Bot):
                 }
                 
                 webhook_data["webhooks"].append(webhook_info)
-                print(f"✅ Created new webhook for {repo_full_name} -> #{repo_config['channel']}")
+                print(f"✅ Created webhook for {repo_config['owner']}/{repo_config['name']} -> #{repo_config['channel']}")
                 
             except Exception as e:
                 print(f"❌ Error creating webhook for {repo_config['name']}: {e}")
         
         # Save webhook information to file
         try:
+            webhook_file_path = os.path.join(os.path.dirname(__file__), "active_webhooks.json")
             with open(webhook_file_path, 'w') as f:
                 json.dump(webhook_data, f, indent=2)
             print(f"📄 Webhook information saved to: {webhook_file_path}")
@@ -764,9 +682,7 @@ class GlowStatusSetup(commands.Bot):
                     "3. Paste the webhook URL above\n"
                     "4. Content type: `application/json`\n"
                     "5. Select events or use 'Just the push event'\n"
-                    "6. Click 'Add webhook'\n\n"
-                    "💡 **Smart Setup:** Existing webhooks are reused automatically!\n"
-                    "Only new webhook URLs need to be added to GitHub."
+                    "6. Click 'Add webhook'"
                 ),
                 inline=False
             )
@@ -877,294 +793,6 @@ class GlowStatusSetup(commands.Bot):
         await ctx.send(f"👑 Assigned admin privileges to {member.mention}")
         print(f"👑 {member.name} assigned admin by {ctx.author.name}")
 
-    @commands.command(name='invite_admin')
-    @commands.has_permissions(administrator=True)
-    async def invite_admin_command(self, ctx, username: str):
-        """Manually send a server invite to a potential admin"""
-        try:
-            # Create invite
-            invite = await ctx.channel.create_invite(
-                max_age=604800,  # 7 days
-                max_uses=1,
-                unique=True,
-                reason=f"Manual admin invite for {username}"
-            )
-            
-            await ctx.send(f"✅ Created invite for `{username}`: {invite.url}")
-            print(f"📋 Manual invite created for {username} by {ctx.author.name}")
-            
-        except Exception as e:
-            await ctx.send(f"❌ Error creating invite: {e}")
-
-    @commands.command(name='pending_invites')
-    @commands.has_permissions(administrator=True)
-    async def check_pending_invites(self, ctx):
-        """Check pending admin invites"""
-        try:
-            invite_file_path = os.path.join(os.path.dirname(__file__), "pending_invites.json")
-            if not os.path.exists(invite_file_path):
-                await ctx.send("❌ No pending invites found.")
-                return
-            
-            with open(invite_file_path, 'r') as f:
-                pending_invites = json.load(f)
-            
-            if not pending_invites:
-                await ctx.send("❌ No pending invites found.")
-                return
-            
-            embed = discord.Embed(
-                title="📧 Pending Admin Invites",
-                color=0xFFD700
-            )
-            
-            for invite in pending_invites:
-                embed.add_field(
-                    name=f"👤 {invite['username']}",
-                    value=(
-                        f"**Role:** {invite['role'].title()}\n"
-                        f"**Status:** {invite['status'].title()}\n"
-                        f"**Created:** {invite['created_date'][:10]}\n"
-                        f"**Invite:** {invite['invite_url']}"
-                    ),
-                    inline=True
-                )
-            
-            await ctx.send(embed=embed)
-            
-        except Exception as e:
-            await ctx.send(f"❌ Error checking pending invites: {e}")
-
-    async def send_admin_invites(self, guild):
-        """Send Discord server invite to additional admins via DM"""
-        print("Sending server invites to additional admins...")
-        
-        # Create a permanent invite link
-        try:
-            # Use the welcome channel for the invite
-            welcome_channel = discord.utils.get(guild.channels, name="welcome")
-            if not welcome_channel:
-                welcome_channel = guild.system_channel or guild.text_channels[0]
-            
-            invite = await welcome_channel.create_invite(
-                max_age=0,  # Never expires
-                max_uses=1,  # Single use for security
-                unique=True,
-                reason="Admin invite for unkai.gaming_62749"
-            )
-            
-            print(f"✅ Created invite link: {invite.url}")
-            
-            # Send DM to each additional admin
-            for admin_config in CONFIG.get("additional_admins", []):
-                username = admin_config["username"]
-                
-                # Try to find the user across all mutual servers
-                target_user = None
-                for member in self.get_all_members():
-                    if member.name.lower() == username.lower():
-                        target_user = member
-                        break
-                
-                if target_user:
-                    try:
-                        embed = discord.Embed(
-                            title="🌟 GlowStatus Discord Server Invitation",
-                            description=f"You've been invited to join the official **GlowStatus** Discord server as an admin!",
-                            color=0x00FF7F
-                        )
-                        
-                        embed.add_field(
-                            name="🔗 Server Info",
-                            value=(
-                                f"**Server:** {guild.name}\n"
-                                f"**Members:** {guild.member_count}\n"
-                                f"**Your Role:** 🛡️ Admin\n"
-                                f"**Invite:** {invite.url}"
-                            ),
-                            inline=False
-                        )
-                        
-                        embed.add_field(
-                            name="📁 What to Expect",
-                            value=(
-                                "🟢 **Info:** Welcome, rules, announcements\n"
-                                "🔧 **Support:** Help users with setup and issues\n"
-                                "🔨 **Development:** GitHub updates and tech discussion\n"
-                                "☕ **Lounge:** General community chat"
-                            ),
-                            inline=False
-                        )
-                        
-                        embed.add_field(
-                            name="👑 Admin Privileges",
-                            value=(
-                                "• Full server administration\n"
-                                "• Manage channels and roles\n"
-                                "• Moderate community discussions\n"
-                                "• Access to GitHub webhook notifications"
-                            ),
-                            inline=False
-                        )
-                        
-                        embed.set_footer(text="This invite expires after one use for security. Welcome to the team!")
-                        
-                        await target_user.send(embed=embed)
-                        print(f"📧 Sent Discord invite to {username}")
-                        
-                    except discord.Forbidden:
-                        print(f"❌ Could not send DM to {username} - they may have DMs disabled")
-                        print(f"   Manual invite needed: {invite.url}")
-                    except Exception as e:
-                        print(f"❌ Error sending invite to {username}: {e}")
-                else:
-                    print(f"⚠️ User '{username}' not found in any mutual servers")
-                    print(f"   They'll need to join manually: {invite.url}")
-                    
-                    # Save invite info for manual sharing
-                    invite_file_path = os.path.join(os.path.dirname(__file__), "pending_invites.json")
-                    pending_invites = []
-                    
-                    # Load existing pending invites
-                    if os.path.exists(invite_file_path):
-                        try:
-                            with open(invite_file_path, 'r') as f:
-                                pending_invites = json.load(f)
-                        except:
-                            pending_invites = []
-                    
-                    # Add new invite
-                    pending_invites.append({
-                        "username": username,
-                        "invite_url": invite.url,
-                        "role": "admin",
-                        "created_date": datetime.now().isoformat(),
-                        "status": "pending"
-                    })
-                    
-                    # Save updated invites
-                    with open(invite_file_path, 'w') as f:
-                        json.dump(pending_invites, f, indent=2)
-                    
-                    print(f"📄 Saved pending invite for {username} to: {invite_file_path}")
-            
-        except Exception as e:
-            print(f"❌ Error creating invite: {e}")
-
-    async def on_raw_reaction_add(self, payload):
-        """Handle reaction events (works even if message isn't in cache)"""
-        if payload.user_id == self.user.id:  # Ignore bot's own reactions
-            return
-        
-        guild = self.get_guild(payload.guild_id)
-        if not guild:
-            return
-        
-        user = guild.get_member(payload.user_id)
-        if not user:
-            return
-        
-        # Check if reaction is on welcome message
-        welcome_channel = discord.utils.get(guild.channels, name="welcome")
-        if welcome_channel and payload.channel_id == welcome_channel.id:
-            if str(payload.emoji) == "👋":
-                await self.handle_welcome_reaction(user, guild)
-
-    async def handle_welcome_reaction(self, user, guild):
-        """Handle when a user reacts with 👋 to the welcome message"""
-        try:
-            # Get the verified role
-            verified_role = discord.utils.get(guild.roles, name=CONFIG["roles"]["verified"]["name"])
-            
-            if verified_role and verified_role not in user.roles:
-                # Add verified role
-                await user.add_roles(verified_role, reason="Reacted to welcome message")
-                
-                # Send welcome DM
-                welcome_dm = discord.Embed(
-                    title="👋 Welcome to GlowStatus!",
-                    description=f"Thanks for joining, {user.mention}! You've been verified.",
-                    color=0x00FF7F
-                )
-                
-                welcome_dm.add_field(
-                    name="🎯 Get Started",
-                    value=(
-                        "• Check out #rules for community guidelines\n"
-                        "• Visit #setup-help if you need assistance\n"
-                        "• Share your setup in #show-your-glow\n"
-                        "• Follow #announcements for updates"
-                    ),
-                    inline=False
-                )
-                
-                welcome_dm.add_field(
-                    name="🔗 Useful Links",
-                    value=(
-                        "📚 [Documentation](https://github.com/Severswoed/GlowStatus/wiki)\n"
-                        "🐛 [Report Issues](https://github.com/Severswoed/GlowStatus/issues)\n"
-                        "💡 [Feature Requests](https://github.com/Severswoed/GlowStatus/discussions)"
-                    ),
-                    inline=False
-                )
-                
-                welcome_dm.set_footer(text="Happy to have you in the GlowStatus community!")
-                
-                try:
-                    await user.send(embed=welcome_dm)
-                    print(f"✅ Sent welcome DM to {user.name}")
-                except discord.Forbidden:
-                    print(f"⚠️ Could not send welcome DM to {user.name} - DMs may be disabled")
-                
-                # Log the verification
-                print(f"✅ {user.name} verified via welcome reaction")
-                
-                # Send confirmation in general channel
-                general_channel = discord.utils.get(guild.channels, name="general")
-                if general_channel:
-                    await general_channel.send(
-                        f"👋 Welcome {user.mention}! You've been verified. "
-                        f"Feel free to introduce yourself and let us know how you're using GlowStatus!",
-                        delete_after=30
-                    )
-            else:
-                print(f"ℹ️ {user.name} already verified, ignoring welcome reaction")
-                
-        except Exception as e:
-            print(f"❌ Error handling welcome reaction from {user.name}: {e}")
-
-    @commands.command(name='reset_webhooks')
-    @commands.has_permissions(administrator=True)
-    async def reset_webhooks(self, ctx):
-        """Delete all existing webhooks and clear webhook data (admin only)"""
-        try:
-            webhook_file_path = os.path.join(os.path.dirname(__file__), "active_webhooks.json")
-            
-            # Delete all existing webhooks in the server
-            deleted_count = 0
-            for channel in ctx.guild.channels:
-                if hasattr(channel, 'webhooks'):
-                    try:
-                        webhooks = await channel.webhooks()
-                        for webhook in webhooks:
-                            if webhook.name.startswith("GitHub-"):
-                                await webhook.delete(reason=f"Webhook reset by {ctx.author}")
-                                deleted_count += 1
-                                print(f"🗑️ Deleted webhook: {webhook.name} from #{channel.name}")
-                    except Exception as e:
-                        print(f"⚠️ Could not delete webhooks from #{channel.name}: {e}")
-            
-            # Clear webhook data file
-            if os.path.exists(webhook_file_path):
-                os.remove(webhook_file_path)
-                print(f"🗑️ Removed webhook data file")
-            
-            await ctx.send(f"🗑️ Reset complete! Deleted {deleted_count} GitHub webhooks and cleared data.\n"
-                          f"Use `{CONFIG['bot']['command_prefix']}remake_webhooks` to recreate them.")
-            
-        except Exception as e:
-            await ctx.send(f"❌ Error resetting webhooks: {e}")
-
 def main():
     """Run the Discord setup bot"""
     bot = GlowStatusSetup()
@@ -1173,21 +801,7 @@ def main():
         print("Please set DISCORD_BOT_TOKEN environment variable")
         return
     
-    print("� IMPORTANT: Discord Bot Hosting Requirements")
-    print("=" * 60)
-    print("This Discord bot must run 24/7 to work properly!")
-    print("Running locally only works while this terminal is open.")
-    print("")
-    print("For production use, you need persistent hosting:")
-    print("• Free: Railway, Render, or Replit")  
-    print("• VPS: DigitalOcean ($5/month), Linode, Vultr")
-    print("• Home: Raspberry Pi ($50 one-time)")
-    print("")
-    print("See discord/DEPLOYMENT.md for setup instructions.")
-    print("=" * 60)
-    print("")
-    
-    print("�🛡️ Starting GlowStatus Security Bot...")
+    print("🛡️ Starting GlowStatus Security Bot...")
     print("Features enabled:")
     print("- Auto-moderation (spam, invites, caps)")
     print("- New member screening")
@@ -1195,7 +809,6 @@ def main():
     print("- Channel lockdown commands")
     print("- Security status monitoring")
     print("- Owner privilege assignment")
-    print("- Admin invite system")
     print("- GitHub webhook integration")
     print("- Repository monitoring (GlowStatus, GlowStatus-site)")
     

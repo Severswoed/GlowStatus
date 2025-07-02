@@ -13,19 +13,11 @@ This guide explains how to set up GitHub webhooks for automatic repository updat
 The Discord bot will automatically:
 
 1. **Assign Admin Role** to user `severswoed`
-2. **Smart Webhook Management**:
-   - Detects existing webhooks for the same repository/channel combination
-   - Reuses existing webhooks when possible (no new GitHub URLs needed!)
-   - Only creates new webhooks when none exist or previous ones are invalid
+2. **Create Webhooks** for both repositories:
+   - `Severswoed/GlowStatus` → `#dev-updates`
+   - `Severswoed/GlowStatus-site` → `#dev-updates`
 3. **Generate webhook URLs** and save them to `active_webhooks.json`
 4. **Post setup instructions** in the `#dev-updates` channel
-
-### Smart Webhook Benefits
-
-- **No Duplicate Webhooks**: Running setup multiple times won't create unnecessary duplicates
-- **Stable URLs**: Existing GitHub webhook configurations remain valid
-- **Automatic Verification**: Each setup run checks that existing webhooks still work
-- **Manual Override**: Use `!reset_webhooks` if you need to force recreation
 
 ## 🛠️ Manual GitHub Configuration
 
@@ -64,14 +56,7 @@ Use these commands to manage webhooks:
 
 - `!webhooks` - List all active GitHub webhooks
 - `!remake_webhooks` - Recreate all webhooks (admin only)
-- `!reset_webhooks` - Delete all webhooks and clear data (admin only)
 - `!assign_admin @user` - Manually assign admin role
-
-### Smart Webhook Commands
-
-- **`!webhooks`**: Shows current webhook status and when they were last verified
-- **`!remake_webhooks`**: Intelligently recreates webhooks (reuses existing when possible)
-- **`!reset_webhooks`**: Forces deletion of all GitHub webhooks and clears data (use if you need a fresh start)
 
 ## 🔒 Security Features
 
@@ -117,34 +102,13 @@ The bot creates these files:
 - **Pull requests** - Site improvements
 - **Releases** - Site version releases
 
-## 🔄 Smart Webhook Management
+## 🔄 Regenerating Webhooks
 
-The setup now intelligently handles webhooks:
+If webhooks stop working:
 
-### First-Time Setup
-1. Creates new webhooks for each repository/channel combination
-2. Saves webhook URLs to `active_webhooks.json`
-3. You configure these URLs in GitHub (one-time setup)
-
-### Subsequent Runs
-1. Detects existing webhooks by repository and channel
-2. Verifies webhooks are still valid on Discord
-3. Reuses existing webhooks (GitHub URLs stay the same!)
-4. Only creates new webhooks if previous ones are missing
-
-### When Webhooks Need Recreation
-Use `!reset_webhooks` followed by `!remake_webhooks` if:
-- Webhooks are corrupted or not working
-- You want to change webhook names or configurations
-- You're troubleshooting delivery issues
-
-### Troubleshooting Workflow
-1. **Check Status**: `!webhooks` - Shows current webhook status
-2. **Verify GitHub**: Check webhook delivery in GitHub repo settings
-3. **Soft Reset**: `!remake_webhooks` - Recreates with smart reuse
-4. **Hard Reset**: `!reset_webhooks` then `!remake_webhooks` - Forces new webhooks
-
-💡 **Pro Tip**: Most of the time you won't need to update GitHub webhook URLs anymore!
+1. Use `!remake_webhooks` command in Discord
+2. Update GitHub repository settings with new URLs
+3. Test webhook delivery in GitHub settings
 
 ---
 
