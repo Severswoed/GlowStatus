@@ -1037,17 +1037,22 @@ class SettingsWindow(QDialog):
         # Load calendar settings
         if hasattr(self, 'disable_sync_checkbox'):
             self.disable_sync_checkbox.setChecked(self.config.get("DISABLE_CALENDAR_SYNC", False))
+            self.disable_sync_checkbox.setEnabled(True)
             self.sync_interval_spinbox.setValue(self.config.get("REFRESH_INTERVAL", 15))
+            self.sync_interval_spinbox.setEnabled(True)
             
         # Load additional settings
         if hasattr(self, 'power_off_available_checkbox'):
             self.power_off_available_checkbox.setChecked(self.config.get("POWER_OFF_WHEN_AVAILABLE", True))
+            self.power_off_available_checkbox.setEnabled(True)
             
         if hasattr(self, 'off_for_unknown_checkbox'):
             self.off_for_unknown_checkbox.setChecked(self.config.get("OFF_FOR_UNKNOWN_STATUS", True))
+            self.off_for_unknown_checkbox.setEnabled(True)
             
         if hasattr(self, 'disable_light_control_checkbox'):
             self.disable_light_control_checkbox.setChecked(self.config.get("DISABLE_LIGHT_CONTROL", False))
+            self.disable_light_control_checkbox.setEnabled(True)
         
         # Load tray icon setting
         if hasattr(self, 'tray_icon_dropdown'):
@@ -1288,6 +1293,18 @@ class SettingsWindow(QDialog):
             return
         
         status_color_map = self.config.get("STATUS_COLOR_MAP", {})
+        
+        # If the status color map is empty, initialize with defaults
+        if not status_color_map:
+            status_color_map = {
+                "in_meeting": {"color": "255,0,0", "power_off": False},
+                "focus": {"color": "0,0,255", "power_off": False}, 
+                "available": {"color": "0,255,0", "power_off": True},
+                "lunch": {"color": "0,255,0", "power_off": True},
+                "offline": {"color": "128,128,128", "power_off": False}
+            }
+            self.config["STATUS_COLOR_MAP"] = status_color_map
+        
         self.status_colors_table.setRowCount(len(status_color_map))
         
         for row, (status, entry) in enumerate(status_color_map.items()):
