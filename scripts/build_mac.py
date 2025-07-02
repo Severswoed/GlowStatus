@@ -76,15 +76,24 @@ def check(cmd, mf):
     According to py2app docs, this should return True if the recipe
     should be applied to the current module finder state.
     """
-    # Check if any PySide6 modules are being used
-    modules = mf.flatten()
-    pyside6_modules = {
-        'PySide6',
-        'PySide6.QtCore', 
-        'PySide6.QtGui',
-        'PySide6.QtWidgets',
-    }
-    return bool(pyside6_modules.intersection(modules))
+    # Always apply this recipe if PySide6 is detected anywhere
+    # This ensures our minimal recipe replaces the default bloated one
+    try:
+        modules = mf.flatten()
+        pyside6_modules = {
+            'PySide6',
+            'PySide6.QtCore', 
+            'PySide6.QtGui',
+            'PySide6.QtWidgets',
+        }
+        found = bool(pyside6_modules.intersection(modules))
+        if found:
+            print("🎯 PySide6 detected - applying minimal recipe")
+        return found
+    except Exception as e:
+        # If there's any error, still apply the recipe to be safe
+        print(f"🎯 Recipe check error ({e}) - applying minimal recipe anyway")
+        return True
 
 def recipe(cmd, mf):
     """
@@ -101,32 +110,36 @@ def recipe(cmd, mf):
     
     print("🎯 GlowStatus: Applying minimal PySide6 recipe")
     
-    # Use mf.import_hook() as recommended in py2app docs
-    # This ensures proper module discovery and dependency resolution
-    mf.import_hook('PySide6')
-    mf.import_hook('PySide6.QtCore') 
-    mf.import_hook('PySide6.QtGui')
-    mf.import_hook('PySide6.QtWidgets')
-    mf.import_hook('shiboken6')
-    
-    # Import specific Qt modules that we know we need
-    # This helps py2app understand the exact dependencies
     try:
-        mf.import_hook('PySide6.QtCore', fromlist=['Qt', 'QThread', 'Signal', 'QSize', 'QTimer'])
-        mf.import_hook('PySide6.QtGui', fromlist=['QIcon', 'QPixmap', 'QColor', 'QPalette', 'QFont'])
-        mf.import_hook('PySide6.QtWidgets', fromlist=[
-            'QWidget', 'QDialog', 'QVBoxLayout', 'QHBoxLayout', 'QFormLayout',
-            'QLabel', 'QPushButton', 'QLineEdit', 'QComboBox', 'QCheckBox',
-            'QSpinBox', 'QTableWidget', 'QScrollArea', 'QListWidget', 
-            'QStackedWidget', 'QSplitter', 'QGroupBox', 'QMessageBox'
-        ])
-    except ImportError:
-        # Fallback if specific imports fail
-        pass
+        # Use mf.import_hook() as recommended in py2app docs
+        # This ensures proper module discovery and dependency resolution
+        mf.import_hook('PySide6')
+        mf.import_hook('PySide6.QtCore') 
+        mf.import_hook('PySide6.QtGui')
+        mf.import_hook('PySide6.QtWidgets')
+        mf.import_hook('shiboken6')
+        
+        # Import specific Qt modules that we know we need
+        # This helps py2app understand the exact dependencies
+        try:
+            mf.import_hook('PySide6.QtCore', fromlist=['Qt', 'QThread', 'Signal', 'QSize', 'QTimer'])
+            mf.import_hook('PySide6.QtGui', fromlist=['QIcon', 'QPixmap', 'QColor', 'QPalette', 'QFont'])
+            mf.import_hook('PySide6.QtWidgets', fromlist=[
+                'QWidget', 'QDialog', 'QVBoxLayout', 'QHBoxLayout', 'QFormLayout',
+                'QLabel', 'QPushButton', 'QLineEdit', 'QComboBox', 'QCheckBox',
+                'QSpinBox', 'QTableWidget', 'QScrollArea', 'QListWidget', 
+                'QStackedWidget', 'QSplitter', 'QGroupBox', 'QMessageBox'
+            ])
+        except ImportError:
+            # Fallback if specific imports fail
+            pass
+        
+        print(f"🎯 Imported essential PySide6 modules with minimal Qt footprint")
+        
+    except Exception as e:
+        print(f"🎯 Recipe import error ({e}) - continuing with basic configuration")
     
-    print(f"🎯 Imported essential PySide6 modules with minimal Qt footprint")
-    
-    # Return the recipe configuration dict as per py2app docs
+    # Always return a valid recipe configuration dict
     # The 'packages' key tells py2app which packages to include
     # The 'includes' key specifies modules to force include
     # The 'expected_missing_imports' key tells py2app it's OK if these are missing
