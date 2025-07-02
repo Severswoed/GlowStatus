@@ -8,3 +8,4 @@ PySide6
 keyring
 keyrings.alt
 packaging
+modulegraph>=0.19.6
