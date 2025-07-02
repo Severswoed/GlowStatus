@@ -88,7 +88,7 @@ OPTIONS = {
     'optimize': 2,  # Maximum bytecode optimization (-O2)
     'strip': True,  # Strip debug symbols
     'no_chdir': True,  # Don't change working directory
-    'recipes': [],  # Disable all automatic recipes to avoid py2app 0.28.8 bug
+    # Note: Cannot disable recipes in py2app, so we work around the PySide6 bug with explicit includes
     
     # Ultra-minimal includes - only what we actually import
     'includes': [
@@ -96,11 +96,20 @@ OPTIONS = {
         'threading', 'time', 'datetime', 'os', 'sys', 'tempfile', 'atexit',
         'pickle', 're', 'json', 'logging', 'webbrowser',
         
-        # PySide6 modules (only what we actually use) - explicit since we disabled recipes
+        # PySide6 modules (explicit includes to work with recipe)
         'PySide6.QtCore',
         'PySide6.QtGui', 
         'PySide6.QtWidgets',
         'shiboken6',
+        # Additional PySide6 modules that the recipe might expect
+        'PySide6.QtCore.QTimer',
+        'PySide6.QtCore.QThread',
+        'PySide6.QtCore.QObject',
+        'PySide6.QtGui.QAction',
+        'PySide6.QtGui.QIcon',
+        'PySide6.QtWidgets.QApplication',
+        'PySide6.QtWidgets.QSystemTrayIcon',
+        'PySide6.QtWidgets.QMenu',
         
         # Third-party dependencies (only what's imported)
         'requests',
@@ -206,7 +215,7 @@ OPTIONS = {
 if 'py2app' in sys.argv:
     print()
     print("🎯 USING AGGRESSIVE PY2APP OPTIONS APPROACH!")
-    print("📦 We're using comprehensive includes/excludes to minimize size:")
+    print("📦 Working around PySide6 recipe bug with explicit includes:")
     print("   ✅ Include: QtCore, QtGui, QtWidgets, shiboken6")
     print("   ✅ Include: Essential Python modules and dependencies")  
     print("   ❌ Exclude: All unused Qt modules and frameworks")
@@ -313,4 +322,4 @@ if 'py2app' in sys.argv:
     
     print()
     print("💡 Aggressive options should significantly reduce bundle size!")
-    print("💡 No recipe modifications needed - safer and more compatible!")
+    print("💡 Working around PySide6 recipe bug with explicit includes!")
