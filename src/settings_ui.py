@@ -58,13 +58,21 @@ class SettingsWindow(QWidget):
         self.sidebar.setMinimumWidth(200)
         self.setup_sidebar()
         
-        # Create content area with stacked widget
+        # Create content area with stacked widget wrapped in scroll area
+        content_scroll = QScrollArea()
+        content_scroll.setWidgetResizable(True)
+        content_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        content_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        content_scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        
         self.content_stack = QStackedWidget()
         self.setup_content_pages()
         
+        content_scroll.setWidget(self.content_stack)
+        
         # Add widgets to content layout
         content_layout.addWidget(self.sidebar)
-        content_layout.addWidget(self.content_stack, 1)  # Content takes remaining space
+        content_layout.addWidget(content_scroll, 1)  # Content takes remaining space
         
         # Create content widget and add to main layout
         content_widget = QWidget()
@@ -333,6 +341,7 @@ class SettingsWindow(QWidget):
         # Add navigation items with better icons
         nav_items = [
             ("About", "ℹ️"),
+            ("Wall of Glow", "✨"),
             ("OAuth", "🔐"),
             ("Integrations", "🔗"),
             ("Calendar", "📅"),
@@ -352,6 +361,7 @@ class SettingsWindow(QWidget):
         """Set up all content pages."""
         # Create pages
         self.about_page = self.create_about_page()
+        self.wall_of_glow_page = self.create_wall_of_glow_page()
         self.oauth_page = self.create_oauth_page()
         self.integrations_page = self.create_integrations_page()
         self.calendar_page = self.create_calendar_page()
@@ -361,6 +371,7 @@ class SettingsWindow(QWidget):
         
         # Add pages to stack
         self.content_stack.addWidget(self.about_page)
+        self.content_stack.addWidget(self.wall_of_glow_page)
         self.content_stack.addWidget(self.oauth_page)
         self.content_stack.addWidget(self.integrations_page)
         self.content_stack.addWidget(self.calendar_page)
@@ -405,9 +416,29 @@ class SettingsWindow(QWidget):
         
         return page, content_layout
 
+    def create_simple_page(self, title):
+        """Create a simple page with title - no individual scrolling."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        
+        # Title with GlowStatus styling
+        title_label = QLabel(title)
+        title_label.setStyleSheet("""
+            font-size: 28px; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        """)
+        layout.addWidget(title_label)
+        
+        return page, layout
+
     def create_about_page(self):
         """Create the About page."""
-        page, layout = self.create_scrollable_page("About GlowStatus")
+        page, layout = self.create_simple_page("About GlowStatus")
         
         # Logo and basic info
         logo_label = QLabel()
@@ -512,9 +543,169 @@ class SettingsWindow(QWidget):
         
         return page
 
+    def create_wall_of_glow_page(self):
+        """Create the Wall of Glow page for sponsors and supporters."""
+        page, layout = self.create_simple_page("Wall of Glow")
+        
+        # Sponsorship header
+        sponsor_header = QLabel()
+        sponsor_header.setAlignment(Qt.AlignCenter)
+        sponsor_header.setStyleSheet("""
+            font-size: 20px; 
+            font-weight: bold; 
+            margin: 20px 0;
+            color: #FFD700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        """)
+        sponsor_header.setText("✨ Thanks to these amazing sponsors who help keep GlowStatus glowing bright! ✨")
+        layout.addWidget(sponsor_header)
+        
+        # Sponsor showcase area
+        sponsor_showcase = QGroupBox("🌟 Current Sponsors")
+        sponsor_showcase.setStyleSheet("""
+            QGroupBox {
+                font-size: 18px;
+                font-weight: bold;
+                padding-top: 20px;
+                color: #FFD700;
+                border: 2px solid #FFD700;
+                border-radius: 10px;
+                margin-top: 10px;
+            }
+        """)
+        sponsor_layout = QVBoxLayout(sponsor_showcase)
+        sponsor_layout.setSpacing(15)
+        
+        # Placeholder for sponsors (will be populated when sponsors exist)
+        no_sponsors_yet = QLabel()
+        no_sponsors_yet.setAlignment(Qt.AlignCenter)
+        no_sponsors_yet.setStyleSheet("""
+            color: #b0b0b0; 
+            font-size: 16px; 
+            font-style: italic; 
+            padding: 40px; 
+            background-color: rgba(176, 176, 176, 0.1); 
+            border-radius: 8px;
+            border: 2px dashed #444;
+        """)
+        no_sponsors_yet.setText("""
+🌟 Be the first to join our Wall of Glow! 🌟
+
+Your sponsorship helps fund development, server hosting, 
+and makes GlowStatus free for everyone.
+
+Every sponsor gets featured here with their name, 
+logo, and a special thank you message!
+        """)
+        sponsor_layout.addWidget(no_sponsors_yet)
+        
+        layout.addWidget(sponsor_showcase)
+        
+        # Become a sponsor section
+        become_sponsor_group = QGroupBox("💝 Become a Sponsor")
+        become_sponsor_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 16px;
+                font-weight: bold;
+                padding-top: 15px;
+                color: #bf40ff;
+            }
+        """)
+        become_sponsor_layout = QVBoxLayout(become_sponsor_group)
+        
+        sponsor_benefits = QLabel("""
+<div style="color: #f8f9fa; line-height: 1.6;">
+<p style="color: #bf40ff; font-weight: bold; font-size: 16px;">💜 Why sponsor GlowStatus?</p>
+
+<p>Your sponsorship directly supports:</p>
+<ul style="margin-left: 20px;">
+<li style="margin-bottom: 8px;">🔧 <span style="color: #00ff7f;">Active development</span> - New features and bug fixes</li>
+<li style="margin-bottom: 8px;">🌐 <span style="color: #00d4ff;">Free hosting</span> - Discord bot and community infrastructure</li>
+<li style="margin-bottom: 8px;">📚 <span style="color: #ff6b35;">Documentation</span> - Guides and tutorials for users</li>
+<li style="margin-bottom: 8px;">🎨 <span style="color: #bf40ff;">Design improvements</span> - Better UI and user experience</li>
+<li style="margin-bottom: 8px;">🔗 <span style="color: #00ff7f;">New integrations</span> - Support for more smart light brands</li>
+</ul>
+
+<p style="color: #FFD700; font-weight: bold;">✨ Sponsor Benefits:</p>
+<ul style="margin-left: 20px;">
+<li style="margin-bottom: 6px;">🌟 Featured prominently on this Wall of Glow</li>
+<li style="margin-bottom: 6px;">📢 Recognition in release notes and announcements</li>
+<li style="margin-bottom: 6px;">💬 Special sponsor role in our Discord community</li>
+<li style="margin-bottom: 6px;">🎯 Direct input on feature priorities</li>
+<li style="margin-bottom: 6px;">🚀 Early access to beta features</li>
+</ul>
+</div>
+        """)
+        sponsor_benefits.setWordWrap(True)
+        sponsor_benefits.setStyleSheet("""
+            QLabel {
+                background-color: #2d2d2d;
+                border: 2px solid #bf40ff;
+                border-radius: 8px;
+                color: #f8f9fa;
+                padding: 20px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+        """)
+        become_sponsor_layout.addWidget(sponsor_benefits)
+        
+        # Sponsor button
+        sponsor_button_container = QHBoxLayout()
+        sponsor_button_container.addStretch()
+        
+        sponsor_link = QLabel('<a href="https://github.com/sponsors/Severswoed" style="color: #FFD700; text-decoration: none; font-size: 18px; font-weight: bold; padding: 15px 30px; border: 2px solid #FFD700; border-radius: 8px; background-color: rgba(255, 215, 0, 0.1); display: inline-block; margin: 15px 0;">💝 Become a GitHub Sponsor</a>')
+        sponsor_link.setOpenExternalLinks(True)
+        sponsor_link.setAlignment(Qt.AlignCenter)
+        sponsor_link.setStyleSheet("margin: 20px 0; padding: 10px;")
+        become_sponsor_layout.addWidget(sponsor_link)
+        
+        layout.addWidget(become_sponsor_group)
+        
+        # Community support section
+        community_group = QGroupBox("💙 Community Support")
+        community_group.setStyleSheet("""
+            QGroupBox {
+                font-size: 16px;
+                font-weight: bold;
+                padding-top: 15px;
+                color: #00d4ff;
+            }
+        """)
+        community_layout = QVBoxLayout(community_group)
+        
+        community_text = QLabel("""
+Can't sponsor? No problem! Here are other ways to support GlowStatus:
+
+• ⭐ Star the repository on GitHub
+• 🐛 Report bugs and suggest improvements
+• 💬 Help others in our Discord community
+• 📝 Contribute documentation or code
+• 📸 Share your GlowStatus setup on social media
+• 🔗 Tell friends and colleagues about GlowStatus
+
+Every bit of support helps make GlowStatus better for everyone! 🚀
+        """)
+        community_text.setWordWrap(True)
+        community_text.setStyleSheet("""
+            color: #f8f9fa; 
+            font-size: 14px; 
+            line-height: 1.5; 
+            padding: 20px; 
+            background-color: rgba(0, 212, 255, 0.1); 
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+        """)
+        community_layout.addWidget(community_text)
+        
+        layout.addWidget(community_group)
+        layout.addStretch()
+        
+        return page
+
     def create_oauth_page(self):
         """Create the OAuth/Authentication page."""
-        page, layout = self.create_scrollable_page("OAuth & Authentication")
+        page, layout = self.create_simple_page("OAuth & Authentication")
         
         # Google OAuth Section
         google_group = QGroupBox("Google Account")
@@ -600,7 +791,7 @@ class SettingsWindow(QWidget):
 
     def create_integrations_page(self):
         """Create the Integrations page for third-party services."""
-        page, layout = self.create_scrollable_page("Integrations")
+        page, layout = self.create_simple_page("Integrations")
         
         # Govee Integration
         govee_group = QGroupBox("Govee Smart Lights")
@@ -664,7 +855,7 @@ class SettingsWindow(QWidget):
 
     def create_calendar_page(self):
         """Create the Calendar settings page."""
-        page, layout = self.create_scrollable_page("Calendar Settings")
+        page, layout = self.create_simple_page("Calendar Settings")
         
         config = load_config()
         
@@ -740,7 +931,7 @@ class SettingsWindow(QWidget):
 
     def create_status_page(self):
         """Create the Status/Light settings page."""
-        page, layout = self.create_scrollable_page("Status & Light Control")
+        page, layout = self.create_simple_page("Status & Light Control")
         
         config = load_config()
         
@@ -816,7 +1007,7 @@ class SettingsWindow(QWidget):
 
     def create_options_page(self):
         """Create the general Options page."""
-        page, layout = self.create_scrollable_page("Options")
+        page, layout = self.create_simple_page("Options")
         
         config = load_config()
         
@@ -894,7 +1085,7 @@ class SettingsWindow(QWidget):
 
     def create_accessibility_page(self):
         """Create the Accessibility page."""
-        page, layout = self.create_scrollable_page("Accessibility")
+        page, layout = self.create_simple_page("Accessibility")
         
         # Visual Accessibility
         visual_group = QGroupBox("Visual Accessibility")
@@ -969,7 +1160,7 @@ class SettingsWindow(QWidget):
 
     def create_discord_page(self):
         """Create the Discord Community page."""
-        page, layout = self.create_scrollable_page("Discord Community")
+        page, layout = self.create_simple_page("Discord Community")
         
         # Discord logo and welcome section
         welcome_group = QGroupBox("🎮 Join the GlowStatus Community")
@@ -1377,96 +1568,132 @@ If you're experiencing issues or need immediate help:
             self.oauth_worker.finished.connect(self.on_oauth_finished)
             self.oauth_worker.start()
         except Exception as e:
-            logger.error(f"Failed to start OAuth worker: {e}")
-            self.on_oauth_error(str(e))
+            self.on_oauth_error(f"Failed to start OAuth: {str(e)}")
 
     def on_oauth_success(self, user_email, calendars):
         """Handle successful OAuth authentication."""
-        self.google_user_label.setText(user_email)
+        if hasattr(self, 'google_user_label'):
+            self.google_user_label.setText(user_email)
+        
         config = load_config()
         config["SELECTED_CALENDAR_ID"] = user_email
         save_config(config)
+        logger.info(f"OAuth Success: Google account connected as {user_email}.")
         
-        # Update calendar dropdown
-        self.selected_calendar_dropdown.clear()
-        for cal in calendars:
-            summary = cal.get("summary", "")
-            cal_id = cal.get("id", "")
-            display = f"{summary} ({cal_id})"
-            self.selected_calendar_dropdown.addItem(display, cal_id)
+        # Update calendar dropdown if it exists
+        if hasattr(self, 'selected_calendar_dropdown'):
+            self.selected_calendar_dropdown.clear()
+            for cal in calendars:
+                summary = cal.get("summary", "")
+                cal_id = cal.get("id", "")
+                display = f"{summary} ({cal_id})"
+                self.selected_calendar_dropdown.addItem(display, cal_id)
+            
+            # Set to saved value if present
+            saved_id = config.get("SELECTED_CALENDAR_ID", "")
+            if saved_id:
+                idx = self.selected_calendar_dropdown.findData(saved_id)
+                if idx != -1:
+                    self.selected_calendar_dropdown.setCurrentIndex(idx)
         
         self.update_oauth_status()
         QMessageBox.information(self, "Success", f"Successfully connected to Google Calendar as {user_email}")
 
     def on_oauth_error(self, error_message):
-        """Handle OAuth authentication errors."""
-        self.google_user_label.setText("Not authenticated")
-        self.selected_calendar_dropdown.clear()
-        
-        if "invalid_grant" in error_message.lower() or "expired" in error_message.lower():
-            self.selected_calendar_dropdown.addItem("Please re-authenticate (token expired)")
-        else:
-            self.selected_calendar_dropdown.addItem("Please authenticate first")
-            
+        """Handle errors during OAuth authentication."""
+        if hasattr(self, 'google_user_label'):
+            self.google_user_label.setText("Not authenticated")
+        if hasattr(self, 'selected_calendar_dropdown'):
+            self.selected_calendar_dropdown.clear()
+            if "invalid_grant" in error_message.lower() or "expired" in error_message.lower() or "revoked" in error_message.lower():
+                self.selected_calendar_dropdown.addItem("Please re-authenticate (token expired)")
+            else:
+                self.selected_calendar_dropdown.addItem("Please authenticate first")
         self.update_oauth_status()
+        
+        logger.error(f"OAuth Error: {error_message}")
         QMessageBox.critical(self, "Authentication Error", f"Failed to connect Google account:\n\n{error_message}")
 
     def on_oauth_no_calendars(self):
-        """Handle case where no calendars are found."""
-        self.google_user_label.setText("No calendars found")
-        self.selected_calendar_dropdown.clear()
-        self.selected_calendar_dropdown.addItem("No calendars found")
+        """Handle case where no calendars are found after OAuth authentication."""
+        if hasattr(self, 'google_user_label'):
+            self.google_user_label.setText("No calendars found")
+        if hasattr(self, 'selected_calendar_dropdown'):
+            self.selected_calendar_dropdown.clear()
+            self.selected_calendar_dropdown.addItem("No calendars found")
+        logger.info("OAuth Success: Google account connected, but no calendars found.")
         self.update_oauth_status()
+        
         QMessageBox.information(self, "Connected", "Google account connected successfully, but no calendars were found.")
 
     def on_oauth_finished(self):
-        """Re-enable UI after OAuth flow finishes."""
-        self.oauth_btn.setEnabled(True)
-        self.oauth_btn.setText("🔑 Sign in with Google")
-        self.disconnect_btn.setEnabled(True)
+        """Called when the OAuth worker thread finishes (regardless of success/error)."""
+        # Re-enable UI elements
+        if hasattr(self, 'oauth_btn'):
+            self.oauth_btn.setEnabled(True)
+            self.oauth_btn.setText("🔑 Sign in with Google")
+        if hasattr(self, 'disconnect_btn'):
+            self.disconnect_btn.setEnabled(True)
         
+        # Clean up worker reference
         if hasattr(self, 'oauth_worker'):
             self.oauth_worker.deleteLater()
             self.oauth_worker = None
 
     def disconnect_oauth(self):
-        """Disconnect Google OAuth."""
+        """Disconnect Google OAuth by removing stored tokens."""
         from constants import TOKEN_PATH
         
+        # Confirm disconnect
         reply = QMessageBox.question(
             self, 
             "Disconnect Google Account", 
-            "Are you sure you want to disconnect your Google account?",
+            "Are you sure you want to disconnect your Google account?\n\nYou will need to re-authenticate to use calendar features.",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
         
         if reply == QMessageBox.Yes:
             try:
+                # Remove the token file
                 if os.path.exists(TOKEN_PATH):
                     os.remove(TOKEN_PATH)
                 
+                # Update config
                 config = load_config()
                 config["SELECTED_CALENDAR_ID"] = ""
                 save_config(config)
                 
-                self.google_user_label.setText("Not authenticated")
-                self.selected_calendar_dropdown.clear()
-                self.selected_calendar_dropdown.addItem("Please authenticate first")
+                # Update UI
+                if hasattr(self, 'google_user_label'):
+                    self.google_user_label.setText("Not authenticated")
+                if hasattr(self, 'selected_calendar_dropdown'):
+                    self.selected_calendar_dropdown.clear()
+                    self.selected_calendar_dropdown.addItem("Please authenticate first")
                 self.update_oauth_status()
                 
                 QMessageBox.information(self, "Disconnected", "Google account disconnected successfully.")
+                logger.info("Google OAuth disconnected by user")
                 
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Failed to disconnect: {e}")
+                logger.error(f"Failed to disconnect OAuth: {e}")
 
     def load_calendars(self):
-        """Load available calendars into dropdown."""
-        from constants import TOKEN_PATH
-        
+        """Populate the calendar dropdown with available calendars if authenticated."""
+        if not hasattr(self, 'selected_calendar_dropdown'):
+            return
+            
+        # Always clear and set a default first to prevent crashes
         self.selected_calendar_dropdown.clear()
         
-        if not os.path.exists(TOKEN_PATH):
+        # Check if we have valid authentication first
+        try:
+            from constants import TOKEN_PATH
+            if not os.path.exists(TOKEN_PATH):
+                self.selected_calendar_dropdown.addItem("Please authenticate first")
+                return
+        except ImportError:
             self.selected_calendar_dropdown.addItem("Please authenticate first")
             return
         
@@ -1474,14 +1701,14 @@ If you're experiencing issues or need immediate help:
             from calendar_sync import CalendarSync
             cal_sync = CalendarSync("primary")
             service = cal_sync._get_service()
-            
             if not service:
                 self.selected_calendar_dropdown.addItem("Please authenticate first")
                 return
                 
             calendar_list = service.calendarList().list().execute()
-            calendars = calendar_list.get("items", [])
             
+            # Only proceed if we successfully got calendars
+            calendars = calendar_list.get("items", [])
             if calendars:
                 for cal in calendars:
                     summary = cal.get("summary", "")
@@ -1489,7 +1716,7 @@ If you're experiencing issues or need immediate help:
                     display = f"{summary} ({cal_id})"
                     self.selected_calendar_dropdown.addItem(display, cal_id)
                 
-                # Set saved calendar if available
+                # Set to saved value if present
                 config = load_config()
                 saved_id = config.get("SELECTED_CALENDAR_ID", "")
                 if saved_id:
@@ -1500,80 +1727,72 @@ If you're experiencing issues or need immediate help:
                 self.selected_calendar_dropdown.addItem("No calendars found")
                 
         except Exception as e:
+            # Silently fail and show appropriate message - dropdown already has fallback
             self.selected_calendar_dropdown.clear()
-            if "invalid_grant" in str(e).lower():
+            if "invalid_grant" in str(e).lower() or "expired" in str(e).lower() or "revoked" in str(e).lower():
                 self.selected_calendar_dropdown.addItem("Please re-authenticate (token expired)")
             else:
                 self.selected_calendar_dropdown.addItem("Please authenticate first")
+            logger.info(f"Calendar loading failed (likely authentication issue): {e}")
 
-    # === STATUS TABLE METHODS ===
-    
     def add_status_row(self, status="", color="", power_off=False):
         """Add a row to the status table."""
+        if not hasattr(self, 'status_table'):
+            return
+            
         row = self.status_table.rowCount()
         self.status_table.insertRow(row)
-        
-        # Status name
         self.status_table.setItem(row, 0, QTableWidgetItem(status))
+        self.status_table.setItem(row, 1, QTableWidgetItem(color))
         
-        # Color display
-        color_item = QTableWidgetItem(color)
-        color_item.setTextAlignment(Qt.AlignCenter)
-        self.status_table.setItem(row, 1, color_item)
+        # Power off checkbox
+        chk = QCheckBox()
+        chk.setChecked(power_off)
+        self.status_table.setCellWidget(row, 2, chk)
         
-        # Power checkbox
-        power_chk = QCheckBox()
-        power_chk.setChecked(power_off)
-        self.status_table.setCellWidget(row, 2, power_chk)
-        
-        # Actions (color picker button)
-        pick_color_btn = QPushButton("Pick Color")
-        pick_color_btn.clicked.connect(lambda: self.open_color_picker(row, 1))
-        self.status_table.setCellWidget(row, 3, pick_color_btn)
-        
-        # Center align status text
-        if self.status_table.item(row, 0):
-            self.status_table.item(row, 0).setTextAlignment(Qt.AlignCenter)
+        # Delete button
+        delete_btn = QPushButton("Delete")
+        delete_btn.clicked.connect(lambda: self.remove_status_row(row))
+        self.status_table.setCellWidget(row, 3, delete_btn)
+
+    def remove_status_row(self, row):
+        """Remove a row from the status table."""
+        if hasattr(self, 'status_table'):
+            self.status_table.removeRow(row)
 
     def remove_selected_status(self):
-        """Remove selected row from status table."""
-        row = self.status_table.currentRow()
-        if row >= 0:
-            self.status_table.removeRow(row)
-            self.on_form_changed()
+        """Remove the selected status row."""
+        if hasattr(self, 'status_table'):
+            current_row = self.status_table.currentRow()
+            if current_row >= 0:
+                self.status_table.removeRow(current_row)
 
-    def open_color_picker(self, row, col):
-        """Open color picker for status row."""
-        if col == 1:  # Color column
-            current = self.status_table.item(row, col)
-            color_str = current.text() if current else ""
-            
-            # Parse current color
-            try:
-                if color_str:
-                    rgb_values = [int(x.strip()) for x in color_str.split(",")]
-                    if len(rgb_values) == 3:
-                        initial_color = QColor(rgb_values[0], rgb_values[1], rgb_values[2])
-                    else:
-                        initial_color = QColor(255, 255, 255)
-                else:
-                    initial_color = QColor(255, 255, 255)
-            except ValueError:
-                initial_color = QColor(255, 255, 255)
-            
-            color = QColorDialog.getColor(initial_color, self, "Choose Status Color")
+    def open_color_picker(self, row, column):
+        """Open color picker when color cell is double-clicked."""
+        if column == 1 and hasattr(self, 'status_table'):  # Color column
+            color = QColorDialog.getColor()
             if color.isValid():
-                rgb = f"{color.red()},{color.green()},{color.blue()}"
-                self.status_table.setItem(row, col, QTableWidgetItem(rgb))
-                self.on_form_changed()
+                rgb_str = f"{color.red()},{color.green()},{color.blue()}"
+                self.status_table.setItem(row, column, QTableWidgetItem(rgb_str))
 
-    # === FORM HANDLING ===
-    
+    def apply_manual_override(self):
+        """Apply manual status override."""
+        # This would typically connect to the main app's manual override functionality
+        # For now, just show a message
+        if hasattr(self, 'manual_status_combo') and hasattr(self, 'manual_minutes_spin'):
+            status = self.manual_status_combo.currentText()
+            minutes = self.manual_minutes_spin.value()
+            QMessageBox.information(
+                self, 
+                "Manual Override", 
+                f"Manual override set: {status} for {minutes} minutes.\n\n"
+                "Note: This feature requires integration with the main GlowStatus application."
+            )
+
     def setup_form_change_tracking(self):
-        """Set up form change tracking for all controls."""
-        config = load_config()
-        
+        """Set up change tracking for all form fields."""
         # Store original values
+        config = load_config()
         try:
             api_key = keyring.get_password("GlowStatus", "GOVEE_API_KEY") or ""
         except:
@@ -1585,14 +1804,14 @@ If you're experiencing issues or need immediate help:
             'govee_device_model': config.get("GOVEE_DEVICE_MODEL", ""),
             'selected_calendar': config.get("SELECTED_CALENDAR_ID", ""),
             'refresh_interval': config.get("REFRESH_INTERVAL", 15),
+            'power_off_available': config.get("POWER_OFF_WHEN_AVAILABLE", True),
+            'off_for_unknown': config.get("OFF_FOR_UNKNOWN_STATUS", True),
             'disable_calendar_sync': config.get("DISABLE_CALENDAR_SYNC", False),
             'disable_light_control': config.get("DISABLE_LIGHT_CONTROL", False),
-            'power_off_available': config.get("POWER_OFF_WHEN_AVAILABLE", True),
-            'power_off_unknown': config.get("OFF_FOR_UNKNOWN_STATUS", True),
             'tray_icon': config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
         }
         
-        # Connect change signals
+        # Connect change signals for widgets that exist
         if hasattr(self, 'govee_api_key_edit'):
             self.govee_api_key_edit.textChanged.connect(self.on_form_changed)
         if hasattr(self, 'govee_device_id_edit'):
@@ -1603,51 +1822,114 @@ If you're experiencing issues or need immediate help:
             self.selected_calendar_dropdown.currentTextChanged.connect(self.on_form_changed)
         if hasattr(self, 'refresh_interval_spin'):
             self.refresh_interval_spin.valueChanged.connect(self.on_form_changed)
-        if hasattr(self, 'disable_calendar_sync_chk'):
-            self.disable_calendar_sync_chk.toggled.connect(self.on_form_changed)
-        if hasattr(self, 'disable_light_control_chk'):
-            self.disable_light_control_chk.toggled.connect(self.on_form_changed)
         if hasattr(self, 'power_off_available_chk'):
             self.power_off_available_chk.toggled.connect(self.on_form_changed)
         if hasattr(self, 'power_off_unknown_chk'):
             self.power_off_unknown_chk.toggled.connect(self.on_form_changed)
+        if hasattr(self, 'disable_calendar_sync_chk'):
+            self.disable_calendar_sync_chk.toggled.connect(self.on_form_changed)
+        if hasattr(self, 'disable_light_control_chk'):
+            self.disable_light_control_chk.toggled.connect(self.on_form_changed)
         if hasattr(self, 'tray_icon_dropdown'):
             self.tray_icon_dropdown.currentTextChanged.connect(self.on_form_changed)
         if hasattr(self, 'status_table'):
             self.status_table.cellChanged.connect(self.on_form_changed)
         
+        # Initially not dirty
         self.form_dirty = False
         self.update_save_status()
 
     def on_form_changed(self):
-        """Mark form as dirty when any field changes."""
+        """Called when any form field changes."""
         self.form_dirty = True
         self.update_save_status()
 
     def update_save_status(self):
-        """Update save status indicator."""
-        if self.form_dirty:
-            self.save_status_label.setText("Unsaved changes")
-            self.save_status_label.setStyleSheet("color: #d93025; font-size: 12px; font-weight: bold;")
-        else:
-            self.save_status_label.setText("All changes saved")
-            self.save_status_label.setStyleSheet("color: #137333; font-size: 12px;")
+        """Update the save status label."""
+        if hasattr(self, 'save_status_label'):
+            if self.form_dirty:
+                self.save_status_label.setText("🔄 Unsaved changes")
+                self.save_status_label.setStyleSheet("color: #ff6b35; font-weight: 500; font-size: 14px;")
+            else:
+                self.save_status_label.setText("✅ All changes saved")
+                self.save_status_label.setStyleSheet("color: #00ff7f; font-weight: 500; font-size: 14px;")
 
-    def apply_manual_override(self):
-        """Apply manual status override."""
-        status = self.manual_status_combo.currentText()
-        duration = self.manual_minutes_spin.value()
-        
-        if status == "Auto (from calendar)":
-            # Clear any existing override
-            QMessageBox.information(self, "Override Cleared", "Status is now automatic based on calendar.")
-        else:
-            QMessageBox.information(
-                self, 
-                "Status Override Applied", 
-                f"Status set to '{status}' for {duration} minutes.\n"
-                f"It will automatically return to calendar-based status afterward."
-            )
+    def save_all_settings(self):
+        """Save all settings from the form."""
+        try:
+            config = load_config()
+            
+            # Save Govee API Key securely if it exists
+            if hasattr(self, 'govee_api_key_edit'):
+                api_key = self.govee_api_key_edit.text().strip()
+                if api_key:
+                    try:
+                        keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
+                        logger.info("Govee API key saved to keyring")
+                    except Exception as e:
+                        logger.error(f"Failed to save Govee API key to keyring: {e}")
+                        QMessageBox.warning(self, "Keyring Error", f"Failed to save API key securely: {e}")
+                else:
+                    try:
+                        keyring.delete_password("GlowStatus", "GOVEE_API_KEY")
+                    except:
+                        pass
+            
+            # Save Govee device settings
+            if hasattr(self, 'govee_device_id_edit'):
+                config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
+            if hasattr(self, 'govee_device_model_edit'):
+                config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
+            
+            # Calendar selection
+            if hasattr(self, 'selected_calendar_dropdown'):
+                calendar_data = self.selected_calendar_dropdown.currentData()
+                config["SELECTED_CALENDAR_ID"] = calendar_data if calendar_data else ""
+            
+            # Save other settings if they exist
+            if hasattr(self, 'refresh_interval_spin'):
+                config["REFRESH_INTERVAL"] = self.refresh_interval_spin.value()
+            if hasattr(self, 'power_off_available_chk'):
+                config["POWER_OFF_WHEN_AVAILABLE"] = self.power_off_available_chk.isChecked()
+            if hasattr(self, 'power_off_unknown_chk'):
+                config["OFF_FOR_UNKNOWN_STATUS"] = self.power_off_unknown_chk.isChecked()
+            if hasattr(self, 'disable_calendar_sync_chk'):
+                config["DISABLE_CALENDAR_SYNC"] = self.disable_calendar_sync_chk.isChecked()
+            if hasattr(self, 'disable_light_control_chk'):
+                config["DISABLE_LIGHT_CONTROL"] = self.disable_light_control_chk.isChecked()
+            if hasattr(self, 'tray_icon_dropdown'):
+                config["TRAY_ICON"] = self.tray_icon_dropdown.currentText()
+            
+            # Status/Color mappings
+            if hasattr(self, 'status_table'):
+                status_color_map = {}
+                for row in range(self.status_table.rowCount()):
+                    status_item = self.status_table.item(row, 0)
+                    color_item = self.status_table.item(row, 1)
+                    power_widget = self.status_table.cellWidget(row, 2)
+                    
+                    if status_item and color_item and power_widget:
+                        status = status_item.text()
+                        color = color_item.text()
+                        power_off = power_widget.isChecked()
+                        status_color_map[status] = {"color": color, "power_off": power_off}
+                
+                config["STATUS_COLOR_MAP"] = status_color_map
+            
+            save_config(config)
+            
+            # Update save status
+            self.form_dirty = False
+           
+            if hasattr(self, 'save_status_label'):
+                self.save_status_label.setText("✅ All changes saved")
+                self.save_status_label.setStyleSheet("color: #00ff7f; font-weight: 500; font-size: 14px;")
+            
+            QMessageBox.information(self, "Settings Saved", "Configuration saved successfully!")
+            
+        except Exception as e:
+            logger.error(f"Error saving settings: {e}")
+            QMessageBox.warning(self, "Save Error", f"Failed to save settings: {e}")
 
     def reset_all_settings(self):
         """Reset all settings to defaults."""
@@ -1697,57 +1979,6 @@ If you're experiencing issues or need immediate help:
                 
             except Exception as e:
                 QMessageBox.critical(self, "Reset Failed", f"Failed to reset settings: {e}")
-
-    def save_all_settings(self):
-        """Save all current settings to configuration."""
-        try:
-            config = load_config()
-            
-            # Save Govee settings from Integrations page
-            try:
-                api_key = self.govee_api_key_edit.text().strip()
-                if api_key:
-                    keyring.set_password("GlowStatus", "GOVEE_API_KEY", api_key)
-                else:
-                    try:
-                        keyring.delete_password("GlowStatus", "GOVEE_API_KEY")
-                    except:
-                        pass
-            except Exception as e:
-                logger.warning(f"Could not save Govee API key: {e}")
-            
-            # Save other settings
-            config["GOVEE_DEVICE_ID"] = self.govee_device_id_edit.text().strip()
-            config["GOVEE_DEVICE_MODEL"] = self.govee_device_model_edit.text().strip()
-            
-            # Save calendar settings if available
-            if hasattr(self, 'selected_calendar_dropdown') and self.selected_calendar_dropdown.currentData():
-                config["SELECTED_CALENDAR_ID"] = self.selected_calendar_dropdown.currentData()
-            
-            # Save config to file
-            save_config(config)
-            
-            # Update save status
-            self.save_status_label.setText("✅ All changes saved")
-            self.save_status_label.setStyleSheet("color: #00ff7f; font-weight: 500; font-size: 14px;")
-            self.form_dirty = False
-            
-            # Show success message
-            QMessageBox.information(
-                self, 
-                "Settings Saved", 
-                "All settings have been saved successfully!"
-            )
-            
-        except Exception as e:
-            logger.error(f"Error saving settings: {e}")
-            self.save_status_label.setText("❌ Error saving changes")
-            self.save_status_label.setStyleSheet("color: #ff6b35; font-weight: 500; font-size: 14px;")
-            QMessageBox.warning(
-                self, 
-                "Save Error", 
-                f"Failed to save settings: {e}"
-            )
 
     def reset_to_defaults(self):
         """Reset all settings to default values."""
