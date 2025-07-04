@@ -129,7 +129,6 @@ def load_config():
         "GOVEE_DEVICE_ID": "",
         "GOVEE_DEVICE_MODEL": "",
         "SELECTED_CALENDAR_ID": "",
-        "TRAY_ICON": "GlowStatus_tray_tp.png",  # Fixed tray icon
         "STATUS_COLOR_MAP": {
             "in_meeting": {"color": "255,0,0", "power_off": False},
             "focus": {"color": "0,0,255", "power_off": False},
@@ -159,13 +158,14 @@ def save_config(config):
 class SettingsWindow(QDialog):
     """Modern settings window for GlowStatus with tabbed interface."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, glowstatus_controller=None):
         super().__init__(parent)
         self.config = load_config()
         self.oauth_worker = None
         self._govee_test_active = False  # Track test state
         self.form_dirty = False  # Track unsaved changes
         self.original_values = {}  # Store original form values
+        self.glowstatus_controller = glowstatus_controller  # Store reference to controller
         self.setup_ui()
         self.load_settings()
         self.setup_form_change_tracking()
@@ -250,6 +250,7 @@ class SettingsWindow(QDialog):
         # Create container widget for sidebar
         self.sidebar_container = QWidget()
         self.sidebar_container.setFixedWidth(250)
+        self.sidebar_container.setMinimumHeight(700)  # Ensure container is tall enough
         self.sidebar_container.setObjectName("sidebarContainer")
         
         # Vertical layout for sidebar container
@@ -266,8 +267,10 @@ class SettingsWindow(QDialog):
         self.sidebar.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
         # Set minimum height to ensure all navigation items are visible
-        # 8 items * ~32px per item (12px padding top+bottom + margins) = ~260px minimum
-        self.sidebar.setMinimumHeight(280)
+        # 8 items * ~45px per item (more padding for better visibility) = ~360px minimum
+        self.sidebar.setMinimumHeight(360)
+        # Also set size policy to expand as needed
+        self.sidebar.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         
         # Add navigation items
         nav_items = [
@@ -288,8 +291,8 @@ class SettingsWindow(QDialog):
         
         sidebar_layout.addWidget(self.sidebar)
         
-        # Add stretch to push buttons to bottom
-        sidebar_layout.addStretch()
+        # Add some spacing between navigation and quick links
+        sidebar_layout.addSpacing(20)
         
         # Static action buttons section at bottom
         buttons_container = QWidget()
@@ -298,7 +301,7 @@ class SettingsWindow(QDialog):
         buttons_layout.setSpacing(8)
         
         # Section title
-        buttons_title = QLabel("QUICK LINKS")
+        buttons_title = QLabel("Quick Links")
         buttons_title.setStyleSheet("""
             QLabel {
                 color: #999;
@@ -393,40 +396,38 @@ class SettingsWindow(QDialog):
         layout = QVBoxLayout(self.content_area)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        # Menu bar
-        self.menu_bar = QMenuBar()
-        layout.addWidget(self.menu_bar)
+        # Page title container with icon support
+        self.page_title_container = QWidget()
+        self.page_title_layout = QHBoxLayout(self.page_title_container)
+        self.page_title_layout.setContentsMargins(30, 20, 30, 10)
+        self.page_title_layout.setSpacing(8)
         
-        # Create links menu
-        links_menu = self.menu_bar.addMenu("🔗 Links")
+        # Icon label (initially hidden)
+        self.page_title_icon = QLabel()
+        self.page_title_icon.setVisible(False)
+        self.page_title_layout.addWidget(self.page_title_icon)
         
-        website_action = links_menu.addAction("🌐 Visit Website")
-        website_action.triggered.connect(lambda: self.open_url("https://glowstatus.com"))
-        
-        github_action = links_menu.addAction("🐙 Star on GitHub")
-        github_action.triggered.connect(lambda: self.open_url("https://github.com/Severswoed/GlowStatus"))
-        
-        discord_action = links_menu.addAction("💬 Join Discord")
-        discord_action.triggered.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
-        
-        # Page title
+        # Title text
         self.page_title = QLabel()
         self.page_title.setObjectName("pageTitle")
-        layout.addWidget(self.page_title)
+        self.page_title_layout.addWidget(self.page_title)
+        
+        # Add stretch to keep content left-aligned
+        self.page_title_layout.addStretch()
+        
+        layout.addWidget(self.page_title_container)
         
         # Stacked widget for pages
         self.content_stack = QStackedWidget()
-        self.content_stack.setMinimumHeight(700)  # Make content area taller to avoid scrolling
+        self.content_stack.setMinimumHeight(600)  # Reduced to leave room for bottom buttons
         layout.addWidget(self.content_stack)
         
-        # Save status label
-        self.save_status_label = QLabel("Ready")
-        self.save_status_label.setAlignment(Qt.AlignCenter)
-        self.save_status_label.setStyleSheet("color: #666; font-size: 12px; margin: 5px 0;")
-        layout.addWidget(self.save_status_label)
+        # Add stretch to push bottom elements down
+        layout.addStretch()
         
-        # Bottom buttons
+        # Bottom buttons with proper spacing
         button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(30, 10, 30, 20)  # Add margins to match content
         button_layout.addStretch()
         
         self.reset_button = QPushButton("Reset to Defaults")
@@ -435,7 +436,6 @@ class SettingsWindow(QDialog):
         
         self.save_button = QPushButton("Save & Close")
         self.save_button.clicked.connect(self.save_and_close)
-        button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.save_button)
         
         layout.addLayout(button_layout)
@@ -476,7 +476,7 @@ class SettingsWindow(QDialog):
         
         # Initialize save status
         self.form_dirty = False
-        if hasattr(self, 'save_status_label'):
+        if hasattr(self, 'save_button'):
             self.update_save_status()
     
     def create_scrollable_page(self):
@@ -495,60 +495,10 @@ class SettingsWindow(QDialog):
         """Create the About page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(40, 5, 40, 40)  # Much reduced top margin
-        layout.setSpacing(15)  # Reduced spacing
+        layout.setContentsMargins(40, 20, 40, 40)  # Reduced top margin even more
+        layout.setSpacing(20)  # Increased spacing for better readability
         
-        # Header section with icon and title - inline layout
-        header_frame = QFrame()
-        header_layout = QHBoxLayout(header_frame)
-        header_layout.setContentsMargins(0, 0, 0, 0)
-        header_layout.setSpacing(15)
-        header_layout.addStretch()
-        
-        # GlowStatus tray icon logo - smaller for header
-        try:
-            logo_path = resource_path("img/GlowStatus_tray_tp.png")
-            if os.path.exists(logo_path):
-                logo_label = QLabel()
-                pixmap = QPixmap(logo_path)
-                # Scale to smaller size for header
-                scaled_pixmap = pixmap.scaledToWidth(80, Qt.SmoothTransformation)
-                logo_label.setPixmap(scaled_pixmap)
-                logo_label.setAlignment(Qt.AlignCenter)
-                # Add subtle styling
-                logo_label.setStyleSheet("""
-                    QLabel {
-                        background-color: rgba(255, 255, 255, 0.01);
-                        border: 1px solid rgba(255, 255, 255, 0.03);
-                        border-radius: 6px;
-                        padding: 8px;
-                        margin: 2px 0;
-                    }
-                """)
-                header_layout.addWidget(logo_label)
-        except Exception as e:
-            logger.warning(f"Could not load tray icon: {e}")
-        
-        # Header title to match page title
-        header_title = QLabel("About GlowStatus")
-        header_title.setAlignment(Qt.AlignCenter)
-        header_title.setStyleSheet("font-size: 22px; font-weight: 300; color: #ffffff; margin: 8px 0;")
-        header_layout.addWidget(header_title)
-        
-        header_layout.addStretch()
-        layout.addWidget(header_frame)
-        
-        layout.addSpacing(30)  # Space before main title
-        
-        # App title - centered and prominent
-        app_title = QLabel("GlowStatus")
-        app_title.setAlignment(Qt.AlignCenter)
-        app_title.setStyleSheet("font-size: 32px; font-weight: 600; color: #38bdf8; margin: 8px 0;")
-        layout.addWidget(app_title)
-        
-        layout.addSpacing(10)  # Reduced spacing after title
-        
-        # Description with emojis
+        # Description with emojis - moved up as main content
         description = QLabel(
             "🚀 GlowStatus is an intelligent status indicator that synchronizes your calendar "
             "with smart lighting to automatically show your availability. ✨ Stay in the flow "
@@ -562,7 +512,7 @@ class SettingsWindow(QDialog):
         description.setObjectName("aboutDescription")
         layout.addWidget(description)
         
-        layout.addSpacing(15)  # Reduced spacing before stats
+        layout.addSpacing(30)  # Space before stats
         
         # Fun stats section
         stats_frame = QFrame()
@@ -589,7 +539,7 @@ class SettingsWindow(QDialog):
         stats_layout.addStretch()
         layout.addWidget(stats_frame)
         
-        layout.addSpacing(15)  # Reduced spacing before version
+        layout.addSpacing(30)  # Space before version
         
         # Version info with fun emoji
         try:
@@ -603,7 +553,7 @@ class SettingsWindow(QDialog):
         version_info.setObjectName("versionInfo")
         layout.addWidget(version_info)
         
-        layout.addSpacing(15)  # Reduced final spacing
+        layout.addSpacing(20)  # Final spacing
         
         layout.addStretch()
         
@@ -613,7 +563,7 @@ class SettingsWindow(QDialog):
         """Create the Wall of Glow page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin further
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(16)  # Tighter spacing for more room
         
         description = QLabel(
@@ -694,7 +644,7 @@ class SettingsWindow(QDialog):
         """Create the OAuth configuration page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(20)
         
         # Privacy notice (required for OAuth compliance) - matching original
@@ -796,7 +746,7 @@ class SettingsWindow(QDialog):
         """Create the Integrations page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(20)
         
         # Govee Integration
@@ -807,16 +757,19 @@ class SettingsWindow(QDialog):
         self.govee_api_key_edit = QLineEdit()
         self.govee_api_key_edit.setEchoMode(QLineEdit.Password)
         self.govee_api_key_edit.setPlaceholderText("Enter your Govee API key")
+        self.govee_api_key_edit.textChanged.connect(self.on_form_changed)
         govee_layout.addRow("API Key:", self.govee_api_key_edit)
         
         # Device ID
         self.govee_device_id_edit = QLineEdit()
         self.govee_device_id_edit.setPlaceholderText("Enter your device ID")
+        self.govee_device_id_edit.textChanged.connect(self.on_form_changed)
         govee_layout.addRow("Device ID:", self.govee_device_id_edit)
         
         # Device Model (from original config_ui.py)
         self.govee_device_model_edit = QLineEdit()
         self.govee_device_model_edit.setPlaceholderText("Enter your device model (e.g., H6159)")
+        self.govee_device_model_edit.textChanged.connect(self.on_form_changed)
         govee_layout.addRow("Device Model:", self.govee_device_model_edit)
         
         # Test connection button
@@ -858,7 +811,7 @@ class SettingsWindow(QDialog):
         """Create the Calendar settings page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(20)
         
         # Calendar selection
@@ -866,6 +819,7 @@ class SettingsWindow(QDialog):
         calendar_layout = QFormLayout(calendar_group)
         
         self.calendar_dropdown = QComboBox()
+        self.calendar_dropdown.currentTextChanged.connect(self.on_form_changed)
         calendar_layout.addRow("Primary Calendar:", self.calendar_dropdown)
         
         refresh_btn = QPushButton("🔄 Refresh Calendars")
@@ -882,11 +836,12 @@ class SettingsWindow(QDialog):
         self.disable_sync_checkbox.setEnabled(True)
         self.disable_sync_checkbox.setCheckable(True)
         self.disable_sync_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.disable_sync_checkbox.clicked.connect(self.on_checkbox_clicked)
+        # Connect signal after widget is fully configured
+        self.disable_sync_checkbox.stateChanged.connect(self.on_form_changed)
         sync_layout.addRow(self.disable_sync_checkbox)
         
         self.sync_interval_spinbox = QSpinBox()
-        self.sync_interval_spinbox.setRange(10, 3600)
+        self.sync_interval_spinbox.setRange(15, 3600)  # Minimum 15 seconds
         self.sync_interval_spinbox.setSuffix(" seconds")
         self.sync_interval_spinbox.setEnabled(True)
         self.sync_interval_spinbox.valueChanged.connect(self.on_form_changed)
@@ -902,21 +857,24 @@ class SettingsWindow(QDialog):
         self.power_off_available_checkbox.setEnabled(True)
         self.power_off_available_checkbox.setCheckable(True)
         self.power_off_available_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.power_off_available_checkbox.clicked.connect(self.on_checkbox_clicked)
+        # Connect signal after widget is fully configured
+        self.power_off_available_checkbox.stateChanged.connect(self.on_form_changed)
         additional_layout.addWidget(self.power_off_available_checkbox)
         
         self.off_for_unknown_checkbox = QCheckBox("Turn light off for unknown status")
         self.off_for_unknown_checkbox.setEnabled(True)
         self.off_for_unknown_checkbox.setCheckable(True)
         self.off_for_unknown_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.off_for_unknown_checkbox.clicked.connect(self.on_checkbox_clicked)
+        # Connect signal after widget is fully configured
+        self.off_for_unknown_checkbox.stateChanged.connect(self.on_form_changed)
         additional_layout.addWidget(self.off_for_unknown_checkbox)
         
         self.disable_light_control_checkbox = QCheckBox("Disable light control")
         self.disable_light_control_checkbox.setEnabled(True)
         self.disable_light_control_checkbox.setCheckable(True)
         self.disable_light_control_checkbox.setFocusPolicy(Qt.StrongFocus)
-        self.disable_light_control_checkbox.clicked.connect(self.on_checkbox_clicked)
+        # Connect signal after widget is fully configured
+        self.disable_light_control_checkbox.stateChanged.connect(self.on_form_changed)
         additional_layout.addWidget(self.disable_light_control_checkbox)
         
         layout.addWidget(additional_group)
@@ -928,7 +886,7 @@ class SettingsWindow(QDialog):
         """Create the Status configuration page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(20)
         
         # Status colors table
@@ -951,13 +909,19 @@ class SettingsWindow(QDialog):
         self.status_colors_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.status_colors_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
-        # Set column widths - Power Off should be narrow, Color medium, Status stretches
-        self.status_colors_table.setColumnWidth(0, 80)   # Power Off column - narrow
-        self.status_colors_table.setColumnWidth(1, 120)  # Color column - medium
+        # Set column widths - Power Off should be wider to accommodate header text and checkboxes
+        self.status_colors_table.setColumnWidth(0, 120)  # Power Off column - wider for header text
+        self.status_colors_table.setColumnWidth(1, 140)  # Color column - medium
         # Status column will stretch due to setStretchLastSection(True)
+        
+        # Ensure row height is adequate for checkboxes
+        self.status_colors_table.verticalHeader().setDefaultSectionSize(40)
         
         # Connect double-click to color picker (only once during table creation)
         self.status_colors_table.cellDoubleClicked.connect(self.open_color_picker)
+        
+        # Connect item changes to mark form dirty
+        self.status_colors_table.itemChanged.connect(self.on_form_changed)
         
         # Populate table with default statuses
         self.populate_status_colors_table()
@@ -992,7 +956,7 @@ class SettingsWindow(QDialog):
         """Create the Options page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(20)
         
         # Advanced options
@@ -1016,7 +980,7 @@ class SettingsWindow(QDialog):
         """Create the Discord information page."""
         scroll, page = self.create_scrollable_page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 10, 30, 30)  # Reduced top margin further
+        layout.setContentsMargins(30, 10, 30, 60)  # Increased bottom margin to avoid button overlap
         layout.setSpacing(16)  # Tighter spacing for more room
         
         # Welcome section with fun intro
@@ -1035,7 +999,7 @@ class SettingsWindow(QDialog):
         welcome_layout.addWidget(welcome_description)
         
         # Big Discord invite button
-        big_discord_btn = QPushButton("🎊 JOIN THE DISCORD PARTY! 🎊")
+        big_discord_btn = QPushButton("🎊 Join the Discord Party! 🎊")
         big_discord_btn.setToolTip("Click to join our GlowStatus community! 🚀")
         big_discord_btn.clicked.connect(lambda: self.open_url("https://discord.gg/xtNevM3WuV"))
         big_discord_btn.setStyleSheet("""
@@ -1174,10 +1138,35 @@ class SettingsWindow(QDialog):
                         "options": "⚙️ Options",
                         "discord": "💬 Discord Community - Where the Magic Happens! ✨"
                     }
-                    self.page_title.setText(display_titles.get(title, title.title()))
+                    title_text = display_titles.get(title, title.title())
+                    
+                    # Add icon for About page
+                    if title == "about" and hasattr(self, 'page_title_icon'):
+                        try:
+                            icon_path = resource_path("img/GlowStatus_tray_tp_tight.png")
+                            if os.path.exists(icon_path):
+                                # Create icon scaled to match text height
+                                pixmap = QPixmap(icon_path)
+                                # Scale to about 24px height to match title text size
+                                scaled_pixmap = pixmap.scaledToHeight(24, Qt.SmoothTransformation)
+                                self.page_title_icon.setPixmap(scaled_pixmap)
+                                self.page_title_icon.setVisible(True)
+                            else:
+                                self.page_title_icon.setVisible(False)
+                        except Exception:
+                            self.page_title_icon.setVisible(False)
+                    else:
+                        # Hide icon for other pages
+                        if hasattr(self, 'page_title_icon'):
+                            self.page_title_icon.setVisible(False)
+                    
+                    self.page_title.setText(title_text)
     
     def load_settings(self):
         """Load settings from configuration into UI elements."""
+        # Temporarily block signals to prevent marking form as dirty during load
+        self.blockSignals(True)
+        
         # Update OAuth status
         self.update_oauth_status()
         
@@ -1193,28 +1182,40 @@ class SettingsWindow(QDialog):
             self.govee_device_id_edit.setText(self.config.get("GOVEE_DEVICE_ID", ""))
             self.govee_device_model_edit.setText(self.config.get("GOVEE_DEVICE_MODEL", ""))
         
-        # Load calendar settings
+        # Load calendar settings - temporarily block signals for each widget
         if hasattr(self, 'disable_sync_checkbox'):
+            self.disable_sync_checkbox.blockSignals(True)
             checked_value = self.config.get("DISABLE_CALENDAR_SYNC", False)
             self.disable_sync_checkbox.setChecked(checked_value)
+            self.disable_sync_checkbox.blockSignals(False)
             logger.info(f"Loaded disable_sync_checkbox: {checked_value}")
             
-            self.sync_interval_spinbox.setValue(self.config.get("REFRESH_INTERVAL", 15))
+            self.sync_interval_spinbox.blockSignals(True)
+            # Ensure minimum refresh interval of 15 seconds
+            refresh_interval = max(15, self.config.get("REFRESH_INTERVAL", 15))
+            self.sync_interval_spinbox.setValue(refresh_interval)
+            self.sync_interval_spinbox.blockSignals(False)
             
         # Load additional settings
         if hasattr(self, 'power_off_available_checkbox'):
+            self.power_off_available_checkbox.blockSignals(True)
             checked_value = self.config.get("POWER_OFF_WHEN_AVAILABLE", True)
             self.power_off_available_checkbox.setChecked(checked_value)
+            self.power_off_available_checkbox.blockSignals(False)
             logger.info(f"Loaded power_off_available_checkbox: {checked_value}")
             
         if hasattr(self, 'off_for_unknown_checkbox'):
+            self.off_for_unknown_checkbox.blockSignals(True)
             checked_value = self.config.get("OFF_FOR_UNKNOWN_STATUS", True)
             self.off_for_unknown_checkbox.setChecked(checked_value)
+            self.off_for_unknown_checkbox.blockSignals(False)
             logger.info(f"Loaded off_for_unknown_checkbox: {checked_value}")
             
         if hasattr(self, 'disable_light_control_checkbox'):
+            self.disable_light_control_checkbox.blockSignals(True)
             checked_value = self.config.get("DISABLE_LIGHT_CONTROL", False)
             self.disable_light_control_checkbox.setChecked(checked_value)
+            self.disable_light_control_checkbox.blockSignals(False)
             logger.info(f"Loaded disable_light_control_checkbox: {checked_value}")
         
         # Load status colors
@@ -1222,6 +1223,9 @@ class SettingsWindow(QDialog):
         
         # Load calendars if OAuth is connected
         self.refresh_calendars()
+        
+        # Re-enable signals
+        self.blockSignals(False)
     
     def update_oauth_status(self):
         """Update OAuth connection status display."""
@@ -1300,6 +1304,13 @@ class SettingsWindow(QDialog):
                 cal_id = cal.get("id", "")
                 display = f"{summary} ({cal_id})" if summary else cal_id
                 self.calendar_dropdown.addItem(display, cal_id)
+            
+            # Restore selection from config
+            config_selection = self.config.get("SELECTED_CALENDAR_ID", "")
+            if config_selection:
+                index = self.calendar_dropdown.findData(config_selection)
+                if index >= 0:
+                    self.calendar_dropdown.setCurrentIndex(index)
         
         self.update_oauth_status()
     
@@ -1388,9 +1399,12 @@ class SettingsWindow(QDialog):
                         display = f"{summary} ({cal_id})" if summary else cal_id
                         self.calendar_dropdown.addItem(display, cal_id)
                     
-                    # Restore previous selection if possible
-                    if current_selection:
-                        index = self.calendar_dropdown.findData(current_selection)
+                    # Restore selection from config first, then fall back to current selection
+                    config_selection = self.config.get("SELECTED_CALENDAR_ID", "")
+                    selection_to_restore = config_selection or current_selection
+                    
+                    if selection_to_restore:
+                        index = self.calendar_dropdown.findData(selection_to_restore)
                         if index >= 0:
                             self.calendar_dropdown.setCurrentIndex(index)
                             
@@ -1466,6 +1480,9 @@ class SettingsWindow(QDialog):
         if not hasattr(self, 'status_colors_table'):
             return
         
+        # Block signals during population to prevent marking form as dirty
+        self.status_colors_table.blockSignals(True)
+        
         status_color_map = self.config.get("STATUS_COLOR_MAP", {})
         
         # If the status color map is empty, initialize with defaults
@@ -1482,14 +1499,23 @@ class SettingsWindow(QDialog):
         self.status_colors_table.setRowCount(len(status_color_map))
         
         for row, (status, entry) in enumerate(status_color_map.items()):
-            # Power off checkbox (column 0) - set directly without wrapper for better click handling
+            # Power off checkbox (column 0) - create with proper styling and signals
             power_off_checkbox = QCheckBox()
             power_off_checkbox.setChecked(entry.get("power_off", False))
+            
+            # Block signals during initial setup to prevent marking form dirty
+            power_off_checkbox.blockSignals(True)
+            power_off_checkbox.setChecked(entry.get("power_off", False))
+            power_off_checkbox.blockSignals(False)
+            
+            # Connect signal after setting initial value
             power_off_checkbox.stateChanged.connect(self.on_form_changed)
-            # Make sure the checkbox is focusable and clickable
+            
+            # Ensure checkbox is properly enabled and styled
             power_off_checkbox.setEnabled(True)
             power_off_checkbox.setFocusPolicy(Qt.StrongFocus)
-            # Set the checkbox directly in the cell - no wrapper needed
+            
+            # Set the checkbox directly in the cell for better click handling
             self.status_colors_table.setCellWidget(row, 0, power_off_checkbox)
             
             # Color (R,G,B format) (column 1)
@@ -1502,20 +1528,38 @@ class SettingsWindow(QDialog):
             status_item = QTableWidgetItem(status)
             status_item.setTextAlignment(Qt.AlignCenter)
             self.status_colors_table.setItem(row, 2, status_item)
+        
+        # Re-enable signals after population is complete
+        self.status_colors_table.blockSignals(False)
     
     def on_form_changed(self):
         """Called when any form field changes."""
+        # Add debug logging to see which widget triggered the change
+        sender = self.sender()
+        sender_name = sender.objectName() if sender else "Unknown"
+        sender_text = getattr(sender, 'text', lambda: 'No text')()
+        logger.info(f"Form changed triggered by: {sender_name} - {sender_text}")
+        
         self.form_dirty = True
         self.update_save_status()
     
     def update_save_status(self):
-        """Update the save status label."""
+        """Update the save button text to reflect dirty state."""
         if self.form_dirty:
-            self.save_status_label.setText("Unsaved Changes")
-            self.save_status_label.setStyleSheet("color: #d93025; font-size: 12px; font-weight: bold; margin: 5px 0;")
+            self.save_button.setText("Save & Close - Unsaved Changes")
+            self.save_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #f59e0b;
+                    color: white;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #d97706;
+                }
+            """)
         else:
-            self.save_status_label.setText("All Changes Saved")
-            self.save_status_label.setStyleSheet("color: #137333; font-size: 12px; font-weight: bold; margin: 5px 0;")
+            self.save_button.setText("Save & Close")
+            self.save_button.setStyleSheet("")  # Reset to default styling
     
     def open_color_picker(self, row, col):
         """Open color picker when double-clicking on color column."""
@@ -1560,14 +1604,25 @@ class SettingsWindow(QDialog):
         row = self.status_colors_table.rowCount()
         self.status_colors_table.insertRow(row)
         
-        # Power off checkbox (column 0) - set directly without wrapper for better click handling
+        # Power off checkbox (column 0) - create with proper styling and signals
         power_off_checkbox = QCheckBox()
+        
+        # Block signals during initial setup to prevent marking form dirty
+        power_off_checkbox.blockSignals(True)
         power_off_checkbox.setChecked(power_off)
+        power_off_checkbox.blockSignals(False)
+        
+        # Connect signal after setting initial value
         power_off_checkbox.stateChanged.connect(self.on_form_changed)
-        # Make sure the checkbox is focusable and clickable
+        
+        # Ensure checkbox is properly enabled and styled
         power_off_checkbox.setEnabled(True)
         power_off_checkbox.setFocusPolicy(Qt.StrongFocus)
-        # Set the checkbox directly in the cell - no wrapper needed
+        
+        # Set the checkbox directly in the cell for better click handling
+        self.status_colors_table.setCellWidget(row, 0, power_off_checkbox)
+        
+        # Set the checkbox directly in the cell for better click handling
         self.status_colors_table.setCellWidget(row, 0, power_off_checkbox)
         
         # Color (R,G,B) (column 1)
@@ -1777,21 +1832,24 @@ class SettingsWindow(QDialog):
         if hasattr(self, 'status_colors_table'):
             status_color_map = {}
             for row in range(self.status_colors_table.rowCount()):
-                power_widget = self.status_colors_table.cellWidget(row, 0)  # Power Off is now column 0
+                power_widget = self.status_colors_table.cellWidget(row, 0)  # Power Off checkbox is column 0
                 color_item = self.status_colors_table.item(row, 1)         # Color is now column 1
                 status_item = self.status_colors_table.item(row, 2)        # Status is now column 2
                 
                 if status_item and color_item and power_widget:
                     status = status_item.text()
                     color = color_item.text()
-                    # power_widget is now the checkbox directly (no wrapper)
+                    
+                    # power_widget is now the checkbox directly
                     power_off = power_widget.isChecked() if isinstance(power_widget, QCheckBox) else False
+                    
                     status_color_map[status] = {"color": color, "power_off": power_off}
             
             self.config["STATUS_COLOR_MAP"] = status_color_map
         
-        # Ensure fixed tray icon is set
-        self.config["TRAY_ICON"] = "GlowStatus_tray_tp.png"
+        # Remove tray icon from config - it's now hardcoded in the app
+        if "TRAY_ICON" in self.config:
+            del self.config["TRAY_ICON"]
         
         # Save general options (only ones that actually exist)
         # Note: These were not in the original config_ui.py, so we don't save them
@@ -1803,6 +1861,14 @@ class SettingsWindow(QDialog):
         # Update form status
         self.form_dirty = False
         self.update_save_status()
+        
+        # Trigger immediate status update if controller is available
+        if self.glowstatus_controller:
+            try:
+                logger.info("Triggering immediate status update after settings save")
+                self.glowstatus_controller.update_now()
+            except Exception as e:
+                logger.warning(f"Failed to trigger immediate status update: {e}")
         
         # Show success message to user
         QMessageBox.information(
@@ -1851,15 +1917,17 @@ class SettingsWindow(QDialog):
                 padding: 16px 12px;
                 outline: none;
                 font-weight: 500;
+                min-height: 360px;
             }
             
             QListWidget#sidebar::item {
-                padding: 12px 20px;
+                padding: 14px 20px;
                 border-radius: 12px;
-                margin: 2px 6px;
+                margin: 3px 6px;
                 color: #b5b5b5;
                 border: none;
                 background-color: transparent;
+                min-height: 20px;
             }
             
             QListWidget#sidebar::item:selected {
@@ -1872,6 +1940,13 @@ class SettingsWindow(QDialog):
             QListWidget#sidebar::item:hover:!selected {
                 background-color: rgba(255, 255, 255, 0.03);
                 color: #ebebeb;
+            }
+            
+            /* Sidebar container to ensure proper height */
+            QWidget#sidebarContainer {
+                background-color: #181818;
+                border: none;
+                min-height: 700px;
             }
             
             /* Page and section titles */
@@ -2009,14 +2084,14 @@ class SettingsWindow(QDialog):
             
             /* Dropdown menus */
             QComboBox {
-                padding: 14px 18px;
+                padding: 12px 45px 12px 18px;  /* Right padding matches arrow area width + spacing */
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 border-radius: 10px;
                 background-color: rgba(255, 255, 255, 0.03);
                 color: #ebebeb;
                 font-size: 13px;
-                min-width: 150px;
-                min-height: 18px;
+                min-width: 200px;  /* Increased minimum width */
+                min-height: 20px;  /* Slightly increased height */
             }
             
             QComboBox:focus {
@@ -2031,19 +2106,30 @@ class SettingsWindow(QDialog):
             QComboBox::drop-down {
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
-                width: 28px;
+                width: 50px;  /* Larger arrow area width */
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
-                background-color: rgba(255, 255, 255, 0.03);
+                background-color: rgba(255, 255, 255, 0.08);  /* More visible background */
                 border-top-right-radius: 10px;
                 border-bottom-right-radius: 10px;
             }
             
             QComboBox::down-arrow {
                 image: none;
-                border-left: 4px solid transparent;
-                border-right: 4px solid transparent;
-                border-top: 5px solid #b5b5b5;
-                margin-right: 10px;
+                border-left: 8px solid transparent;  /* Larger arrow */
+                border-right: 8px solid transparent;
+                border-top: 10px solid #ebebeb;  /* Arrow color matches text */
+                width: 0px;  /* Triangle has no width */
+                height: 0px; /* Triangle has no height - borders create the shape */
+                subcontrol-origin: content;
+                subcontrol-position: center;  /* Center the arrow in the drop-down area */
+            }
+            
+            QComboBox::down-arrow:on {
+                /* When dropdown is open, change arrow direction */
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-bottom: 10px solid #ebebeb;
+                border-top: none;
             }
             
             QComboBox QAbstractItemView {
@@ -2095,9 +2181,39 @@ class SettingsWindow(QDialog):
                 border: none;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
                 font-weight: 600;
-                font-size: 12px;
-                text-transform: uppercase;
-                letter-spacing: 0.8px;
+                text-align: center;
+            }
+            
+            /* Checkboxes in table widgets */
+            QTableWidget QCheckBox {
+                spacing: 5px;
+                color: #ebebeb;
+                background: transparent;
+            }
+            
+            QTableWidget QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                background-color: rgba(255, 255, 255, 0.05);
+                margin: 2px;
+            }
+            
+            QTableWidget QCheckBox::indicator:checked {
+                background-color: #38bdf8;
+                border: 2px solid #38bdf8;
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDQuNUw0LjUgOEwxMSAxIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K);
+            }
+            
+            QTableWidget QCheckBox::indicator:hover:!checked {
+                background-color: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.5);
+            }
+            
+            QTableWidget QCheckBox::indicator:checked:hover {
+                background-color: #38bdf8;
+                border: 2px solid #38bdf8;
             }
             
             /* Checkboxes */
@@ -2119,12 +2235,18 @@ class SettingsWindow(QDialog):
             QCheckBox::indicator:checked {
                 background-color: #38bdf8;
                 border-color: #38bdf8;
-                image: url(data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23ffffff' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E);
+                background-image: none;
+                color: white;
             }
             
-            QCheckBox::indicator:hover {
+            QCheckBox::indicator:hover:!checked {
                 border-color: #38bdf8;
                 background-color: rgba(56, 189, 248, 0.06);
+            }
+            
+            QCheckBox::indicator:checked:hover {
+                background-color: #2da8d8;
+                border-color: #2da8d8;
             }
             
             /* Scroll areas and scrollbars */
@@ -2330,18 +2452,6 @@ class SettingsWindow(QDialog):
                 checkbox.setChecked(current_state)
                 checkbox.repaint()
                 logger.debug(f"Refreshed checkbox {checkbox.text()}: {current_state}")
-    
-    def on_checkbox_clicked(self):
-        """Handle checkbox clicks with proper visual state updates."""
-        checkbox = self.sender()
-        if checkbox:
-            # Force a visual update
-            checkbox.update()
-            checkbox.repaint()
-            # Log the state for debugging
-            logger.info(f"Checkbox '{checkbox.text()}' clicked: {checkbox.isChecked()}")
-            # Mark form as dirty
-            self.on_form_changed()
     
 
 # Main function for testing

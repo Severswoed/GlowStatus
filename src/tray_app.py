@@ -115,12 +115,10 @@ def main():
         icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
         app.setWindowIcon(QIcon(icon_path))
 
-        # Set up system tray icon with fallback
-        tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-        tray_icon_path = resource_path(f"img/{tray_icon}")
+        # Set up system tray icon with fallback - hardcoded to use tight icon
+        tray_icon_path = resource_path("img/GlowStatus_tray_tp_tight.png")
         
-        print(f"ICON DEBUG: Tray icon config: {tray_icon}")
-        print(f"ICON DEBUG: Trying icon path: {tray_icon_path}")
+        print(f"ICON DEBUG: Using hardcoded tray icon path: {tray_icon_path}")
         print(f"ICON DEBUG: Icon file exists: {os.path.exists(tray_icon_path)}")
         
         # Check if the icon file exists, fallback to default if not
@@ -271,7 +269,7 @@ def main():
             tray.show()
             logger.debug("Ensured tray icon visible before opening config")
             
-            config_window = SettingsWindow()
+            config_window = SettingsWindow(glowstatus_controller=glowstatus)
             config_window.setAttribute(Qt.WA_DeleteOnClose)
             
             # Store reference to prevent garbage collection
@@ -284,18 +282,24 @@ def main():
             def on_config_closed():
                 logger.debug("Config window closed, updating tray")
                 # Reload config and update tray icon
-                config = load_config()
-                tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-                tray_icon_path = resource_path(f"img/{tray_icon}")
+                # Use hardcoded tray icon path
+                tray_icon_path = resource_path("img/GlowStatus_tray_tp_tight.png")
                 
                 # Ensure the icon path exists before setting
                 if os.path.exists(tray_icon_path):
                     tray.setIcon(QIcon(tray_icon_path))
                     logger.debug(f"Updated tray icon to: {tray_icon_path}")
                 else:
-                    logger.warning(f"Icon not found after config close: {tray_icon_path}")
+                    logger.warning(f"Icon not found: {tray_icon_path}")
                 
                 update_tray_tooltip()
+                
+                # Trigger immediate status update after config window closes
+                try:
+                    glowstatus.update_now()
+                    logger.info("Triggered status update after config window closed")
+                except Exception as e:
+                    logger.warning(f"Failed to trigger status update after config close: {e}")
                 
                 # Force tray icon to be visible after config closes
                 tray.show()

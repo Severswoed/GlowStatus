@@ -157,18 +157,28 @@ class GlowStatusController:
                     )
                     
                     if imminent_meeting:
-                        logger.info("Meeting ended early but imminent meeting detected - keeping lights on")
+                        logger.info("Meeting ended early but imminent meeting detected - transitioning to calendar control")
                         status = "in_meeting"
                         # Clear the manual override since we're transitioning to calendar control
                         config["CURRENT_STATUS"] = None
                         config["MANUAL_STATUS_TIMESTAMP"] = None
                         save_config(config)
                     else:
-                        govee.set_power("off")
-                        return
+                        # Reset to current calendar status instead of just turning off
+                        logger.info(f"Meeting ended early - resetting to current calendar status: {calendar_status}")
+                        status = calendar_status
+                        # Clear the manual override and let calendar control take over
+                        config["CURRENT_STATUS"] = None  
+                        config["MANUAL_STATUS_TIMESTAMP"] = None
+                        save_config(config)
+                        # Continue with normal status processing
                 else:
-                    govee.set_power("off")
-                    return
+                    # No calendar available, default to available
+                    logger.info("Meeting ended early - no calendar available, defaulting to available")
+                    status = "available"
+                    config["CURRENT_STATUS"] = None
+                    config["MANUAL_STATUS_TIMESTAMP"] = None
+                    save_config(config)
             else:
                 # Guard: If calendar ID or client_secret.json is missing, skip calendar sync
                 client_secret_path = resource_path('resources/client_secret.json')
@@ -253,7 +263,7 @@ class GlowStatusController:
             GOVEE_DEVICE_MODEL = config.get("GOVEE_DEVICE_MODEL")
             SELECTED_CALENDAR_ID = config.get("SELECTED_CALENDAR_ID")
             STATUS_COLOR_MAP = config.get("STATUS_COLOR_MAP", {})
-            REFRESH_INTERVAL = int(config.get("REFRESH_INTERVAL", 15))
+            REFRESH_INTERVAL = max(15, int(config.get("REFRESH_INTERVAL", 15)))  # Enforce minimum 15 seconds
             POWER_OFF_WHEN_AVAILABLE = bool(config.get("POWER_OFF_WHEN_AVAILABLE", True))
             OFF_FOR_UNKNOWN_STATUS = bool(config.get("OFF_FOR_UNKNOWN_STATUS", True))
             DISABLE_CALENDAR_SYNC = bool(config.get("DISABLE_CALENDAR_SYNC", False))
@@ -263,12 +273,30 @@ class GlowStatusController:
             now = datetime.datetime.now()
             logger.info(f"Status check at: {now.strftime('%H:%M:%S.%f')[:-3]} (:{now.second:02d}.{now.microsecond//1000:03d})")
 
-            # If light control is disabled, only track status without controlling lights
+            # If light control is disabled, only track status - no light control whatsoever
             if DISABLE_LIGHT_CONTROL:
                 if not DISABLE_CALENDAR_SYNC:
                     try:
                         calendar = CalendarSync(SELECTED_CALENDAR_ID)
-                        status = calendar.get_current_status(color_map=STATUS_COLOR_MAP)
+                        status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
+                        
+                        # Track imminent meetings for status purposes only (no light override)
+                        imminent_meeting = (
+                            next_event_start is not None
+                            and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                        )
+                        
+                        if imminent_meeting:
+                            logger.info("🚨 IMMINENT MEETING DETECTED - updating status only (light control disabled)")
+                            status = "in_meeting"
+                        
+                        # Update status but no light control
+                        config["CURRENT_STATUS"] = status
+                        save_config(config)
+                        logger.info(f"Light control disabled - status tracking only: {status}")
+                        self._sleep_until_next_interval(REFRESH_INTERVAL)
+                        continue
+                            
                     except Exception as e:
                         logger.warning(f"Calendar sync failed (token may be expired): {e}")
                         status = config.get("CURRENT_STATUS", "available")
@@ -276,14 +304,16 @@ class GlowStatusController:
                         config["DISABLE_CALENDAR_SYNC"] = True
                         save_config(config)
                         logger.info("Auto-disabled calendar sync due to authentication failure")
+                        self._sleep_until_next_interval(REFRESH_INTERVAL)
+                        continue
                 else:
+                    # Calendar sync disabled and light control disabled - just track manual status
                     status = config.get("CURRENT_STATUS", "available")
-                
-                config["CURRENT_STATUS"] = status
-                save_config(config)
-                logger.info(f"Current status: {status} | Color map keys: {list(STATUS_COLOR_MAP.keys())}")
-                self._sleep_until_next_interval(REFRESH_INTERVAL)
-                continue
+                    config["CURRENT_STATUS"] = status
+                    save_config(config)
+                    logger.info(f"Both calendar sync and light control disabled - status: {status}")
+                    self._sleep_until_next_interval(REFRESH_INTERVAL)
+                    continue
 
             # Guard: If Govee credentials are missing, skip light control
             if not GOVEE_API_KEY or not GOVEE_DEVICE_ID or not GOVEE_DEVICE_MODEL:
@@ -372,12 +402,12 @@ class GlowStatusController:
                         save_config(config)
                 
                 if manual_status == "meeting_ended_early":
-                    # Even when meeting ended early, check for imminent meetings
+                    # Even when meeting ended early, check for imminent meetings and reset to calendar status
                     try:
                         calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
                     except Exception as e:
                         logger.warning(f"Calendar sync failed during meeting_ended_early check: {e}")
-                        # Treat as no imminent meeting if we can't check
+                        # Treat as available if we can't check calendar
                         calendar_status = "available"
                         next_event_start = None
                     
@@ -396,9 +426,14 @@ class GlowStatusController:
                         manual_status = None
                         # Continue with normal calendar processing below
                     else:
-                        govee.set_power("off")
-                        self._sleep_until_next_interval(REFRESH_INTERVAL)
-                        continue
+                        # Reset to current calendar status instead of just turning off
+                        logger.info(f"Meeting ended early - resetting to current calendar status: {calendar_status}")
+                        # Clear manual override and continue with calendar status
+                        config["CURRENT_STATUS"] = None
+                        config["MANUAL_STATUS_TIMESTAMP"] = None
+                        save_config(config)
+                        manual_status = None
+                        # Continue with normal calendar processing to apply the calendar status
                 
                 if not manual_status:  # Only check calendar if no manual status is active
                     try:
@@ -459,9 +494,11 @@ class GlowStatusController:
             now = datetime.datetime.now()
             seconds_into_minute = now.second + now.microsecond / 1_000_000
             sleep_time = 60 - seconds_into_minute
+            logger.debug(f"60-second interval: sleeping {sleep_time:.2f}s until next minute boundary")
         else:
             # For other intervals, just sleep the specified time
             sleep_time = interval_seconds
+            logger.debug(f"{interval_seconds}-second interval: sleeping {sleep_time:.2f}s")
             
         if sleep_time > 0:
             time.sleep(sleep_time)
