@@ -8,6 +8,18 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 
 ---
 
+## 🚦 Getting Started
+
+New to GlowStatus? See our [step-by-step guide](./docs/getting_started.md):
+
+- 1 - Google OAuth setup
+- 2 - Govee smart light integration
+- 3 - Calendar sync configuration
+- 4 - Enabling sync and lights
+- Troubleshooting tips
+
+---
+
 ## � Available Versions
 
 GlowStatus has evolved through multiple versions, each designed for different use cases:
