@@ -329,7 +329,7 @@ Write-Host "===================================================="
 Write-Host "Version: $VERSION"
 Write-Host "Chocolatey Package: $(if($packageBuiltSuccessfully){"✓ Built"}else{"✗ Failed"})"
 Write-Host "Chocolatey URL: $chocolateyPackageUrl"
-Write-Host "GitHub Release: $(if($env:GITHUB_TOKEN){"Attempted"}else{"Skipped - no token"})"
+Write-Host "GitHub Release: $(if($env:GITHUB_TOKEN){"Attempted - $($release.html_url)"}else{"Skipped - no token"})"
 Write-Host ""
 Write-Host "Next Steps:"
 if ($packageBuiltSuccessfully -and $env:CHOCO_APIKEY) {
