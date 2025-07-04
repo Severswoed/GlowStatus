@@ -322,9 +322,10 @@ if ($env:GITHUB_TOKEN && $packageBuiltSuccessfully) {
 }
 
 # Final summary
-Write-Host "`n" + "="*50
+
+Write-Host "===================================================="
 Write-Host "BUILD SUMMARY"
-Write-Host "="*50
+Write-Host "===================================================="
 Write-Host "Version: $VERSION"
 Write-Host "Chocolatey Package: $(if($packageBuiltSuccessfully){"✓ Built"}else{"✗ Failed"})"
 Write-Host "Chocolatey URL: $chocolateyPackageUrl"
@@ -345,4 +346,3 @@ if (-not $env:GITHUB_TOKEN) {
 }
 Write-Host ""
 
-pause
