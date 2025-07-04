@@ -161,6 +161,8 @@ class CalendarSync:
                 start_dt = ensure_aware(dateutil.parser.isoparse(start))
                 end_dt = ensure_aware(dateutil.parser.isoparse(end))
                 logger.info(f"Checking event: {event.get('summary', '')} | Start: {start_dt} | End: {end_dt} | Now: {now}")
+                logger.info(f"  Raw start string: '{start}' -> Parsed: {start_dt} -> UTC: {start_dt.astimezone(datetime.timezone.utc)}")
+                logger.info(f"  Time diff calculation: ({start_dt} - {now}) = {(start_dt - now).total_seconds()} seconds")
                 if start_dt <= now <= end_dt:
                     status = normalize_status(event.get("summary", ""), color_map)
                     duration_minutes = int((end_dt - start_dt).total_seconds() // 60)
@@ -176,8 +178,10 @@ class CalendarSync:
                 start = event["start"].get("dateTime", event["start"].get("date"))
                 start_dt = ensure_aware(dateutil.parser.isoparse(start))
                 delta = (start_dt - now).total_seconds()
+                logger.info(f"  Event {event.get('summary', '')}: delta = {delta:.1f} seconds")
                 if 0 <= delta <= 60:
                     status = "in_meeting"
+                    logger.info(f"  -> IMMINENT EVENT (within 60s): {event.get('summary', '')}")
                     if return_next_event_time:
                         return status, start_dt
                     return status
@@ -185,6 +189,7 @@ class CalendarSync:
                 if soonest_start is None or start_dt < soonest_start:
                     soonest_event = event
                     soonest_start = start_dt
+            logger.info(f"Soonest upcoming event: {soonest_event.get('summary', '') if soonest_event else 'None'} at {soonest_start}")
             if return_next_event_time:
                 return "available", soonest_start
             return "available"

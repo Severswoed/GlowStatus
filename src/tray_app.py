@@ -287,24 +287,38 @@ def main():
         
         sync_toggle_action = [None]  # Store reference to sync toggle action
         light_toggle_action = [None]  # Store reference to light toggle action
-        if sync_enabled[0]:
+        
+        # Start the controller if any feature could potentially work
+        # This ensures logs and status tracking work even with partial configuration
+        should_start_controller = (
+            sync_enabled[0] or  # Calendar sync fully enabled
+            light_enabled[0] or  # Light control fully enabled
+            sync_config_enabled or  # Calendar sync enabled in config (even if missing prereqs)
+            light_config_enabled  # Light control enabled in config (even if missing prereqs)
+        )
+        
+        if should_start_controller:
             try:
                 glowstatus.start()
+                logger.info("GlowStatus controller started")
             except Exception as e:
                 logger.error(f"Failed to start GlowStatus controller: {e}")
-                # Auto-disable calendar sync if it fails to start
-                config["DISABLE_CALENDAR_SYNC"] = True
-                sync_enabled[0] = False
-                save_config(config)
-                logger.info("Auto-disabled calendar sync due to startup failure")
-                
-                # Show a non-blocking notification
-                tray.showMessage(
-                    "GlowStatus - Calendar Sync Disabled",
-                    "Calendar authentication failed. Please re-authenticate in Settings.",
-                    QSystemTrayIcon.Warning,
-                    5000  # 5 seconds
-                )
+                # Only auto-disable if we were relying on calendar sync
+                if sync_enabled[0] and not light_enabled[0]:
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    sync_enabled[0] = False
+                    save_config(config)
+                    logger.info("Auto-disabled calendar sync due to startup failure")
+                    
+                    # Show a non-blocking notification
+                    tray.showMessage(
+                        "GlowStatus - Calendar Sync Disabled",
+                        "Calendar authentication failed. Please re-authenticate in Settings.",
+                        QSystemTrayIcon.Warning,
+                        5000  # 5 seconds
+                    )
+        else:
+            logger.info("GlowStatus controller not started - all features disabled")
 
         # --- Helper Functions ---
         def update_tray_tooltip():
@@ -431,9 +445,8 @@ def main():
             update_tray_tooltip()
 
         def set_end_meeting():
-            config = load_config()
-            config["CURRENT_STATUS"] = "meeting_ended_early"
-            save_config(config)
+            # Use robust helper to snooze until meeting end, not just legacy 5 min
+            glowstatus.end_meeting_early()
             update_tray_tooltip()
             glowstatus.update_now()
             update_tray_tooltip()

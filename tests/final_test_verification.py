@@ -64,7 +64,8 @@ def main():
             'test_light_control_bug_fix.py',
             'test_token_path_import.py',
             'test_oauth_threading.py',
-            'test_imminent_meeting_crash.py'
+            'test_imminent_meeting_crash.py',
+            'test_stuck_manual_status_fix.py'
         ],
         'Feature Tests': [
             'test_light_toggle_tray_menu.py',
