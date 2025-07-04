@@ -85,3 +85,4 @@ discord/active_webhooks.json
 # Chocolatey packaging
 chocolatey/
 *.nupkg
+resources/client_secret.json
