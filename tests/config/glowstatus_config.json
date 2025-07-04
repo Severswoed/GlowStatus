@@ -29,5 +29,7 @@
       "color": "128,128,128",
       "power_off": false
     }
-  }
+  },
+  "CURRENT_STATUS": "focus",
+  "MANUAL_STATUS_TIMESTAMP": 1751658691.8080027
 }

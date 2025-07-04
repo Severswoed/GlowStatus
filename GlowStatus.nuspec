@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>glowstatus</id>
+    <version>2.1.0</version>
+    <packageSourceUrl>https://github.com/Severswoed/GlowStatus</packageSourceUrl>
+    <owners>Severswoed</owners>
+    <title>GlowStatus</title>
+    <authors>Severswoed</authors>
+    <projectUrl>https://github.com/Severswoed/GlowStatus</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/Severswoed/GlowStatus/main/img/GlowStatus.png</iconUrl>
+    <copyright>2024-2025 Severswoed</copyright>
+    <licenseUrl>https://github.com/Severswoed/GlowStatus/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <docsUrl>https://github.com/Severswoed/GlowStatus/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/Severswoed/GlowStatus/issues</bugTrackerUrl>
+    <tags>govee smart-lights calendar status-indicator productivity remote-work</tags>
+    <summary>Smart Presence Indicator with Govee + Google Calendar</summary>
+    <description>GlowStatus is a cross-platform status indicator system that syncs your Govee smart lights with your Google Calendar, showing your availability at a glance. Perfect for home offices, shared spaces, and remote work.</description>
+    <releaseNotes>https://github.com/Severswoed/GlowStatus/releases/tag/v2.1.0</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools/**" target="tools" />
+  </files>
+</package>
