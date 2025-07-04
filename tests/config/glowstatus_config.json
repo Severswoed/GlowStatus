@@ -1,12 +1,13 @@
 {
+  "DISABLE_CALENDAR_SYNC": false,
+  "DISABLE_LIGHT_CONTROL": true,
+  "REFRESH_INTERVAL": 30,
+  "POWER_OFF_WHEN_AVAILABLE": true,
+  "OFF_FOR_UNKNOWN_STATUS": true,
   "GOVEE_DEVICE_ID": "",
   "GOVEE_DEVICE_MODEL": "",
   "SELECTED_CALENDAR_ID": "",
-  "REFRESH_INTERVAL": 15,
-  "DISABLE_CALENDAR_SYNC": true,
-  "DISABLE_LIGHT_CONTROL": true,
-  "POWER_OFF_WHEN_AVAILABLE": true,
-  "OFF_FOR_UNKNOWN_STATUS": true,
+  "TRAY_ICON": "GlowStatus_tray_tp.png",
   "STATUS_COLOR_MAP": {
     "in_meeting": {
       "color": "255,0,0",
@@ -23,7 +24,12 @@
     "lunch": {
       "color": "0,255,0",
       "power_off": true
+    },
+    "offline": {
+      "color": "128,128,128",
+      "power_off": false
     }
   },
-  "CURRENT_STATUS": "available"
+  "CURRENT_STATUS": "focus",
+  "MANUAL_STATUS_TIMESTAMP": 1751658691.8080027
 }

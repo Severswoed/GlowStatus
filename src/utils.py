@@ -37,13 +37,7 @@ def normalize_status(summary, color_map=None):
     return "in_meeting"
 
 def load_secret(key):
-    """Load a secret from environment variables or keyring."""
-    # First try environment variables (for development/CLI usage)
-    value = os.environ.get(key)
-    if value:
-        return value
-    
-    # Then try keyring (for GUI users)
+    """Load a secret from keyring only (never from environment variables)."""
     try:
         import keyring
         keyring_value = keyring.get_password("GlowStatus", key)
@@ -51,7 +45,6 @@ def load_secret(key):
             return keyring_value
     except Exception:
         pass  # Keyring not available or other error
-    
     return None
 
 def format_time(dt):

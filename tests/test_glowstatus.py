@@ -54,7 +54,7 @@ class TestGlowStatusLogic(unittest.TestCase):
         mock_load_config.return_value = self.sample_config
         
         # Test that config can be loaded
-        from config_ui import load_config
+        from settings_ui import load_config
         config = load_config()
         
         self.assertEqual(config['DISABLE_CALENDAR_SYNC'], False)

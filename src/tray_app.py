@@ -2,16 +2,19 @@ import sys
 import os
 import tempfile
 import atexit
+import signal
 from PySide6.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
 from PySide6.QtGui import QAction, QIcon, QCursor
 from PySide6.QtCore import Qt, QTimer
 from utils import resource_path
-from config_ui import ConfigWindow, load_config, save_config
+from settings_ui import load_config, save_config
+from settings_ui import SettingsWindow
 from glowstatus import GlowStatusController
 from logger import get_logger
 from constants import TOKEN_PATH
+from version import get_version_string
 
 # Initialize logger
 logger = get_logger("TrayApp")
@@ -79,6 +82,8 @@ def main():
             # Try to show a message box if possible
             try:
                 temp_app = QApplication(sys.argv)
+                temp_app.setApplicationName("GlowStatus")
+                temp_app.setApplicationDisplayName("GlowStatus")
                 QMessageBox.warning(
                     None, 
                     "GlowStatus Already Running", 
@@ -98,18 +103,27 @@ def main():
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app.config_window = None  # Initialize config window reference
+        
+        # Set proper application branding for system notifications
+        app.setApplicationName("GlowStatus")
+        app.setApplicationDisplayName("GlowStatus")
+        try:
+            app.setApplicationVersion(get_version_string())
+        except Exception:
+            app.setApplicationVersion("2.1.0")  # Fallback version
+        app.setOrganizationName("GlowStatus")
+        app.setOrganizationDomain("glowstatus.app")
+        
         print("Qt Application created")
 
         # Set the application icon for the taskbar/dock
         icon_path = resource_path(f"img/GlowStatus_tray_tp_tight.png")
         app.setWindowIcon(QIcon(icon_path))
 
-        # Set up system tray icon with fallback
-        tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-        tray_icon_path = resource_path(f"img/{tray_icon}")
+        # Set up system tray icon with fallback - hardcoded to use tight icon
+        tray_icon_path = resource_path("img/GlowStatus_tray_tp_tight.png")
         
-        print(f"ICON DEBUG: Tray icon config: {tray_icon}")
-        print(f"ICON DEBUG: Trying icon path: {tray_icon_path}")
+        print(f"ICON DEBUG: Using hardcoded tray icon path: {tray_icon_path}")
         print(f"ICON DEBUG: Icon file exists: {os.path.exists(tray_icon_path)}")
         
         # Check if the icon file exists, fallback to default if not
@@ -204,28 +218,107 @@ def main():
             )
 
         glowstatus = GlowStatusController()
-        sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
-        light_enabled = [not config.get("DISABLE_LIGHT_CONTROL", False)]
+        
+        # Register exit handler to turn off lights when app exits unexpectedly
+        def cleanup_on_exit():
+            """Turn off lights and cleanup when app exits"""
+            try:
+                logger.info("App exiting - turning off lights")
+                glowstatus.turn_off_lights_immediately()
+            except Exception as e:
+                logger.warning(f"Failed to turn off lights on exit: {e}")
+                
+        atexit.register(cleanup_on_exit)
+        
+        # Register signal handlers for graceful shutdown
+        def signal_handler(signum, frame):
+            """Handle termination signals by turning off lights and exiting gracefully"""
+            logger.info(f"Received signal {signum} - shutting down gracefully")
+            try:
+                glowstatus.turn_off_lights_immediately()
+                glowstatus.stop()
+            except Exception as e:
+                logger.warning(f"Error during signal shutdown: {e}")
+            sys.exit(0)
+        
+        # Register handlers for common termination signals
+        signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
+        signal.signal(signal.SIGTERM, signal_handler)  # Termination request
+        if hasattr(signal, 'SIGBREAK'):  # Windows-specific
+            signal.signal(signal.SIGBREAK, signal_handler)
+        
+        # Validation functions for enabling features
+        def can_enable_calendar_sync():
+            """Check if calendar sync can be enabled based on prerequisites"""
+            config = load_config()
+            has_calendar = bool(config.get("SELECTED_CALENDAR_ID"))
+            has_auth = os.path.exists(TOKEN_PATH)
+            has_client_secret = os.path.exists(resource_path('resources/client_secret.json'))
+            return has_calendar and has_auth and has_client_secret
+        
+        def can_enable_light_control():
+            """Check if light control can be enabled based on prerequisites"""
+            config = load_config()
+            has_device_id = bool(config.get("GOVEE_DEVICE_ID"))
+            has_device_model = bool(config.get("GOVEE_DEVICE_MODEL"))
+            # Note: We don't check for API key here since it's stored in keyring
+            return has_device_id and has_device_model
+        
+        # Initialize sync and light state based on config AND validation
+        config = load_config()
+        sync_config_enabled = not config.get("DISABLE_CALENDAR_SYNC", False)
+        light_config_enabled = not config.get("DISABLE_LIGHT_CONTROL", False)
+        
+        # Only enable if both config allows it AND prerequisites are met
+        sync_enabled = [sync_config_enabled and can_enable_calendar_sync()]
+        light_enabled = [light_config_enabled and can_enable_light_control()]
+        
+        # If we determined sync should be disabled due to missing prerequisites, update config
+        if sync_config_enabled and not sync_enabled[0]:
+            logger.info("Auto-disabling calendar sync: prerequisites not met")
+            config["DISABLE_CALENDAR_SYNC"] = True
+            save_config(config)
+        
+        # If we determined light control should be disabled due to missing prerequisites, update config
+        if light_config_enabled and not light_enabled[0]:
+            logger.info("Auto-disabling light control: prerequisites not met")
+            config["DISABLE_LIGHT_CONTROL"] = True
+            save_config(config)
+        
         sync_toggle_action = [None]  # Store reference to sync toggle action
         light_toggle_action = [None]  # Store reference to light toggle action
-        if sync_enabled[0]:
+        
+        # Start the controller if any feature could potentially work
+        # This ensures logs and status tracking work even with partial configuration
+        should_start_controller = (
+            sync_enabled[0] or  # Calendar sync fully enabled
+            light_enabled[0] or  # Light control fully enabled
+            sync_config_enabled or  # Calendar sync enabled in config (even if missing prereqs)
+            light_config_enabled  # Light control enabled in config (even if missing prereqs)
+        )
+        
+        if should_start_controller:
             try:
                 glowstatus.start()
+                logger.info("GlowStatus controller started")
             except Exception as e:
                 logger.error(f"Failed to start GlowStatus controller: {e}")
-                # Auto-disable calendar sync if it fails to start
-                config["DISABLE_CALENDAR_SYNC"] = True
-                sync_enabled[0] = False
-                save_config(config)
-                logger.info("Auto-disabled calendar sync due to startup failure")
-                
-                # Show a non-blocking notification
-                tray.showMessage(
-                    "GlowStatus - Calendar Sync Disabled",
-                    "Calendar authentication failed. Please re-authenticate in Settings.",
-                    QSystemTrayIcon.Warning,
-                    5000  # 5 seconds
-                )
+                # Only auto-disable if we were relying on calendar sync
+                if sync_enabled[0] and not light_enabled[0]:
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    sync_enabled[0] = False
+                    save_config(config)
+                    logger.info("Auto-disabled calendar sync due to startup failure")
+                    
+                    # Show a non-blocking notification
+                    tray.showMessage(
+                        "GlowStatus - Calendar Sync Disabled",
+                        "Calendar authentication failed. Please re-authenticate in Settings.",
+                        QSystemTrayIcon.Warning,
+                        5000  # 5 seconds
+                    )
+        else:
+            logger.info("GlowStatus controller not started - all features disabled")
 
         # --- Helper Functions ---
         def update_tray_tooltip():
@@ -260,31 +353,65 @@ def main():
             tray.show()
             logger.debug("Ensured tray icon visible before opening config")
             
-            config_window = ConfigWindow()
-            config_window.setAttribute(Qt.WA_DeleteOnClose)
-            
-            # Store reference to prevent garbage collection
-            app.config_window = config_window
-            
-            config_window.show()
-            config_window.raise_()           # Bring window to front
-            config_window.activateWindow()   # Give it focus
+            try:
+                config_window = SettingsWindow(glowstatus_controller=glowstatus)
+                config_window.setAttribute(Qt.WA_DeleteOnClose)
+                
+                # Store reference to prevent garbage collection
+                app.config_window = config_window
+                
+                config_window.show()
+                config_window.raise_()           # Bring window to front
+                config_window.activateWindow()   # Give it focus
+            except Exception as e:
+                logger.error(f"Failed to open settings window: {e}")
+                QMessageBox.critical(None, "Settings Error", 
+                                   f"Failed to open settings window:\n\n{e}\n\nPlease restart the application.")
+                # Clear the reference if window creation failed
+                app.config_window = None
+                return
 
             def on_config_closed():
                 logger.debug("Config window closed, updating tray")
                 # Reload config and update tray icon
-                config = load_config()
-                tray_icon = config.get("TRAY_ICON", "GlowStatus_tray_tp_tight.png")
-                tray_icon_path = resource_path(f"img/{tray_icon}")
+                # Use hardcoded tray icon path
+                tray_icon_path = resource_path("img/GlowStatus_tray_tp_tight.png")
                 
                 # Ensure the icon path exists before setting
                 if os.path.exists(tray_icon_path):
                     tray.setIcon(QIcon(tray_icon_path))
                     logger.debug(f"Updated tray icon to: {tray_icon_path}")
                 else:
-                    logger.warning(f"Icon not found after config close: {tray_icon_path}")
+                    logger.warning(f"Icon not found: {tray_icon_path}")
+                
+                # Re-evaluate sync and light enabled states after config changes
+                config = load_config()
+                sync_config_enabled = not config.get("DISABLE_CALENDAR_SYNC", False)
+                light_config_enabled = not config.get("DISABLE_LIGHT_CONTROL", False)
+                
+                # Update states based on both config and validation
+                sync_enabled[0] = sync_config_enabled and can_enable_calendar_sync()
+                light_enabled[0] = light_config_enabled and can_enable_light_control()
+                
+                # If config says enabled but validation fails, update config
+                if sync_config_enabled and not sync_enabled[0]:
+                    logger.info("Auto-disabling calendar sync after config change: prerequisites not met")
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    save_config(config)
+                
+                if light_config_enabled and not light_enabled[0]:
+                    logger.info("Auto-disabling light control after config change: prerequisites not met")
+                    config["DISABLE_LIGHT_CONTROL"] = True
+                    save_config(config)
                 
                 update_tray_tooltip()
+                
+                # Trigger immediate status update after config window closes
+                try:
+                    glowstatus.update_now()
+                    logger.info("Triggered status update after config window closed")
+                except Exception as e:
+                    logger.warning(f"Failed to trigger status update after config close: {e}")
                 
                 # Force tray icon to be visible after config closes
                 tray.show()
@@ -318,9 +445,8 @@ def main():
             update_tray_tooltip()
 
         def set_end_meeting():
-            config = load_config()
-            config["CURRENT_STATUS"] = "meeting_ended_early"
-            save_config(config)
+            # Use robust helper to snooze until meeting end, not just legacy 5 min
+            glowstatus.end_meeting_early()
             update_tray_tooltip()
             glowstatus.update_now()
             update_tray_tooltip()
@@ -348,6 +474,20 @@ def main():
         def toggle_sync():
             config = load_config()
             if not sync_enabled[0]:
+                # Check prerequisites before enabling
+                if not can_enable_calendar_sync():
+                    missing_items = []
+                    if not config.get("SELECTED_CALENDAR_ID"):
+                        missing_items.append("Google Calendar selection")
+                    if not os.path.exists(TOKEN_PATH):
+                        missing_items.append("Google authentication")
+                    if not os.path.exists(resource_path('resources/client_secret.json')):
+                        missing_items.append("Google OAuth credentials")
+                    
+                    QMessageBox.warning(None, "Cannot Enable Calendar Sync", 
+                                      f"Missing prerequisites:\n• {chr(10).join(missing_items)}\n\nPlease complete setup in Settings first.")
+                    return
+                
                 config["DISABLE_CALENDAR_SYNC"] = False
                 save_config(config)
                 try:
@@ -357,6 +497,7 @@ def main():
                     # Update immediately to refresh status from calendar
                     glowstatus.update_now()
                     update_tray_tooltip()
+                    logger.info("Calendar sync enabled via tray menu")
                 except Exception as e:
                     logger.error(f"Failed to start calendar sync: {e}")
                     # Revert the change
@@ -374,15 +515,28 @@ def main():
                 sync_toggle_action[0].setText("Enable Sync")
                 sync_enabled[0] = False
                 update_tray_tooltip()
+                logger.info("Calendar sync disabled via tray menu")
 
         def toggle_light():
             config = load_config()
             if not light_enabled[0]:
+                # Check prerequisites before enabling
+                if not can_enable_light_control():
+                    missing_items = []
+                    if not config.get("GOVEE_DEVICE_ID"):
+                        missing_items.append("Govee Device ID")
+                    if not config.get("GOVEE_DEVICE_MODEL"):
+                        missing_items.append("Govee Device Model")
+                    
+                    QMessageBox.warning(None, "Cannot Enable Light Control", 
+                                      f"Missing prerequisites:\n• {chr(10).join(missing_items)}\n\nPlease configure your Govee device in Settings first.")
+                    return
+                
                 config["DISABLE_LIGHT_CONTROL"] = False
                 save_config(config)
                 light_toggle_action[0].setText("Disable Lights")
                 light_enabled[0] = True
-                logger.info("Light control enabled by user")
+                logger.info("Light control enabled via tray menu")
                 # Update immediately to apply current status to lights
                 glowstatus.update_now()
                 update_tray_tooltip()
@@ -393,10 +547,17 @@ def main():
                 save_config(config)
                 light_toggle_action[0].setText("Enable Lights")
                 light_enabled[0] = False
-                logger.info("Light control disabled by user")
+                logger.info("Light control disabled via tray menu")
                 update_tray_tooltip()
 
         def quit_app():
+            logger.info("App quit requested - turning off lights before exit")
+            try:
+                # Turn off lights before quitting
+                glowstatus.turn_off_lights_immediately()
+            except Exception as e:
+                logger.warning(f"Failed to turn off lights on quit: {e}")
+            
             glowstatus.stop()
             cleanup_lock_file()  # Ensure lock file is cleaned up
             app.quit()
@@ -498,6 +659,8 @@ def main():
         try:
             if 'app' not in locals():
                 app = QApplication(sys.argv)
+                app.setApplicationName("GlowStatus")
+                app.setApplicationDisplayName("GlowStatus")
             QMessageBox.critical(
                 None,
                 "GlowStatus Startup Error", 

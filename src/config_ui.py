@@ -48,16 +48,65 @@ class OAuthWorker(QThread):
     def run(self):
         """Run the OAuth flow in a separate thread."""
         try:
-            from calendar_sync import CalendarSync
-            cal_sync = CalendarSync("primary")
-            service = cal_sync._get_service()
+            import pickle
+            from google.auth.transport.requests import Request
+            from google_auth_oauthlib.flow import InstalledAppFlow
+            from googleapiclient.discovery import build
+            from constants import TOKEN_PATH, CLIENT_SECRET_PATH, SCOPES
             
-            if service:
-                # Fetch the user's email from the primary calendar
+            # Check for client_secret.json
+            if not os.path.exists(CLIENT_SECRET_PATH):
+                self.oauth_error.emit("Google OAuth credentials not found. Please set up OAuth in Settings.")
+                return
+            
+            creds = None
+            # Load existing token if available
+            if os.path.exists(TOKEN_PATH):
+                try:
+                    with open(TOKEN_PATH, "rb") as token:
+                        creds = pickle.load(token)
+                except Exception as token_error:
+                    logger.warning(f"Failed to load token file: {token_error}")
+                    creds = None
+            
+            # Always run OAuth flow for explicit authentication
+            try:
+                flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
+                # Configure for better compatibility and cancellation handling
+                try:
+                    creds = flow.run_local_server(port=0, open_browser=True, host='localhost', timeout_seconds=120)
+                except Exception as oauth_error:
+                    if "timeout" in str(oauth_error).lower() or "cancelled" in str(oauth_error).lower():
+                        self.oauth_error.emit("OAuth authentication was cancelled or timed out.")
+                        return
+                    else:
+                        # Fallback to console flow
+                        logger.warning(f"Local server OAuth failed, trying console: {oauth_error}")
+                        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_PATH, SCOPES)
+                        creds = flow.run_console()
+                        
+            except Exception as flow_error:
+                self.oauth_error.emit(f"OAuth authentication failed: {str(flow_error)}")
+                return
+            
+            if not creds:
+                self.oauth_error.emit("Failed to obtain valid credentials")
+                return
+            
+            # Save the credentials
+            try:
+                with open(TOKEN_PATH, "wb") as token:
+                    pickle.dump(creds, token)
+            except Exception as save_error:
+                logger.warning(f"Failed to save credentials: {save_error}")
+            
+            # Test the credentials by fetching calendars
+            try:
+                service = build("calendar", "v3", credentials=creds)
                 calendar_list = service.calendarList().list().execute()
                 calendars = calendar_list.get("items", [])
-                user_email = None
                 
+                user_email = None
                 for cal in calendars:
                     if cal.get("primary"):
                         user_email = cal.get("id")
@@ -66,15 +115,16 @@ class OAuthWorker(QThread):
                 if not user_email and calendars:
                     user_email = calendars[0].get("id", "Unknown")
                     
-                if user_email:
+                if user_email and calendars:
                     self.oauth_success.emit(user_email, calendars)
                 else:
                     self.oauth_no_calendars.emit()
-            else:
-                self.oauth_error.emit("Service not initialized")
+                    
+            except Exception as api_error:
+                self.oauth_error.emit(f"Failed to access Google Calendar API: {str(api_error)}")
                 
         except Exception as e:
-            self.oauth_error.emit(str(e))
+            self.oauth_error.emit(f"OAuth process failed: {str(e)}")
 
 def load_config():
     # If user config doesn't exist, copy from template

@@ -18,7 +18,7 @@ sys.modules['PySide6.QtCore'] = MagicMock()
 sys.modules['PySide6.QtGui'] = MagicMock()
 
 # Now import the modules we want to test
-from config_ui import load_config, save_config, CONFIG_PATH
+from settings_ui import load_config, save_config, CONFIG_PATH
 
 
 class TestConfigUI(unittest.TestCase):
@@ -59,7 +59,7 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path):
+            with patch('settings_ui.CONFIG_PATH', config_path):
                 config = load_config()
                 
                 self.assertEqual(config['DISABLE_CALENDAR_SYNC'], False)
@@ -72,8 +72,8 @@ class TestConfigUI(unittest.TestCase):
             
     def test_load_config_with_missing_file(self):
         """Test loading configuration when file doesn't exist."""
-        with patch('config_ui.CONFIG_PATH', '/nonexistent/path.json'), \
-             patch('config_ui.TEMPLATE_CONFIG_PATH', '/nonexistent/template.json'):
+        with patch('settings_ui.CONFIG_PATH', '/nonexistent/path.json'), \
+             patch('settings_ui.TEMPLATE_CONFIG_PATH', '/nonexistent/template.json'):
             config = load_config()
             
             # Should return default configuration
@@ -88,7 +88,7 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path):
+            with patch('settings_ui.CONFIG_PATH', config_path):
                 config = load_config()
                 
                 # Should return default configuration
@@ -110,7 +110,7 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path):
+            with patch('settings_ui.CONFIG_PATH', config_path):
                 save_config(test_config)
                 
                 # Verify file was created and contains correct data
@@ -146,7 +146,7 @@ class TestConfigUI(unittest.TestCase):
             self.assertIn('power_off', settings)
             self.assertIsInstance(settings['power_off'], bool)
             
-    @patch('config_ui.keyring')
+    @patch('settings_ui.keyring')
     def test_govee_credentials_handling(self, mock_keyring):
         """Test handling of Govee credentials."""
         # Test storing credentials
@@ -180,7 +180,7 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path):
+            with patch('settings_ui.CONFIG_PATH', config_path):
                 # Load config - should preserve user's choice
                 loaded_config = load_config()
                 
@@ -213,8 +213,8 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path), \
-                 patch('config_ui.keyring.get_password', return_value='test_api_key'):
+            with patch('settings_ui.CONFIG_PATH', config_path), \
+                 patch('settings_ui.keyring.get_password', return_value='test_api_key'):
                 
                 # Load config - should auto-enable for new installation
                 loaded_config = load_config()
@@ -236,8 +236,8 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path), \
-                 patch('config_ui.keyring.get_password', return_value=None):
+            with patch('settings_ui.CONFIG_PATH', config_path), \
+                 patch('settings_ui.keyring.get_password', return_value=None):
                 
                 # Load config - should default to disabled
                 loaded_config = load_config()
@@ -248,7 +248,7 @@ class TestConfigUI(unittest.TestCase):
         finally:
             os.unlink(config_path)
             
-    @patch('config_ui.keyring')
+    @patch('settings_ui.keyring')
     def test_config_window_save_respects_user_choice(self, mock_keyring):
         """Test that ConfigWindow save_config respects user's explicit choice."""
         # Mock the keyring for API key operations
@@ -267,7 +267,7 @@ class TestConfigUI(unittest.TestCase):
             config_path = f.name
             
         try:
-            with patch('config_ui.CONFIG_PATH', config_path):
+            with patch('settings_ui.CONFIG_PATH', config_path):
                 # Simulate saving config through the UI
                 config = load_config()
                 config['REFRESH_INTERVAL'] = 45  # Make some other change
@@ -303,7 +303,7 @@ class TestConfigUI(unittest.TestCase):
                 config_path = f.name
                 
             try:
-                with patch('config_ui.CONFIG_PATH', config_path):
+                with patch('settings_ui.CONFIG_PATH', config_path):
                     # Config should load regardless of validation
                     config = load_config()
                     
@@ -340,20 +340,20 @@ class TestConfigUI(unittest.TestCase):
 class TestConfigWindowMock(unittest.TestCase):
     """Test ConfigWindow functionality with mocked PyQt5."""
     
-    @patch('config_ui.QWidget')
-    @patch('config_ui.QVBoxLayout')
-    @patch('config_ui.QHBoxLayout')
-    @patch('config_ui.QLabel')
-    @patch('config_ui.QLineEdit')
-    @patch('config_ui.QPushButton')
-    @patch('config_ui.QCheckBox')
-    @patch('config_ui.QSpinBox')
-    @patch('config_ui.QTableWidget')
-    @patch('config_ui.QComboBox')
+    @patch('settings_ui.QWidget')
+    @patch('settings_ui.QVBoxLayout')
+    @patch('settings_ui.QHBoxLayout')
+    @patch('settings_ui.QLabel')
+    @patch('settings_ui.QLineEdit')
+    @patch('settings_ui.QPushButton')
+    @patch('settings_ui.QCheckBox')
+    @patch('settings_ui.QSpinBox')
+    @patch('settings_ui.QTableWidget')
+    @patch('settings_ui.QComboBox')
     def test_config_window_initialization(self, *mock_args):
         """Test ConfigWindow initialization with mocked PyQt5."""
         try:
-            from config_ui import ConfigWindow
+            from settings_ui import SettingsWindow
             window = ConfigWindow()
             # Basic test that the window can be created
             self.assertIsNotNone(window)

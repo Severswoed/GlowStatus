@@ -7,3 +7,8 @@ google-auth-httplib2
 PySide6
 keyring
 keyrings.alt
+packaging
+pyinstaller
+modulegraph>=0.19.6
+py2app
+macholib>=1.16.2

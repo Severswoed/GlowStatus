@@ -1,0 +1,394 @@
+name: Windows Build and Chocolatey Package
+
+# Security Features:
+# - Only repository owner/maintainers can trigger builds
+# - Google OAuth credentials stored securely in GitHub Secrets
+# - Chocolatey API key stored securely in GitHub Secrets
+# - Manual approval required for publishing (via environment protection)
+# - Artifacts auto-expire to control storage costs
+# - All operations are authenticated and audited
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0, v2.1.3, etc.
+  workflow_dispatch:  # Allow manual trigger (repository maintainers only)
+    inputs:
+      version:
+        description: 'Version to build (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    # Security: Only allow repository owners/maintainers to run builds
+    if: github.actor == github.repository_owner || contains(fromJSON('["Severswoed"]'), github.actor)
+    
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Create Google OAuth credentials from secret
+      run: |
+        if (-not $env:CLIENT_SECRET_JSON) {
+          echo "✗ CLIENT_SECRET_JSON secret not found"
+          echo "Please add your Google OAuth client_secret.json as a GitHub secret named 'CLIENT_SECRET_JSON'"
+          exit 1
+        }
+        
+        echo "✓ Creating client_secret.json from GitHub secret"
+        $env:CLIENT_SECRET_JSON | Out-File -FilePath "resources/client_secret.json" -Encoding UTF8
+        
+        # Verify the file was created and contains valid JSON
+        if (Test-Path "resources/client_secret.json") {
+          try {
+            $json = Get-Content "resources/client_secret.json" | ConvertFrom-Json
+            echo "✓ client_secret.json created successfully"
+            echo "✓ Project ID: $($json.installed.project_id)"
+          } catch {
+            echo "✗ Invalid JSON in CLIENT_SECRET_JSON secret"
+            exit 1
+          }
+        } else {
+          echo "✗ Failed to create client_secret.json"
+          exit 1
+        }
+      env:
+        CLIENT_SECRET_JSON: ${{ secrets.CLIENT_SECRET_JSON }}
+        
+    - name: Set version from tag or input
+      id: version
+      run: |
+        if ("${{ github.event_name }}" -eq "push") {
+          $version = "${{ github.ref_name }}" -replace "^v", ""
+        } else {
+          $version = "${{ github.event.inputs.version }}"
+        }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "Building version: $version"
+        
+    - name: Build Windows executable
+      run: |
+        # Run the Windows build script
+        ./scripts/build_windows.bat
+        
+    - name: Verify build output
+      run: |
+        if (Test-Path "dist/GlowStatus/GlowStatus.exe") {
+          echo "✓ Build successful!"
+          echo "Executable size: $((Get-Item 'dist/GlowStatus/GlowStatus.exe').Length) bytes"
+          
+          # Test the executable
+          echo "Testing executable..."
+          $process = Start-Process -FilePath "dist/GlowStatus/GlowStatus.exe" -ArgumentList "--version" -Wait -PassThru -NoNewWindow
+          echo "Exit code: $($process.ExitCode)"
+        } else {
+          echo "✗ Build failed - executable not found"
+          exit 1
+        }
+        
+    - name: Create Chocolatey package structure
+      run: |
+        # Create chocolatey directory structure
+        New-Item -ItemType Directory -Path "chocolatey/glowstatus/tools" -Force
+        
+        # Copy executable and dependencies
+        Copy-Item -Path "dist/GlowStatus/*" -Destination "chocolatey/glowstatus/tools/" -Recurse -Force
+        
+    - name: Create Chocolatey nuspec file
+      run: |
+        $version = "${{ steps.version.outputs.VERSION }}"
+        $nuspec = @"
+        <?xml version="1.0" encoding="utf-8"?>
+        <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+          <metadata>
+            <id>glowstatus</id>
+            <version>$version</version>
+            <packageSourceUrl>https://github.com/Severswoed/GlowStatus</packageSourceUrl>
+            <owners>Severswoed</owners>
+            <title>GlowStatus</title>
+            <authors>Severswoed</authors>
+            <projectUrl>https://github.com/Severswoed/GlowStatus</projectUrl>
+            <iconUrl>https://raw.githubusercontent.com/Severswoed/GlowStatus/main/img/GlowStatus.png</iconUrl>
+            <copyright>2024-2025 Severswoed</copyright>
+            <licenseUrl>https://github.com/Severswoed/GlowStatus/blob/main/LICENSE</licenseUrl>
+            <requireLicenseAcceptance>false</requireLicenseAcceptance>
+            <docsUrl>https://github.com/Severswoed/GlowStatus/blob/main/README.md</docsUrl>
+            <bugTrackerUrl>https://github.com/Severswoed/GlowStatus/issues</bugTrackerUrl>
+            <tags>govee smart-lights calendar status-indicator productivity remote-work</tags>
+            <summary>Smart Presence Indicator with Govee + Google Calendar</summary>
+            <description>
+        GlowStatus is a cross-platform status indicator system that syncs your Govee smart lights with your Google Calendar, showing your availability at a glance. Perfect for home offices, shared spaces, and remote work.
+        
+        ## Features
+        - Real-time Meeting & Focus Detection
+        - Smart Light Control via Govee API
+        - Configurable Color Themes
+        - System Tray Integration
+        - Google Calendar OAuth Integration
+        - Manual Override Controls
+        - Persistent Settings
+            </description>
+            <releaseNotes>https://github.com/Severswoed/GlowStatus/releases/tag/v$version</releaseNotes>
+            <dependencies>
+              <dependency id="dotnet-runtime" version="6.0.0" />
+            </dependencies>
+          </metadata>
+          <files>
+            <file src="tools/**" target="tools" />
+          </files>
+        </package>
+        "@
+        
+        $nuspec | Out-File -FilePath "chocolatey/glowstatus/glowstatus.nuspec" -Encoding UTF8
+        
+    - name: Create Chocolatey install script
+      run: |
+        $installScript = @"
+        `$ErrorActionPreference = 'Stop'
+        
+        `$packageName = 'glowstatus'
+        `$toolsDir = Split-Path -parent `$MyInvocation.MyCommand.Definition
+        `$exePath = Join-Path `$toolsDir 'GlowStatus.exe'
+        
+        # Create desktop shortcut
+        `$desktopPath = [Environment]::GetFolderPath('Desktop')
+        `$shortcutPath = Join-Path `$desktopPath 'GlowStatus.lnk'
+        
+        `$WshShell = New-Object -comObject WScript.Shell
+        `$Shortcut = `$WshShell.CreateShortcut(`$shortcutPath)
+        `$Shortcut.TargetPath = `$exePath
+        `$Shortcut.WorkingDirectory = `$toolsDir
+        `$Shortcut.Description = 'GlowStatus - Smart Presence Indicator'
+        `$Shortcut.Save()
+        
+        # Create start menu shortcut
+        `$startMenuPath = [Environment]::GetFolderPath('StartMenu')
+        `$startMenuShortcut = Join-Path `$startMenuPath 'Programs\GlowStatus.lnk'
+        
+        `$StartShortcut = `$WshShell.CreateShortcut(`$startMenuShortcut)
+        `$StartShortcut.TargetPath = `$exePath
+        `$StartShortcut.WorkingDirectory = `$toolsDir
+        `$StartShortcut.Description = 'GlowStatus - Smart Presence Indicator'
+        `$StartShortcut.Save()
+        
+        Write-Host "GlowStatus has been installed successfully!"
+        Write-Host "Desktop shortcut created: `$shortcutPath"
+        Write-Host "Start menu shortcut created: `$startMenuShortcut"
+        Write-Host ""
+        Write-Host "To get started:"
+        Write-Host "1. Launch GlowStatus from the desktop or start menu"
+        Write-Host "2. Configure your Govee API credentials"
+        Write-Host "3. Connect your Google Calendar"
+        Write-Host "4. Set up your status colors and preferences"
+        Write-Host ""
+        Write-Host "For setup guides, visit: https://github.com/Severswoed/GlowStatus"
+        "@
+        
+        $installScript | Out-File -FilePath "chocolatey/glowstatus/tools/chocolateyinstall.ps1" -Encoding UTF8
+        
+    - name: Create Chocolatey uninstall script
+      run: |
+        $uninstallScript = @"
+        `$ErrorActionPreference = 'Stop'
+        
+        # Remove desktop shortcut
+        `$desktopPath = [Environment]::GetFolderPath('Desktop')
+        `$desktopShortcut = Join-Path `$desktopPath 'GlowStatus.lnk'
+        if (Test-Path `$desktopShortcut) {
+            Remove-Item `$desktopShortcut -Force
+            Write-Host "Removed desktop shortcut"
+        }
+        
+        # Remove start menu shortcut
+        `$startMenuPath = [Environment]::GetFolderPath('StartMenu')
+        `$startMenuShortcut = Join-Path `$startMenuPath 'Programs\GlowStatus.lnk'
+        if (Test-Path `$startMenuShortcut) {
+            Remove-Item `$startMenuShortcut -Force
+            Write-Host "Removed start menu shortcut"
+        }
+        
+        # Stop any running GlowStatus processes
+        Get-Process -Name "GlowStatus" -ErrorAction SilentlyContinue | Stop-Process -Force
+        
+        Write-Host "GlowStatus has been uninstalled successfully!"
+        Write-Host "Note: User configuration files in %APPDATA%\GlowStatus have been preserved."
+        "@
+        
+        $uninstallScript | Out-File -FilePath "chocolatey/glowstatus/tools/chocolateyuninstall.ps1" -Encoding UTF8
+        
+    - name: Install Chocolatey
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        
+    - name: Build Chocolatey package
+      run: |
+        cd chocolatey/glowstatus
+        choco pack
+        
+    - name: Test Chocolatey package
+      run: |
+        cd chocolatey/glowstatus
+        choco install glowstatus -s . -y --force
+        
+        # Verify installation
+        if (Test-Path "$env:ChocolateyInstall\lib\glowstatus\tools\GlowStatus.exe") {
+            echo "✓ Chocolatey package installation successful!"
+        } else {
+            echo "✗ Chocolatey package installation failed"
+            exit 1
+        }
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: glowstatus-windows-v${{ steps.version.outputs.VERSION }}
+        path: |
+          dist/GlowStatus/
+          chocolatey/glowstatus/*.nupkg
+        retention-days: 30  # Limit storage costs - artifacts auto-delete after 30 days
+          
+    - name: Upload Chocolatey package
+      uses: actions/upload-artifact@v3
+      with:
+        name: glowstatus-chocolatey-v${{ steps.version.outputs.VERSION }}
+        path: chocolatey/glowstatus/*.nupkg
+        retention-days: 90  # Keep Chocolatey packages longer for publishing
+        
+    - name: Cleanup sensitive files
+      if: always()  # Run even if previous steps failed
+      run: |
+        echo "🧹 Cleaning up sensitive files..."
+        if (Test-Path "resources/client_secret.json") {
+          Remove-Item "resources/client_secret.json" -Force
+          echo "✓ Removed client_secret.json"
+        }
+        echo "✓ Cleanup complete"
+        
+    - name: Create GitHub Release
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          chocolatey/glowstatus/*.nupkg
+        body: |
+          ## GlowStatus v${{ steps.version.outputs.VERSION }}
+          
+          ### Windows Installation
+          
+          **Option 1: Chocolatey (Recommended)**
+          ```
+          choco install glowstatus
+          ```
+          *Note: Chocolatey package is automatically published and will be available after community review (usually within 24-48 hours).*
+          
+          **Option 2: Direct Download**
+          Download the executable from the Assets section below for immediate use.
+          
+          ### Features in this Release
+          - Smart Presence Indicator with Govee + Google Calendar
+          - Real-time Meeting & Focus Detection
+          - Configurable Color Themes
+          - System Tray Integration
+          - Manual Override Controls
+          
+          ### Getting Started
+          1. Install via Chocolatey or download the executable
+          2. Launch GlowStatus
+          3. Configure your Govee API credentials
+          4. Connect your Google Calendar via OAuth
+          5. Set up your status colors and preferences
+          
+          For detailed setup instructions, see the [README](https://github.com/Severswoed/GlowStatus/blob/main/README.md).
+          
+          ### Support
+          - [Documentation](https://github.com/Severswoed/GlowStatus/blob/main/README.md)
+          - [Discord Community](https://discord.gg/glowstatus)
+          - [Issue Tracker](https://github.com/Severswoed/GlowStatus/issues)
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+  publish-chocolatey:
+    needs: build-windows
+    runs-on: windows-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && (github.actor == github.repository_owner || contains(fromJSON('["Severswoed"]'), github.actor))
+    environment: chocolatey-publish  # Requires manual approval
+    
+    steps:
+    - name: Download Chocolatey package
+      uses: actions/download-artifact@v3
+      with:
+        name: glowstatus-chocolatey-v${{ needs.build-windows.outputs.version }}
+        path: ./chocolatey-package/
+        
+    - name: Install Chocolatey
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        
+    - name: Validate Chocolatey API Key
+      run: |
+        if (-not $env:CHOCO_APIKEY) {
+          echo "✗ CHOCO_APIKEY secret not found"
+          echo "Please add your Chocolatey API key as a GitHub secret named 'CHOCO_APIKEY'"
+          exit 1
+        }
+        echo "✓ Chocolatey API key is configured"
+      env:
+        CHOCO_APIKEY: ${{ secrets.CHOCO_APIKEY }}
+        
+    - name: Publish to Chocolatey Community Repository
+      run: |
+        echo "📦 Publishing GlowStatus to Chocolatey Community Repository..."
+        echo ""
+        echo "🔑 Using API key from GitHub Secrets"
+        echo "� Package location: ./chocolatey-package/"
+        
+        # List available packages
+        $packages = Get-ChildItem ./chocolatey-package/ -Name "*.nupkg"
+        echo "Found packages: $packages"
+        
+        # Publish each package
+        foreach ($package in $packages) {
+          $packagePath = "./chocolatey-package/$package"
+          echo "Publishing: $package"
+          
+          try {
+            choco push $packagePath --source https://push.chocolatey.org/ --api-key $env:CHOCO_APIKEY
+            echo "✓ Successfully published: $package"
+          } catch {
+            echo "✗ Failed to publish: $package"
+            echo "Error: $_"
+            exit 1
+          }
+        }
+        
+        echo ""
+        echo "🎉 Package published successfully!"
+        echo "📋 Next steps:"
+        echo "1. Package is now in Chocolatey community review queue"
+        echo "2. Community moderators will review for security and quality"
+        echo "3. Package will be available via 'choco install glowstatus' after approval"
+        echo "4. Future updates can be auto-published using this workflow"
+      env:
+        CHOCO_APIKEY: ${{ secrets.CHOCO_APIKEY }}

@@ -9,7 +9,7 @@ import tempfile
 # Add the src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from config_ui import load_config, CONFIG_PATH
+from settings_ui import load_config, CONFIG_PATH
 from logger import get_logger
 
 logger = get_logger()

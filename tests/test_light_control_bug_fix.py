@@ -23,7 +23,7 @@ sys.modules['PySide6.QtWidgets'] = MagicMock()
 sys.modules['PySide6.QtCore'] = MagicMock()
 sys.modules['PySide6.QtGui'] = MagicMock()
 
-from config_ui import load_config, save_config
+from settings_ui import load_config, save_config
 
 
 def test_bug_fix():

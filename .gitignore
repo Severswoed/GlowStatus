@@ -81,3 +81,8 @@ discord/active_webhooks.json
 # Optional
 *.bak
 *.tmp
+
+# Chocolatey packaging
+chocolatey/
+*.nupkg
+resources/client_secret.json

@@ -8,7 +8,24 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 
 ---
 
-## 🚀 Features
+## � Available Versions
+
+GlowStatus has evolved through multiple versions, each designed for different use cases:
+
+- **`v2.1.0` (Current)** - Modern GUI with enhanced settings UI, comprehensive testing, and improved user experience
+- **`v2.0.0`** - First GUI version with basic settings interface and tray application  
+- **`v1.0-MVP`** - Original CLI-based version for terminal and headless environments
+
+**Choosing Your Version:**
+- **Use v2.1.0** for the best user experience with modern UI and latest features
+- **Use v2.0.0** if you need the previous GUI version for compatibility
+- **Use v1.0-MVP** for server deployments, automation, or if you prefer command-line tools
+
+Each version is maintained on its own branch and can be downloaded from the [Releases](https://github.com/Severswoed/GlowStatus/releases) page.
+
+---
+
+## �🚀 Features
 
 - **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events (case-insensitive, matches anywhere in event title).
 - **Smart Light Control** – Uses Govee API to change light colors based on your calendar status.
@@ -24,7 +41,7 @@ GlowStatus is a cross-platform status indicator system that syncs your Govee sma
 - **Persistent Sync State** – Sync on/off state is remembered between runs.
 - **Efficient Calendar Sync** – Only fetches events from the last 15 minutes up to midnight, for fast performance even on busy calendars.
 - **Mobile & Codespace Friendly** – CLI/manual config possible for advanced/dev use, works on iPad via GitHub Codespaces.
-- **Discord Community** – Join our Discord server for support, feature requests, and to show off your GlowStatus setup!
+- **Discord Community** – Join our [Discord server](https://discord.gg/TcKVQkS274) for support, feature requests, and to show off your GlowStatus setup!
 
 ---
 
@@ -153,13 +170,15 @@ Connect with the GlowStatus community - a focused space for smart lighting enthu
 - **🔨 Early Access** - Be first to know about new features and beta releases
 - **☕ Network** - Connect with other remote workers optimizing their home office setups
 
-**[Join Discord Server](https://discord.gg/glowstatus)** 🚀
+**[Join Discord Server](https://discord.gg/TcKVQkS274)** 🚀
 
 Our Discord follows proven community best practices:
 - **Focused Topic**: Everything relates to smart lighting and productivity
 - **Quality Discussions**: No spam bots or off-topic noise
 - **Expert Moderation**: Automated security with human oversight
 - **Growth-Oriented**: Built to scale from early adopters to thousands of users
+
+> **🤖 Note for Server Admins**: If you're setting up your own Discord server using our automation scripts, remember that Discord bots need 24/7 hosting to work properly. Running `python discord/setup_discord.py` locally only works while your terminal is open. See `discord/DEPLOYMENT.md` for hosting options including free cloud hosting and VPS solutions.
 
 ### 📋 Community Channels
 
@@ -255,7 +274,7 @@ MIT License — see [LICENSE](./LICENSE) for full details.
 
 ## 💬 Feedback & Contributions
 
-**Got questions? Join our [Discord Server](https://discord.gg/glowstatus)** for real-time help and community support!
+**Got questions? Join our [Discord Server](https://discord.gg/TcKVQkS274)** for real-time help and community support!
 
 Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
@@ -272,7 +291,7 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 ### 🔗 Related Projects
 - [Govee Developer Portal](https://developer.govee.com)
 - [Google Calendar API Docs](https://developers.google.com/calendar/api)
-- [GlowStatus Discord Community](https://discord.gg/glowstatus)
+- [GlowStatus Discord Community](https://discord.gg/TcKVQkS274)
 
 ---
 
