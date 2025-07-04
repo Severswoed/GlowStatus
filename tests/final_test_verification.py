@@ -72,7 +72,8 @@ def main():
             'test_status_detection.py',
             'test_timing_sync.py',
             'test_status_fix.py',
-            'test_meeting_transitions.py'
+            'test_meeting_transitions.py',
+            'test_lights_off_on_exit.py'
         ],
         'Demo/Manual Tests': [
             'demo_govee_fix.py',

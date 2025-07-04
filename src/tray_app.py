@@ -2,6 +2,7 @@ import sys
 import os
 import tempfile
 import atexit
+import signal
 from PySide6.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QMessageBox, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
 )
@@ -217,6 +218,34 @@ def main():
             )
 
         glowstatus = GlowStatusController()
+        
+        # Register exit handler to turn off lights when app exits unexpectedly
+        def cleanup_on_exit():
+            """Turn off lights and cleanup when app exits"""
+            try:
+                logger.info("App exiting - turning off lights")
+                glowstatus.turn_off_lights_immediately()
+            except Exception as e:
+                logger.warning(f"Failed to turn off lights on exit: {e}")
+                
+        atexit.register(cleanup_on_exit)
+        
+        # Register signal handlers for graceful shutdown
+        def signal_handler(signum, frame):
+            """Handle termination signals by turning off lights and exiting gracefully"""
+            logger.info(f"Received signal {signum} - shutting down gracefully")
+            try:
+                glowstatus.turn_off_lights_immediately()
+                glowstatus.stop()
+            except Exception as e:
+                logger.warning(f"Error during signal shutdown: {e}")
+            sys.exit(0)
+        
+        # Register handlers for common termination signals
+        signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
+        signal.signal(signal.SIGTERM, signal_handler)  # Termination request
+        if hasattr(signal, 'SIGBREAK'):  # Windows-specific
+            signal.signal(signal.SIGBREAK, signal_handler)
         
         # Validation functions for enabling features
         def can_enable_calendar_sync():
@@ -509,6 +538,13 @@ def main():
                 update_tray_tooltip()
 
         def quit_app():
+            logger.info("App quit requested - turning off lights before exit")
+            try:
+                # Turn off lights before quitting
+                glowstatus.turn_off_lights_immediately()
+            except Exception as e:
+                logger.warning(f"Failed to turn off lights on quit: {e}")
+            
             glowstatus.stop()
             cleanup_lock_file()  # Ensure lock file is cleaned up
             app.quit()
