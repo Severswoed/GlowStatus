@@ -11,6 +11,30 @@ from utils import normalize_status, load_secret, resource_path
 
 logger = get_logger()
 
+def ensure_timezone_aware(dt):
+    """Ensure datetime is timezone-aware, defaulting to UTC if naive."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        # Assume naive datetimes from calendar are in UTC
+        return dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
+
+def safe_datetime_diff(future_dt, current_dt):
+    """Safely calculate time difference between datetimes, handling timezone issues."""
+    try:
+        if future_dt is None or current_dt is None:
+            return None
+        
+        # Ensure both datetimes are timezone-aware
+        future_aware = ensure_timezone_aware(future_dt)
+        current_aware = ensure_timezone_aware(current_dt)
+        
+        return (future_aware - current_aware).total_seconds()
+    except Exception as e:
+        logger.error(f"Error calculating datetime difference: {e}")
+        return None
+
 class GlowStatusController:
     def __init__(self):
         self._running = False
@@ -151,9 +175,10 @@ class GlowStatusController:
                     calendar_status, next_event_start = calendar.get_current_status(return_next_event_time=True, color_map=STATUS_COLOR_MAP)
                     
                     # Check for imminent meeting (within 1 minute)
+                    time_to_next = safe_datetime_diff(next_event_start, datetime.datetime.now(datetime.timezone.utc))
                     imminent_meeting = (
-                        next_event_start is not None
-                        and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                        time_to_next is not None
+                        and (0 <= time_to_next <= 60)
                     )
                     
                     if imminent_meeting:
@@ -200,17 +225,20 @@ class GlowStatusController:
                     return
                 
                 # Check for imminent meeting (within 1 minute) - this overrides manual status
+                time_to_next = safe_datetime_diff(next_event_start, datetime.datetime.now(datetime.timezone.utc))
                 imminent_meeting = (
-                    next_event_start is not None
-                    and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                    time_to_next is not None
+                    and (0 <= time_to_next <= 60)
                 )
                 
                 # Enhanced logging for debugging
                 if next_event_start:
-                    time_to_next = (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
-                    logger.info(f"Next meeting in {time_to_next:.1f} seconds | Calendar status: {calendar_status} | Manual status: {manual_status}")
-                    if imminent_meeting:
-                        logger.info("🚨 IMMINENT MEETING DETECTED - should turn on lights!")
+                    if time_to_next is not None:
+                        logger.info(f"Next meeting in {time_to_next:.1f} seconds | Calendar status: {calendar_status} | Manual status: {manual_status}")
+                        if imminent_meeting:
+                            logger.info("🚨 IMMINENT MEETING DETECTED - should turn on lights!")
+                    else:
+                        logger.warning("Unable to calculate time to next meeting due to timezone issues")
                 
                 # Check for active meeting - this also overrides manual status
                 active_meeting = calendar_status == "in_meeting"
@@ -412,9 +440,10 @@ class GlowStatusController:
                         next_event_start = None
                     
                     # Check for imminent meeting (within 1 minute)
+                    time_to_next = safe_datetime_diff(next_event_start, datetime.datetime.now(datetime.timezone.utc))
                     imminent_meeting = (
-                        next_event_start is not None
-                        and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                        time_to_next is not None
+                        and (0 <= time_to_next <= 60)
                     )
                     
                     if imminent_meeting:
@@ -450,9 +479,10 @@ class GlowStatusController:
                         next_event_start = None
                     
                     # Check for imminent meeting (within 1 minute) - this overrides manual status
+                    time_to_next = safe_datetime_diff(next_event_start, datetime.datetime.now(datetime.timezone.utc))
                     imminent_meeting = (
-                        next_event_start is not None
-                        and (0 <= (next_event_start - datetime.datetime.now(datetime.timezone.utc)).total_seconds() <= 60)
+                        time_to_next is not None
+                        and (0 <= time_to_next <= 60)
                     )
                     
                     # Check for active meeting - this also overrides manual status
@@ -488,17 +518,38 @@ class GlowStatusController:
             self._sleep_until_next_interval(REFRESH_INTERVAL)
 
     def _sleep_until_next_interval(self, interval_seconds):
-        """Sleep until the next scheduled check time, maintaining minute synchronization."""
+        """Sleep until the next scheduled check time, maintaining synchronization to interval boundaries."""
+        now = datetime.datetime.now()
+        
         if interval_seconds == 60:
             # For 60-second intervals, sleep exactly until the next minute boundary
-            now = datetime.datetime.now()
             seconds_into_minute = now.second + now.microsecond / 1_000_000
             sleep_time = 60 - seconds_into_minute
             logger.debug(f"60-second interval: sleeping {sleep_time:.2f}s until next minute boundary")
+        elif interval_seconds == 15:
+            # For 15-second intervals, sync to 15-second boundaries (0, 15, 30, 45)
+            seconds_into_minute = now.second + now.microsecond / 1_000_000
+            # Find the next 15-second boundary
+            next_boundary = ((int(seconds_into_minute) // 15) + 1) * 15
+            if next_boundary >= 60:
+                next_boundary = 0
+                # If we need to go to the next minute, add the remaining seconds to get there
+                sleep_time = 60 - seconds_into_minute
+            else:
+                sleep_time = next_boundary - seconds_into_minute
+            logger.debug(f"15-second interval: sleeping {sleep_time:.2f}s until next 15s boundary")
+        elif interval_seconds == 30:
+            # For 30-second intervals, sync to 30-second boundaries (0, 30)
+            seconds_into_minute = now.second + now.microsecond / 1_000_000
+            if seconds_into_minute < 30:
+                sleep_time = 30 - seconds_into_minute
+            else:
+                sleep_time = 60 - seconds_into_minute
+            logger.debug(f"30-second interval: sleeping {sleep_time:.2f}s until next 30s boundary")
         else:
-            # For other intervals, just sleep the specified time
+            # For other intervals, just sleep the specified time (no synchronization)
             sleep_time = interval_seconds
-            logger.debug(f"{interval_seconds}-second interval: sleeping {sleep_time:.2f}s")
+            logger.debug(f"{interval_seconds}-second interval: sleeping {sleep_time:.2f}s (no sync)")
             
         if sleep_time > 0:
             time.sleep(sleep_time)

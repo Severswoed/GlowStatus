@@ -310,15 +310,23 @@ def main():
             tray.show()
             logger.debug("Ensured tray icon visible before opening config")
             
-            config_window = SettingsWindow(glowstatus_controller=glowstatus)
-            config_window.setAttribute(Qt.WA_DeleteOnClose)
-            
-            # Store reference to prevent garbage collection
-            app.config_window = config_window
-            
-            config_window.show()
-            config_window.raise_()           # Bring window to front
-            config_window.activateWindow()   # Give it focus
+            try:
+                config_window = SettingsWindow(glowstatus_controller=glowstatus)
+                config_window.setAttribute(Qt.WA_DeleteOnClose)
+                
+                # Store reference to prevent garbage collection
+                app.config_window = config_window
+                
+                config_window.show()
+                config_window.raise_()           # Bring window to front
+                config_window.activateWindow()   # Give it focus
+            except Exception as e:
+                logger.error(f"Failed to open settings window: {e}")
+                QMessageBox.critical(None, "Settings Error", 
+                                   f"Failed to open settings window:\n\n{e}\n\nPlease restart the application.")
+                # Clear the reference if window creation failed
+                app.config_window = None
+                return
 
             def on_config_closed():
                 logger.debug("Config window closed, updating tray")

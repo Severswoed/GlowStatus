@@ -63,7 +63,8 @@ def main():
             'test_govee_keyring_fix.py',
             'test_light_control_bug_fix.py',
             'test_token_path_import.py',
-            'test_oauth_threading.py'
+            'test_oauth_threading.py',
+            'test_imminent_meeting_crash.py'
         ],
         'Feature Tests': [
             'test_light_toggle_tray_menu.py',
