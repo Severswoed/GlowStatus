@@ -13,6 +13,7 @@ from settings_ui import SettingsWindow
 from glowstatus import GlowStatusController
 from logger import get_logger
 from constants import TOKEN_PATH
+from version import get_version_string
 
 # Initialize logger
 logger = get_logger("TrayApp")
@@ -105,7 +106,10 @@ def main():
         # Set proper application branding for system notifications
         app.setApplicationName("GlowStatus")
         app.setApplicationDisplayName("GlowStatus")
-        app.setApplicationVersion("2.0.0")
+        try:
+            app.setApplicationVersion(get_version_string())
+        except Exception:
+            app.setApplicationVersion("2.1.0")  # Fallback version
         app.setOrganizationName("GlowStatus")
         app.setOrganizationDomain("glowstatus.app")
         
@@ -213,8 +217,45 @@ def main():
             )
 
         glowstatus = GlowStatusController()
-        sync_enabled = [not config.get("DISABLE_CALENDAR_SYNC", False)]
-        light_enabled = [not config.get("DISABLE_LIGHT_CONTROL", False)]
+        
+        # Validation functions for enabling features
+        def can_enable_calendar_sync():
+            """Check if calendar sync can be enabled based on prerequisites"""
+            config = load_config()
+            has_calendar = bool(config.get("SELECTED_CALENDAR_ID"))
+            has_auth = os.path.exists(TOKEN_PATH)
+            has_client_secret = os.path.exists(resource_path('resources/client_secret.json'))
+            return has_calendar and has_auth and has_client_secret
+        
+        def can_enable_light_control():
+            """Check if light control can be enabled based on prerequisites"""
+            config = load_config()
+            has_device_id = bool(config.get("GOVEE_DEVICE_ID"))
+            has_device_model = bool(config.get("GOVEE_DEVICE_MODEL"))
+            # Note: We don't check for API key here since it's stored in keyring
+            return has_device_id and has_device_model
+        
+        # Initialize sync and light state based on config AND validation
+        config = load_config()
+        sync_config_enabled = not config.get("DISABLE_CALENDAR_SYNC", False)
+        light_config_enabled = not config.get("DISABLE_LIGHT_CONTROL", False)
+        
+        # Only enable if both config allows it AND prerequisites are met
+        sync_enabled = [sync_config_enabled and can_enable_calendar_sync()]
+        light_enabled = [light_config_enabled and can_enable_light_control()]
+        
+        # If we determined sync should be disabled due to missing prerequisites, update config
+        if sync_config_enabled and not sync_enabled[0]:
+            logger.info("Auto-disabling calendar sync: prerequisites not met")
+            config["DISABLE_CALENDAR_SYNC"] = True
+            save_config(config)
+        
+        # If we determined light control should be disabled due to missing prerequisites, update config
+        if light_config_enabled and not light_enabled[0]:
+            logger.info("Auto-disabling light control: prerequisites not met")
+            config["DISABLE_LIGHT_CONTROL"] = True
+            save_config(config)
+        
         sync_toggle_action = [None]  # Store reference to sync toggle action
         light_toggle_action = [None]  # Store reference to light toggle action
         if sync_enabled[0]:
@@ -292,6 +333,26 @@ def main():
                 else:
                     logger.warning(f"Icon not found: {tray_icon_path}")
                 
+                # Re-evaluate sync and light enabled states after config changes
+                config = load_config()
+                sync_config_enabled = not config.get("DISABLE_CALENDAR_SYNC", False)
+                light_config_enabled = not config.get("DISABLE_LIGHT_CONTROL", False)
+                
+                # Update states based on both config and validation
+                sync_enabled[0] = sync_config_enabled and can_enable_calendar_sync()
+                light_enabled[0] = light_config_enabled and can_enable_light_control()
+                
+                # If config says enabled but validation fails, update config
+                if sync_config_enabled and not sync_enabled[0]:
+                    logger.info("Auto-disabling calendar sync after config change: prerequisites not met")
+                    config["DISABLE_CALENDAR_SYNC"] = True
+                    save_config(config)
+                
+                if light_config_enabled and not light_enabled[0]:
+                    logger.info("Auto-disabling light control after config change: prerequisites not met")
+                    config["DISABLE_LIGHT_CONTROL"] = True
+                    save_config(config)
+                
                 update_tray_tooltip()
                 
                 # Trigger immediate status update after config window closes
@@ -363,6 +424,20 @@ def main():
         def toggle_sync():
             config = load_config()
             if not sync_enabled[0]:
+                # Check prerequisites before enabling
+                if not can_enable_calendar_sync():
+                    missing_items = []
+                    if not config.get("SELECTED_CALENDAR_ID"):
+                        missing_items.append("Google Calendar selection")
+                    if not os.path.exists(TOKEN_PATH):
+                        missing_items.append("Google authentication")
+                    if not os.path.exists(resource_path('resources/client_secret.json')):
+                        missing_items.append("Google OAuth credentials")
+                    
+                    QMessageBox.warning(None, "Cannot Enable Calendar Sync", 
+                                      f"Missing prerequisites:\n• {chr(10).join(missing_items)}\n\nPlease complete setup in Settings first.")
+                    return
+                
                 config["DISABLE_CALENDAR_SYNC"] = False
                 save_config(config)
                 try:
@@ -372,6 +447,7 @@ def main():
                     # Update immediately to refresh status from calendar
                     glowstatus.update_now()
                     update_tray_tooltip()
+                    logger.info("Calendar sync enabled via tray menu")
                 except Exception as e:
                     logger.error(f"Failed to start calendar sync: {e}")
                     # Revert the change
@@ -389,15 +465,28 @@ def main():
                 sync_toggle_action[0].setText("Enable Sync")
                 sync_enabled[0] = False
                 update_tray_tooltip()
+                logger.info("Calendar sync disabled via tray menu")
 
         def toggle_light():
             config = load_config()
             if not light_enabled[0]:
+                # Check prerequisites before enabling
+                if not can_enable_light_control():
+                    missing_items = []
+                    if not config.get("GOVEE_DEVICE_ID"):
+                        missing_items.append("Govee Device ID")
+                    if not config.get("GOVEE_DEVICE_MODEL"):
+                        missing_items.append("Govee Device Model")
+                    
+                    QMessageBox.warning(None, "Cannot Enable Light Control", 
+                                      f"Missing prerequisites:\n• {chr(10).join(missing_items)}\n\nPlease configure your Govee device in Settings first.")
+                    return
+                
                 config["DISABLE_LIGHT_CONTROL"] = False
                 save_config(config)
                 light_toggle_action[0].setText("Disable Lights")
                 light_enabled[0] = True
-                logger.info("Light control enabled by user")
+                logger.info("Light control enabled via tray menu")
                 # Update immediately to apply current status to lights
                 glowstatus.update_now()
                 update_tray_tooltip()
@@ -408,7 +497,7 @@ def main():
                 save_config(config)
                 light_toggle_action[0].setText("Enable Lights")
                 light_enabled[0] = False
-                logger.info("Light control disabled by user")
+                logger.info("Light control disabled via tray menu")
                 update_tray_tooltip()
 
         def quit_app():

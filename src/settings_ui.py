@@ -2453,13 +2453,68 @@ class SettingsWindow(QDialog):
                 checkbox.repaint()
                 logger.debug(f"Refreshed checkbox {checkbox.text()}: {current_state}")
     
-
-# Main function for testing
-if __name__ == "__main__":
-    import sys
-    from PySide6.QtWidgets import QApplication
-    
-    app = QApplication(sys.argv)
-    window = SettingsWindow()
-    window.show()
-    sys.exit(app.exec())
+        # Add validation for sync and light control checkboxes
+        def validate_sync_checkbox_change():
+            """Validate calendar sync checkbox state changes"""
+            if not self.disable_sync_checkbox.isChecked():  # User is trying to enable sync
+                # Check prerequisites
+                missing = []
+                if not self.config.get("SELECTED_CALENDAR_ID"):
+                    missing.append("Google Calendar selection")
+                
+                from constants import TOKEN_PATH
+                if not os.path.exists(TOKEN_PATH):
+                    missing.append("Google authentication")
+                
+                from utils import resource_path
+                client_secret_path = resource_path('resources/client_secret.json')
+                if not os.path.exists(client_secret_path):
+                    missing.append("Google OAuth credentials")
+                
+                if missing:
+                    # Block the change and show warning
+                    self.disable_sync_checkbox.blockSignals(True)
+                    self.disable_sync_checkbox.setChecked(True)  # Keep it disabled
+                    self.disable_sync_checkbox.blockSignals(False)
+                    
+                    QMessageBox.warning(self, "Cannot Enable Calendar Sync", 
+                                      f"Missing prerequisites:\n• {chr(10).join(missing)}\n\nPlease complete the required setup first.")
+                    return False
+            return True
+        
+        def validate_light_checkbox_change():
+            """Validate light control checkbox state changes"""
+            if not self.disable_light_control_checkbox.isChecked():  # User is trying to enable lights
+                # Check prerequisites
+                missing = []
+                if not self.config.get("GOVEE_DEVICE_ID"):
+                    missing.append("Govee Device ID")
+                if not self.config.get("GOVEE_DEVICE_MODEL"):
+                    missing.append("Govee Device Model")
+                
+                if missing:
+                    # Block the change and show warning
+                    self.disable_light_control_checkbox.blockSignals(True)
+                    self.disable_light_control_checkbox.setChecked(True)  # Keep it disabled
+                    self.disable_light_control_checkbox.blockSignals(False)
+                    
+                    QMessageBox.warning(self, "Cannot Enable Light Control", 
+                                      f"Missing prerequisites:\n• {chr(10).join(missing)}\n\nPlease configure your Govee device first.")
+                    return False
+            return True
+        
+        # Connect validation handlers
+        def on_sync_checkbox_changed():
+            if validate_sync_checkbox_change():
+                self.on_form_changed()
+        
+        def on_light_checkbox_changed():
+            if validate_light_checkbox_change():
+                self.on_form_changed()
+        
+        # Reconnect signals to use validation
+        self.disable_sync_checkbox.stateChanged.disconnect()
+        self.disable_sync_checkbox.stateChanged.connect(on_sync_checkbox_changed)
+        
+        self.disable_light_control_checkbox.stateChanged.disconnect()
+        self.disable_light_control_checkbox.stateChanged.connect(on_light_checkbox_changed)
