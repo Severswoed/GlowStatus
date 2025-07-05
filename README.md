@@ -62,35 +62,35 @@ Each version is maintained on its own branch and can be downloaded from the [Rel
 ```
 GlowStatus/
 ├── src/
-│   ├── glowstatus.py           # Main control logic
-│   ├── govee_controller.py     # Govee API integration
-│   ├── calendar_sync.py        # Google Calendar sync logic
-│   ├── logger.py               # Logging utilities
-│   ├── utils.py                # Helper functions
-│   ├── config_ui.py            # Configuration UI for setup
-│   └── tray_app.py             # System tray app entrypoint
+│   ├── glowstatus.py              # Main control logic
+│   ├── govee_controller.py        # Govee API integration
+│   ├── calendar_sync.py           # Google Calendar sync logic
+│   ├── constants.py               # System tray app entrypoint
+│   ├── logger.py                  # Logging utilities
+│   ├── utils.py                   # Helper functions
+│   ├── settings_ui.py             # Configuration UI for setup
+│   ├── tray_app.py                # System tray app entrypoint
+│   ├── utils.py                   # System tray app entrypoint
+│   └── version.py                 # System tray app entrypoint
 ├── config/
-│   ├── glowstatus_config.json  # User configuration (auto-generated)
-│   └── google_token.pickle     # Google OAuth token (auto-generated)
+│   ├── glowstatus_config.json     # User configuration (auto-generated)
+│   └── google_token.pickle        # Google OAuth token (auto-generated)
 ├── resources/
-│   └── client_secret.json      # Google OAuth client secret (bundled)
+│   └── client_secret.json         # Google OAuth client secret (bundled)
 ├── img/
-│   └── GlowStatus_tray_*.png   # Tray icon images (selectable)
+│   └── GlowStatus_tray_*.png      # Tray icon images (selectable)
 ├── tests/
-│   ├── test_main.py               # Unit tests + final verification
-│   ├── test_token_robustness.py   # OAuth token error handling tests
-│   └── readme_tests.md            # Testing documentation
-├── discord/
-│   ├── setup_discord.py        # Discord server automation
-│   ├── README.md               # Discord setup guide
-│   └── webhooks.json           # GitHub integration template
+│   ├── final_test_verification.py # test runner
+│   └── test_*.py                  # Unit tests + final verification
 ├── docs/
+│   ├── getting_started.md
 │   ├── govee_apikey_instructions.md
 │   ├── govee_device_id_instructions.md
 │   └── google_calendar_apikey_instructions.md
-├── requirements.txt            # Python dependencies
-├── README.md                   # You're here!
-└── LICENSE                     # MIT License
+├── requirements.txt               # Python dependencies
+├── README.md                      # You're here!
+├── LICENSE                        # MIT License
+└── version.json                   # GlowStatus version
 ```
 
 ---
