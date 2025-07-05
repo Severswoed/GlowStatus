@@ -23,10 +23,10 @@ New to GlowStatus? See our [step-by-step guide](./docs/getting_started.md):
 ## � Available Versions
 
 GlowStatus has evolved through multiple versions, each designed for different use cases:
-- [v2.1.0](https://github.com/Severswoed/GlowStatus/releases/tag/v2.1.0) (Current) - Modern GUI with enhanced settings UI, comprehensive testing, and improved user experience
+- [v2.1.0](https://github.com/Severswoed/GlowStatus/releases/tag/v2.1.0) (Current) - Modern GUI with enhanced settings UI, comprehensive testing, and improved user experience and updated feature set, overlapping meeting aware, new settings ui.
   - Windows Chocolatey - `choco install glowstatus --version=2.1.0`
-- [v2.0.0](https://github.com/Severswoed/GlowStatus/tree/v2.0.0) - First GUI version with basic settings interface and tray application  
-- [v1.0-MVP](https://github.com/Severswoed/GlowStatus/tree/v1.0-MVP) - Original CLI-based version for terminal and headless environments
+- [v2.0.0](https://github.com/Severswoed/GlowStatus/tree/v2.0.0) - First GUI version with basic settings interface and tray application with some features
+- [v1.0-MVP](https://github.com/Severswoed/GlowStatus/tree/v1.0-MVP) - Original CLI-based version for terminal and headless environments and is not feature rich.
 
 **Choosing Your Version:**
 - **Use v2.1.0** for the best user experience with modern UI and latest features
@@ -254,9 +254,6 @@ Following successful Discord community patterns:
 GlowStatus includes a comprehensive test suite that covers all major functionality including configuration management, Google Calendar integration, Govee smart light control, and application logic.
 
 ```bash
-# Run all tests
-python tests/final_test_verification.py
-
 # Run comprehensive verification
 python tests/final_test_verification.py
 ```
