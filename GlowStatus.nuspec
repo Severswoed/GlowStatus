@@ -8,11 +8,11 @@
     <title>GlowStatus</title>
     <authors>Severswoed</authors>
     <projectUrl>https://github.com/Severswoed/GlowStatus</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/Severswoed/GlowStatus/main/img/GlowStatus.png</iconUrl>
+    <icon>../../img/GlowStatus_tray_tp_tight.png</icon>
     <copyright>2024-2025 Severswoed</copyright>
-    <licenseUrl>https://github.com/Severswoed/GlowStatus/blob/main/LICENSE</licenseUrl>
+    <license type="file">../../LICENSE</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <docsUrl>https://github.com/Severswoed/GlowStatus/blob/main/README.md</docsUrl>
+    <!-- docsUrl removed: not a standard nuspec field -->
     <bugTrackerUrl>https://github.com/Severswoed/GlowStatus/issues</bugTrackerUrl>
     <tags>govee smart-lights calendar status-indicator productivity remote-work</tags>
     <summary>Smart Presence Indicator with Govee + Google Calendar</summary>
@@ -21,5 +21,6 @@
   </metadata>
   <files>
     <file src="tools/**" target="tools" />
+    <file src="../../README.md" target="README.md" />
   </files>
 </package>
