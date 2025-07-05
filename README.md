@@ -20,7 +20,7 @@ New to GlowStatus? See our [step-by-step guide](./docs/getting_started.md):
 
 ---
 
-## � Available Versions
+## 📦 Available Versions
 
 GlowStatus has evolved through multiple versions, each designed for different use cases:
 - [v2.1.0](https://github.com/Severswoed/GlowStatus/releases/tag/v2.1.0) (Current) - Modern GUI with enhanced settings UI, comprehensive testing, and improved user experience and updated feature set, overlapping meeting aware, new settings ui.
@@ -37,7 +37,7 @@ Each version is maintained on its own branch and can be downloaded from the [Rel
 
 ---
 
-## �🚀 Features
+## 🚀 Features
 
 - **Real-time Meeting & Focus Detection** – Syncs with Google Calendar to detect your status, including custom "focus" events (case-insensitive, matches anywhere in event title).
 - **Smart Light Control** – Uses Govee API to change light colors based on your calendar status.
@@ -57,7 +57,7 @@ Each version is maintained on its own branch and can be downloaded from the [Rel
 
 ---
 
-## 📦 Project Structure
+## 🗂️ Project Structure
 
 ```
 GlowStatus/
@@ -318,9 +318,8 @@ For detailed testing documentation, test categories, and individual test instruc
 - Slack/Teams status sync
 - Time-based or ambient-light auto dimming
 - More integrations and automations
-
-**5-Minute Meeting Reminder:**  
-  Show a tooltip notification over the tray icon 5 (x) minutes before an upcoming meeting.
+- X-Minute Meeting Reminder:  
+  - Show a tooltip notification over the tray icon X (1) minutes before an upcoming meeting.  Current functionality is hardwired to start lights 1 minute prior.
 
 ---
 
@@ -338,11 +337,12 @@ Ideas? Bugs? PRs are welcome. File an issue or start a discussion!
 
 **Ways to Contribute:**
 - 🐛 Report bugs and issues
-- 💡 Suggest new features in Discord
+- 💡 [Suggest new features in Discord]((https://discord.gg/TcKVQkS274))
 - 🔧 Submit pull requests
 - 📖 Improve documentation
-- 🎨 Share your setup photos
+- 🎨 [Share your setup photos](https://discord.gg/TcKVQkS274)
 - ⭐ Star the repository if you find it useful!
+- 💙 [Sponsor Severswoed]("https://github.com/sponsors/Severswoed/button")
 
 ---
 
