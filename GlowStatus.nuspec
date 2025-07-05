@@ -2,15 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>glowstatus</id>
-    <version>2.1.0</version>
+    <version>2.1.6</version>
     <packageSourceUrl>https://github.com/Severswoed/GlowStatus</packageSourceUrl>
     <owners>Severswoed</owners>
     <title>GlowStatus</title>
     <authors>Severswoed</authors>
     <projectUrl>https://github.com/Severswoed/GlowStatus</projectUrl>
-    <icon>../../img/GlowStatus_tray_tp_tight.png</icon>
+    <iconUrl>https://raw.githubusercontent.com/Severswoed/GlowStatus/main/img/GlowStatus_tray_tp_tight.png</iconUrl>
     <copyright>2024-2025 Severswoed</copyright>
-    <license type="file">../../LICENSE</license>
+    <licenseUrl>https://github.com/Severswoed/GlowStatus/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- docsUrl removed: not a standard nuspec field -->
     <bugTrackerUrl>https://github.com/Severswoed/GlowStatus/issues</bugTrackerUrl>

@@ -73,7 +73,7 @@ if (-not $env:GITHUB_TOKEN -or -not $env:CHOCO_APIKEY) {
 }
 
 # Step 1: Building Windows executable (only if not present)
-if (!(Test-Path "dist/GlowStatus/GlowStatus.exe")) {
+if (!(Test-Path "dist/GlowStatus.exe")) {
     Write-Host "`nStep 1: Building Windows executable..."
     if (!(Test-Path "scripts/build_windows.bat")) {
         Write-Error "scripts/build_windows.bat not found!"
@@ -84,13 +84,13 @@ if (!(Test-Path "dist/GlowStatus/GlowStatus.exe")) {
         Write-Error "Windows build script failed with exit code $LASTEXITCODE"
         exit 1
     }
-    if (!(Test-Path "dist/GlowStatus/GlowStatus.exe")) {
+    if (!(Test-Path "dist/GlowStatus.exe")) {
         Write-Error "Windows build failed - executable not found"
         exit 1
     }
     Write-Host "✓ Windows build successful!"
 } else {
-    Write-Host "`nStep 1: Skipping build, dist/GlowStatus/GlowStatus.exe already exists."
+    Write-Host "`nStep 1: Skipping build, dist/GlowStatus.exe already exists."
 }
 
 # Step 2: Creating Chocolatey package structure
@@ -99,7 +99,38 @@ if (Test-Path "chocolatey") { Remove-Item chocolatey -Recurse -Force }
 New-Item -ItemType Directory -Path "chocolatey/glowstatus/tools" -Force | Out-Null
 
 Write-Host "Copying executable and dependencies..."
-Copy-Item "dist/GlowStatus/*" "chocolatey/glowstatus/tools/" -Recurse -Force
+Copy-Item "dist/*" "chocolatey/glowstatus/tools/" -Recurse -Force
+
+# --- BEGIN: Add LICENSE.txt and VERIFICATION.txt for Chocolatey compliance ---
+# Copy LICENSE.txt
+if (Test-Path "../../LICENSE") {
+    Copy-Item "../../LICENSE" "chocolatey/glowstatus/tools/LICENSE.txt" -Force
+} elseif (Test-Path "LICENSE") {
+    Copy-Item "LICENSE" "chocolatey/glowstatus/tools/LICENSE.txt" -Force
+} else {
+    Write-Warning "LICENSE file not found! Please ensure a LICENSE.txt is included."
+}
+
+# Generate SHA256 for verification
+$exePath = "chocolatey/glowstatus/tools/GlowStatus.exe"
+if (Test-Path $exePath) {
+    $sha256 = (Get-FileHash $exePath -Algorithm SHA256).Hash
+} else {
+    $sha256 = "<GlowStatus.exe not found>"
+}
+
+# Create VERIFICATION.txt
+@"
+This package includes the GlowStatus.exe binary built from source at:
+https://github.com/Severswoed/GlowStatus
+
+To verify:
+1. Download the source and build using the instructions in the README.
+2. Compare the resulting GlowStatus.exe with the one in this package.
+3. The SHA256 of the included GlowStatus.exe is:
+   $sha256
+"@ | Set-Content "chocolatey/glowstatus/tools/VERIFICATION.txt"
+# --- END: Add LICENSE.txt and VERIFICATION.txt for Chocolatey compliance ---
 
 # Step 3: Creating nuspec file from template (nuspec in root)
 Write-Host "`nStep 3: Creating nuspec file from template..."
@@ -218,7 +249,7 @@ finally {
 
 # Step 7: Creating GitHub release with proper release notes using StringBuilder
 Write-Host "`nStep 7: Creating GitHub release..."
-if ($env:GITHUB_TOKEN && $packageBuiltSuccessfully) {
+if ($env:GITHUB_TOKEN -and $packageBuiltSuccessfully) {
     Write-Host "Creating GitHub release v$VERSION..."
     
     # Check if release already exists

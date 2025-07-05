@@ -1,113 +1,114 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys
+
 import os
-import json
+import sys
+from PyInstaller.utils.hooks import copy_metadata
 
-# Get version from version.json directly
-def get_version_from_json():
-    try:
-        # SPECPATH is the path to this .spec file, so the version.json is in the same directory
-        version_file = os.path.join(os.path.dirname(SPECPATH) if 'SPECPATH' in globals() else os.getcwd(), 'version.json')
-        with open(version_file, 'r') as f:
-            version_data = json.load(f)
-        
-        version_str = f"{version_data['major']}.{version_data['minor']}.{version_data['patch']}"
-        if version_data.get('pre'):
-            version_str += f"-{version_data['pre']}"
-        
-        return version_data, version_str
-    except Exception as e:
-        print(f"Warning: Could not read version.json: {e}")
-        return {"major": 2, "minor": 1, "patch": 0, "pre": ""}, "2.1.0"
+# Get the current directory
+current_dir = os.path.dirname(os.path.abspath(SPEC))
 
-# Get version information
-version_info, version_string = get_version_from_json()
+# Define paths
+src_dir = os.path.join(current_dir, 'src')
+img_dir = os.path.join(current_dir, 'img')
+resources_dir = os.path.join(current_dir, 'resources')
+config_dir = os.path.join(current_dir, 'config')
 
+
+# Collect all metadata for Google packages
+datas = []
+datas += copy_metadata('google-auth')
+datas += copy_metadata('google-auth-oauthlib')
+datas += copy_metadata('google-api-python-client')
+datas += copy_metadata('google-api-core')
+datas += copy_metadata('googleapis-common-protos')
+datas += copy_metadata('httplib2')
+datas += copy_metadata('oauth2client')
+datas += copy_metadata('Pillow')
+datas += copy_metadata('requests')
+datas += copy_metadata('urllib3')
+
+# Add data directories
+datas += [(img_dir, 'img')]
+datas += [(resources_dir, 'resources')]
+
+# Create config directory in the bundle if it exists
+if os.path.exists(config_dir):
+    datas += [(config_dir, 'config')]
+
+
+
+# --- Minimal PySide6/Qt plugin inclusion for onefile mode ---
+from PyInstaller.utils.hooks import collect_data_files
+import PySide6
+import glob
+
+# Only include the essential Qt platform plugin (windows)
+datas += collect_data_files("PySide6", subdir="Qt/plugins/platforms")
+datas += collect_data_files("PySide6", subdir="Qt/plugins/imageformats")
+
+# Only include the main Qt6Core.dll and Qt6Gui.dll (needed for most PySide6 apps)
+qt_bin = os.path.join(os.path.dirname(PySide6.__file__), "Qt", "bin")
+if os.path.exists(qt_bin):
+    for dll in glob.glob(os.path.join(qt_bin, "Qt6Core.dll")):
+        datas.append((dll, os.path.join("PySide6", "Qt", "bin")))
+    for dll in glob.glob(os.path.join(qt_bin, "Qt6Gui.dll")):
+        datas.append((dll, os.path.join("PySide6", "Qt", "bin")))
+
+# Hidden imports - only essential for PySide6 minimal test
+hiddenimports = [
+    'PySide6',
+    'PySide6.QtCore',
+    'PySide6.QtGui',
+    'PySide6.QtWidgets',
+]
+
+# Analysis configuration
 a = Analysis(
-    ['src/tray_app.py'],
-    pathex=[],
+    [os.path.join(src_dir, 'tray_app.py')],
+    pathex=[current_dir, src_dir],
     binaries=[],
-    datas=[('img', 'img'), ('config', 'config'), ('resources', 'resources')],
-    hiddenimports=[
-        'PySide6.QtCore',
-        'PySide6.QtGui', 
-        'PySide6.QtWidgets',
-        'PySide6.QtNetwork',
-        'pkg_resources.py2_warn',
-        'requests',
-        'json',
-        'datetime',
-        'threading',
-        'tkinter',
-        'tkinter.ttk',
-        'tkinter.messagebox',
-        'tkinter.filedialog',
-        'tempfile',
-        'atexit',
-        'msvcrt',
-        'fcntl'
-    ],
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['discord', 'discord.*'],
+    excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=None,
     noarchive=False,
 )
-pyz = PYZ(a.pure)
 
+# Remove duplicate entries and optimize
+pyz = PYZ(a.pure, a.zipped_data, cipher=None)
+
+# Create the executable - SINGLE FILE MODE
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='GlowStatus',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    console=False,
-    disable_windowing_subsystem=False,
-    icon='img/GlowStatus.ico',
-    version_info={
-        'version': f"{version_info['major']}.{version_info['minor']}.{version_info['patch']}.0",
-        'description': 'GlowStatus - Smart Calendar Light Control',
-        'company': 'GlowStatus',
-        'product': 'GlowStatus',
-        'copyright': 'Copyright © 2024 GlowStatus',
-        'file_version': f"{version_info['major']}.{version_info['minor']}.{version_info['patch']}.0",
-        'product_version': version_string,
-    }
-)
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
+    upx=False,  # Disable UPX compression for compatibility
     upx_exclude=[],
-    name='GlowStatus',
-)
-
-app = BUNDLE(
-    coll,
-    name='GlowStatus.app',
-    icon='img/GlowStatus.icns',
-    bundle_identifier='com.glowstatus.app',
-    version=version_string,
-    info_plist={
-        'NSHighResolutionCapable': 'True',
-        'LSUIElement': '1',  # Background app (no dock icon)
-        'NSNetworkAllowsArbitraryLoads': 'True',  # Allow OAuth network requests
-        'NSAppleEventsUsageDescription': 'This app needs to open your web browser for Google OAuth authentication.',
-        'NSCalendarsUsageDescription': 'This app accesses your calendar to display your meeting status.',
-        'CFBundleShortVersionString': version_string,
-        'CFBundleVersion': version_string,
-        'CFBundleURLTypes': [
-            {
-                'CFBundleURLName': 'OAuth Redirect',
-                'CFBundleURLSchemes': ['http', 'https']
-            }
-        ]
-    },
+    runtime_tmpdir=None,
+    console=False,  # No console window
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon=os.path.join(img_dir, 'GlowStatus.ico') if os.path.exists(os.path.join(img_dir, 'GlowStatus.ico')) else None,
+    version=None,
+    uac_admin=False,
+    uac_uiaccess=False,
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    hide_console='hide-late',  # Hide console after initialization
+    onefile=True
 )

@@ -13,7 +13,7 @@ build/
 # Environment
 .env
 .env.*
-venv/
+.venv/
 .envrc
 
 # Node

@@ -4,11 +4,23 @@ google-api-python-client
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
-PySide6
+PySide6==6.7.1
 keyring
 keyrings.alt
 packaging
-pyinstaller
+pyinstaller==6.7.0
 modulegraph>=0.19.6
-py2app
-macholib>=1.16.2
+# py2app and macholib not needed for Windows build, can be commented out
+# py2app
+# macholib>=1.16.2
+# --- Additional required for build, packaging, and hidden imports ---
+oauth2client
+Pillow
+pywin32
+pystray
+six
+certifi
+charset_normalizer
+idna
+setuptools
+wheel
